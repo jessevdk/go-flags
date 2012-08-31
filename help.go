@@ -1,11 +1,11 @@
 package flags
 
 import (
-	"unicode/utf8"
 	"bufio"
-	"strings"
 	"fmt"
 	"io"
+	"strings"
+	"unicode/utf8"
 )
 
 func (p *Parser) maxLongLen() (int, bool) {
@@ -52,7 +52,7 @@ func (p *Parser) showHelpOption(writer *bufio.Writer, info *Info, maxlen int, ha
 
 	if info.Description != "" {
 		if written < maxlen {
-			writer.WriteString(strings.Repeat(" ", maxlen - written))
+			writer.WriteString(strings.Repeat(" ", maxlen-written))
 		}
 
 		writer.WriteString(info.Description)

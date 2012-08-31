@@ -1,11 +1,11 @@
 package flags
 
 import (
-	"unicode/utf8"
-	"strings"
-	"io"
-	"fmt"
 	"errors"
+	"fmt"
+	"io"
+	"strings"
+	"unicode/utf8"
 )
 
 var ErrExpectedArgument = errors.New("expected option argument")
@@ -19,23 +19,23 @@ type Help struct {
 }
 
 type Parser struct {
-	Groups []*Group
+	Groups          []*Group
 	ApplicationName string
-	Usage string
-	PassDoubleDash bool
-	IgnoreUnknown bool
+	Usage           string
+	PassDoubleDash  bool
+	IgnoreUnknown   bool
 
-	Help *Help
+	Help    *Help
 	ErrorAt interface{}
 }
 
 func NewParser(appname string, groups ...*Group) *Parser {
-	return &Parser {
+	return &Parser{
 		ApplicationName: appname,
-		Groups: groups,
-		PassDoubleDash: false,
-		IgnoreUnknown: false,
-		Usage: "[OPTIONS]",
+		Groups:          groups,
+		PassDoubleDash:  false,
+		IgnoreUnknown:   false,
+		Usage:           "[OPTIONS]",
 	}
 }
 
@@ -45,7 +45,7 @@ func (p *Parser) AddGroup(groups ...*Group) {
 
 func (p *Parser) AddHelp(writer io.Writer) {
 	if p.Help == nil {
-		p.Help = &Help {
+		p.Help = &Help{
 			writer: writer,
 		}
 
@@ -164,7 +164,7 @@ func (p *Parser) Parse(args []string) ([]string, error) {
 
 			for j, c := range short {
 				clen := utf8.RuneLen(c)
-				islast := (j + clen == len(short))
+				islast := (j+clen == len(short))
 
 				if !islast && argument == nil {
 					rr := short[j+clen:]

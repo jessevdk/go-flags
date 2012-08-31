@@ -1,10 +1,10 @@
 package flags
 
 import (
-	"reflect"
 	"errors"
-	"unicode/utf8"
 	"fmt"
+	"reflect"
+	"unicode/utf8"
 )
 
 var _ = fmt.Printf
@@ -14,23 +14,23 @@ var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct
 var ErrShortNameTooLong = errors.New("short names can only be 1 character")
 
 type Info struct {
-	ShortName rune
-	LongName string
-	Description string
-	Default string
+	ShortName        rune
+	LongName         string
+	Description      string
+	Default          string
 	OptionalArgument bool
 
-	Value reflect.Value
+	Value   reflect.Value
 	Options reflect.StructTag
 }
 
 type Group struct {
-	Name string
-	LongNames map[string]*Info
+	Name       string
+	LongNames  map[string]*Info
 	ShortNames map[rune]*Info
-	Options []*Info
+	Options    []*Info
 
-	Data interface{}
+	Data  interface{}
 	Error error
 }
 
@@ -77,11 +77,11 @@ func (info *Info) String() string {
 }
 
 func NewGroup(name string, s interface{}) *Group {
-	ret := &Group {
-		Name: name,
-		LongNames: make(map[string]*Info),
+	ret := &Group{
+		Name:       name,
+		LongNames:  make(map[string]*Info),
 		ShortNames: make(map[rune]*Info),
-		Data: s,
+		Data:       s,
 	}
 
 	ret.Error = ret.scan()
@@ -143,14 +143,14 @@ func (g *Group) scan() error {
 
 		optional := (field.Tag.Get("optional") != "")
 
-		info := &Info {
-			Description: description,
-			ShortName: short,
-			LongName: longname,
-			Default: def,
+		info := &Info{
+			Description:      description,
+			ShortName:        short,
+			LongName:         longname,
+			Default:          def,
 			OptionalArgument: optional,
-			Value: realval.Field(i),
-			Options: field.Tag,
+			Value:            realval.Field(i),
+			Options:          field.Tag,
 		}
 
 		g.Options = append(g.Options, info)
