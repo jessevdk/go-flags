@@ -1,3 +1,7 @@
+// Copyright 2012 Jesse van den Kieboom. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Package flags provides an extensive command line option parser.
 // The flags package is similar in functionality to the go builtin flag package
 // but provides more options and uses reflection to provide a convenient and
