@@ -61,6 +61,8 @@ func (p *Parser) showHelpOption(writer *bufio.Writer, info *Info, maxlen int, ha
 	writer.WriteString("\n")
 }
 
+// ShowHelp writes a help message containing all the possible options and
+// their descriptions to the provided writer.
 func (p *Parser) ShowHelp(writer io.Writer) {
 	if writer == nil {
 		return
