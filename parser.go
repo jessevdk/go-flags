@@ -51,21 +51,21 @@ type help struct {
 //     }
 type Parser struct {
 	// The option groups available to the parser
-	Groups          []*Group
+	Groups []*Group
 
 	// The parser application name
 	ApplicationName string
 
 	// The usage (e.g. [OPTIONS] <filename>)
-	Usage           string
+	Usage string
 
 	// If true, all arguments after a double dash (--) will be passed
 	// as remaining command line arguments. Defaults to false.
-	PassDoubleDash  bool
+	PassDoubleDash bool
 
 	// If true, unknown command line arguments are ignored and passed as
 	// remaining command line arguments. Defaults to false.
-	IgnoreUnknown   bool
+	IgnoreUnknown bool
 
 	help    *help
 	errorAt interface{}

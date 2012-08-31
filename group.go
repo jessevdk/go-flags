@@ -20,23 +20,23 @@ type Info struct {
 	// The short name of the option (a single character). If not 0, the
 	// option flag can be 'activated' using -<ShortName>. Either ShortName
 	// or LongName needs to be non-empty.
-	ShortName        rune
+	ShortName rune
 
 	// The long name of the option. If not "", the option flag can be
 	// activated using --<LongName>. Either ShortName or LongName needs
 	// to be non-empty.
-	LongName         string
+	LongName string
 
 	// The description of the option flag. This description is shown
 	// automatically in the builtin help.
-	Description      string
+	Description string
 
 	// The default value of the option. The default value is used when
 	// the option flag is marked as having an OptionalArgument. This means
 	// that when the flag is specified, but no option argument is given,
 	// the value of the field this option represents will be set to
 	// Default. This is only valid for non-boolean options.
-	Default          string
+	Default string
 
 	// If true, specifies that the argument to an option flag is optional.
 	// When no argument to the flag is specified on the command line, the
@@ -51,21 +51,21 @@ type Info struct {
 // An option group. The option group has a name and a set of options.
 type Group struct {
 	// The name of the group.
-	Name       string
+	Name string
 
 	// A map of long names to option info descriptions.
-	LongNames  map[string]*Info
+	LongNames map[string]*Info
 
 	// A map of short names to option info descriptions.
 	ShortNames map[rune]*Info
 
 	// A list of all the options in the group.
-	Options    []*Info
+	Options []*Info
 
 	// An error which occurred when creating the group.
 	Error error
 
-	data  interface{}
+	data interface{}
 }
 
 func (info *Info) canArgument() bool {
@@ -104,7 +104,7 @@ func (info *Info) call(value *string) {
 		val := reflect.New(reflect.TypeOf(*value))
 		val.SetString(*value)
 
-		info.value.Call([]reflect.Value {reflect.Indirect(val)})
+		info.value.Call([]reflect.Value{reflect.Indirect(val)})
 	}
 }
 
