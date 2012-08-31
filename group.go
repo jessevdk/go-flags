@@ -68,9 +68,19 @@ type Group struct {
 	data  interface{}
 }
 
-// IsBool determines if the option is a boolean type option. Boolean type
-// options include options of type bool and []bool
-func (info *Info) IsBool() bool {
+func (info *Info) canArgument() bool {
+	if info.isBool() {
+		return false
+	}
+
+	if info.isFunc() {
+		return (info.value.Type().NumIn() > 0)
+	}
+
+	return true
+}
+
+func (info *Info) isBool() bool {
 	tp := info.value.Type()
 
 	switch tp.Kind() {
@@ -83,11 +93,34 @@ func (info *Info) IsBool() bool {
 	return false
 }
 
+func (info *Info) isFunc() bool {
+	return info.value.Type().Kind() == reflect.Func
+}
+
+func (info *Info) call(value *string) {
+	if value == nil {
+		info.value.Call(nil)
+	} else {
+		val := reflect.New(reflect.TypeOf(*value))
+		val.SetString(*value)
+
+		info.value.Call([]reflect.Value {reflect.Indirect(val)})
+	}
+}
+
 // Set the value of an option to the specified value. An error will be returned
 // if the specified value could not be converted to the corresponding option
 // value type.
-func (info *Info) Set(value string) error {
-	return convert(value, info.value, info.options)
+func (info *Info) Set(value *string) error {
+	if info.isFunc() {
+		info.call(value)
+	} else if value != nil {
+		return convert(*value, info.value, info.options)
+	} else {
+		return convert("", info.value, info.options)
+	}
+
+	return nil
 }
 
 // Convert an option to a human friendly readable string describing the option.

@@ -110,22 +110,22 @@ func (p *Parser) AddHelp(writer io.Writer) *Parser {
 }
 
 func (p *Parser) parseOption(group *Group, args []string, name string, info *Info, canarg bool, argument *string, index int) (error, int) {
-	if info.IsBool() {
+	if !info.canArgument() {
 		if canarg && argument != nil {
 			p.errorAt = info
 			return ErrNoArgumentForBool, index
 		}
 
-		info.Set("")
+		info.Set(nil)
 	} else if canarg && (argument != nil || index < len(args)) {
 		if argument == nil {
 			argument = &args[index]
 			index++
 		}
 
-		info.Set(*argument)
+		info.Set(argument)
 	} else if info.OptionalArgument {
-		info.Set(info.Default)
+		info.Set(&info.Default)
 	} else {
 		p.errorAt = info
 		return ErrExpectedArgument, index
@@ -164,7 +164,7 @@ func (p *Parser) parseShort(args []string, name rune, islast bool, argument *str
 	info, grp := p.getShort(name)
 
 	if info != nil {
-		if !info.IsBool() && !islast && !info.OptionalArgument {
+		if info.canArgument() && !islast && !info.OptionalArgument {
 			p.errorAt = info
 			return ErrExpectedArgument, index
 		}
@@ -242,7 +242,7 @@ func (p *Parser) Parse(args []string) ([]string, error) {
 					next, _ := utf8.DecodeRuneInString(rr)
 					info, _ := p.getShort(c)
 
-					if info != nil && !info.IsBool() {
+					if info != nil && info.canArgument() {
 						if snext, _ := p.getShort(next); snext == nil {
 							// Consider the next stuff as an argument
 							argument = &rr
