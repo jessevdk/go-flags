@@ -16,6 +16,8 @@
 //     Supports multiple short options -aux
 //     Supports all primitive go types (string, int{8..64}, uint{8..64}, float)
 //     Supports same option multiple times (can store in slice or last option counts)
+//     Supports maps
+//     Supports function callbacks
 //
 // The flags package uses structs, reflection and struct field tags
 // to allow users to specify command line options. This results in very simple
