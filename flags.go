@@ -39,6 +39,7 @@
 //     optional:    whether an argument of the option is optional (optional)
 //     default:     the default argument value if the option occurs without
 //                  an argument (optional)
+//     base:        a base used to convert strings to integer values (optional)
 //
 // Either short: or long: must be specified to make the field eligible as an
 // option.
