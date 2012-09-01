@@ -33,28 +33,6 @@ type help struct {
 
 // A Parser provides command line option parsing. It can contain several
 // option groups each with their own set of options.
-//
-// Example:
-//     type Options struct {
-//         Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
-//     }
-//
-//     opts := new(Options)
-//
-//     parser := flags.NewParser("testapp")
-//     parser.AddHelp(os.Stderr)
-//
-//     parser.AddGroup(flags.NewGroup("Application Options", opts))
-//
-//     args, err := parser.Parse(os.Args[1:])
-//
-//     if err != nil {
-//         if err != flags.ErrHelp {
-//             parser.PrintError(os.Stderr, err)
-//         }
-//
-//         os.Exit(1)
-//     }
 type Parser struct {
 	// The option groups available to the parser
 	Groups []*Group
