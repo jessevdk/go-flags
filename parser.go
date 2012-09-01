@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"os"
 	"unicode/utf8"
 )
 
@@ -194,7 +195,13 @@ func (p *Parser) PrintError(writer io.Writer, err error) {
 	writer.Write([]byte(s))
 }
 
-// Parse parses the command line arguments according to the option groups that
+// Parse parses the command line arguments from os.Args using Parser.ParseArgs.
+// For more detailed information see ParseArgs.
+func (p *Parser) Parse() ([]string, error) {
+	return p.ParseArgs(os.Args[1:])
+}
+
+// ParseArgs parses the command line arguments according to the option groups that
 // were added to the parser. On successful parsing of the arguments, the
 // remaining, non-option, arguments (if any) are returned. The returned error
 // indicates a parsing error and can be used with PrintError to display
@@ -205,7 +212,7 @@ func (p *Parser) PrintError(writer io.Writer, err error) {
 // automatically printed. Furthermore, the special error ErrHelp is returned
 // to indicate that the help was shown. It is up to the caller to exit the
 // program if so desired.
-func (p *Parser) Parse(args []string) ([]string, error) {
+func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	ret := make([]string, 0, len(args))
 	i := 0
 
