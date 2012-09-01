@@ -177,13 +177,13 @@ func (g *Group) scan() error {
 	ptrval := reflect.ValueOf(g.data)
 
 	if ptrval.Type().Kind() != reflect.Ptr {
-		return ErrNotPointerToStruct
+		panic(ErrNotPointerToStruct)
 	}
 
 	stype := ptrval.Type().Elem()
 
 	if stype.Kind() != reflect.Struct {
-		return ErrNotPointerToStruct
+		panic(ErrNotPointerToStruct)
 	}
 
 	realval := reflect.Indirect(ptrval)
