@@ -44,11 +44,11 @@ type help struct {
 //
 //     parser.AddGroup(flags.NewGroup("Application Options", opts))
 //
-//     args, err := parser.Parser(os.Args[1:])
+//     args, err := parser.Parse(os.Args[1:])
 //
 //     if err != nil {
 //         if err != flags.ErrHelp {
-//             parser.PrintError(os.Stderr)
+//             parser.PrintError(os.Stderr, err)
 //         }
 //
 //         os.Exit(1)
