@@ -89,10 +89,15 @@ func NewParser(appname string, groups ...*Group) *Parser {
 	}
 }
 
-// AddGroup adds one or more option groups to the parser. It returns the parser
+// AddGroups adds one or more option groups to the parser. It returns the parser
 // itself again so multiple calls can be chained.
-func (p *Parser) AddGroup(groups ...*Group) *Parser {
+func (p *Parser) AddGroups(groups ...*Group) *Parser {
 	p.Groups = append(p.Groups, groups...)
+	return p
+}
+
+func (p *Parser) AddGroup(name string, data interface{}) *Parser {
+	p.Groups = append(p.Groups, NewGroup(name, data))
 	return p
 }
 
@@ -107,7 +112,7 @@ func (p *Parser) AddHelp(writer io.Writer) *Parser {
 			writer: writer,
 		}
 
-		p.AddGroup(NewGroup("Help Options", p.help))
+		p.AddGroup("Help Options", p.help)
 	}
 
 	return p
