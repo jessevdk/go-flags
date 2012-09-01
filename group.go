@@ -106,9 +106,11 @@ func (info *Info) call(value *string) {
 		info.value.Call(nil)
 	} else {
 		val := reflect.New(reflect.TypeOf(*value))
+		val = reflect.Indirect(val)
+
 		val.SetString(*value)
 
-		info.value.Call([]reflect.Value{reflect.Indirect(val)})
+		info.value.Call([]reflect.Value{val})
 	}
 }
 
