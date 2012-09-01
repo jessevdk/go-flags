@@ -6,6 +6,7 @@ package flags
 
 import (
 	"errors"
+	"path"
 	"fmt"
 	"io"
 	"strings"
@@ -76,11 +77,18 @@ type Parser struct {
 	errorAt interface{}
 }
 
-// NewParser creates a new parser. The appname is used to display the
+// NewParser creates a new parser. It uses os.Args[0] as the application
+// name and then calls Parser.NewNamedParser (see Parser.NewNamedParser for
+// more details).
+func NewParser(groups ...*Group) *Parser {
+	return NewNamedParser(path.Base(os.Args[0]), groups...)
+}
+
+// NewNamedParser creates a new parser. The appname is used to display the
 // executable name in the builtin help message. An initial set of option groups
 // can be specified when constructing a parser, but you can also add additional
 // option groups later (see Parser.AddGroup).
-func NewParser(appname string, groups ...*Group) *Parser {
+func NewNamedParser(appname string, groups ...*Group) *Parser {
 	return &Parser{
 		ApplicationName: appname,
 		Groups:          groups,
