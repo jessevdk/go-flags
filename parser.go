@@ -5,31 +5,12 @@
 package flags
 
 import (
-	"errors"
 	"path"
-	"fmt"
-	"io"
 	"strings"
 	"os"
+	"fmt"
 	"unicode/utf8"
 )
-
-// Expected an argument but got none
-var ErrExpectedArgument = errors.New("expected option argument")
-
-// Unknown option flag was found
-var ErrUnknownFlag = errors.New("unknown flag")
-
-// The builtin help message was printed
-var ErrHelp = errors.New("help shown")
-
-// An argument for a boolean value was specified
-var ErrNoArgumentForBool = errors.New("bool flags cannot have arguments")
-
-type help struct {
-	writer io.Writer
-	IsHelp bool `long:"help" short:"h" description:"Show help options"`
-}
 
 // A Parser provides command line option parsing. It can contain several
 // option groups each with their own set of options.
@@ -43,142 +24,78 @@ type Parser struct {
 	// The usage (e.g. [OPTIONS] <filename>)
 	Usage string
 
-	// If true, all arguments after a double dash (--) will be passed
-	// as remaining command line arguments. Defaults to false.
-	PassDoubleDash bool
+	Options Options
+}
 
-	// If true, unknown command line arguments are ignored and passed as
-	// remaining command line arguments. Defaults to false.
-	IgnoreUnknown bool
+// Parser options
+type Options uint
 
-	help    *help
-	errorAt interface{}
+const (
+	// No options
+	None Options = 0
+
+	// Add a default Help Options group to the parser containing -h and
+	// --help options. When either -h or --help is specified on the command
+	// line, a pretty formatted help message will be printed to os.Stderr.
+	// The parser will return ErrHelp.
+	ShowHelp = 1 << iota
+
+	// Pass all arguments after a double dash, --, as remaining command line
+	// arguments (i.e. they will not be parsed for flags)
+	PassDoubleDash
+
+	// Ignore any unknown options and pass them as remaining command line
+	// arguments
+	IgnoreUnknown
+
+	// Print any errors which occured during parsing to os.Stderr
+	PrintErrors
+
+	// A convenient default set of options
+	Default = ShowHelp | PrintErrors | PassDoubleDash
+)
+
+// Parse is a convenience function to parse command line options with default
+// settings. The provided data is a pointer to a struct representing the
+// default option group (named "Application Options"). For more control, use
+// flags.NewParser.
+func Parse(data interface{}) ([]string, error) {
+	return NewParser(data, Default).Parse()
 }
 
 // NewParser creates a new parser. It uses os.Args[0] as the application
 // name and then calls Parser.NewNamedParser (see Parser.NewNamedParser for
-// more details).
-func NewParser(groups ...*Group) *Parser {
-	return NewNamedParser(path.Base(os.Args[0]), groups...)
+// more details). The provided data is a pointer to a struct representing the
+// default option group (named "Application Options"), or nil if the default
+// group should not be added. The options parameter specifies a set of options
+// for the parser.
+func NewParser(data interface{}, options Options) *Parser {
+	if data == nil {
+		return NewNamedParser(path.Base(os.Args[0]), options)
+	}
+
+	return NewNamedParser(path.Base(os.Args[0]), options, NewGroup("Application Options", data))
 }
 
 // NewNamedParser creates a new parser. The appname is used to display the
 // executable name in the builtin help message. An initial set of option groups
 // can be specified when constructing a parser, but you can also add additional
 // option groups later (see Parser.AddGroup).
-func NewNamedParser(appname string, groups ...*Group) *Parser {
+func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
 	return &Parser{
 		ApplicationName: appname,
 		Groups:          groups,
-		PassDoubleDash:  false,
-		IgnoreUnknown:   false,
+		Options:  options,
 		Usage:           "[OPTIONS]",
 	}
 }
 
-// AddGroups adds one or more option groups to the parser. It returns the parser
-// itself again so multiple calls can be chained.
-func (p *Parser) AddGroups(groups ...*Group) *Parser {
-	p.Groups = append(p.Groups, groups...)
-	return p
-}
-
+// AddGroup adds a new group to the parser with the given name and data. The
+// data needs to be a pointer to a struct from which the fields indicate which
+// options are in the group.
 func (p *Parser) AddGroup(name string, data interface{}) *Parser {
 	p.Groups = append(p.Groups, NewGroup(name, data))
 	return p
-}
-
-// AddHelp adds a common help option group to the parser. The help option group
-// contains only one option, with short name -h and long name --help.
-// When either -h or --help appears, a help message listing all the options
-// will be written to the specified writer. It returns the parser itself
-// again so multiple calls can be chained.
-func (p *Parser) AddHelp(writer io.Writer) *Parser {
-	if p.help == nil {
-		p.help = &help{
-			writer: writer,
-		}
-
-		p.AddGroup("Help Options", p.help)
-	}
-
-	return p
-}
-
-func (p *Parser) parseOption(group *Group, args []string, name string, info *Info, canarg bool, argument *string, index int) (error, int) {
-	if !info.canArgument() {
-		if canarg && argument != nil {
-			p.errorAt = info
-			return ErrNoArgumentForBool, index
-		}
-
-		info.Set(nil)
-	} else if canarg && (argument != nil || index < len(args)) {
-		if argument == nil {
-			argument = &args[index]
-			index++
-		}
-
-		info.Set(argument)
-	} else if info.OptionalArgument {
-		info.Set(&info.Default)
-	} else {
-		p.errorAt = info
-		return ErrExpectedArgument, index
-	}
-
-	return nil, index
-}
-
-func (p *Parser) parseLong(args []string, name string, argument *string, index int) (error, int) {
-	for _, grp := range p.Groups {
-		if info := grp.LongNames[name]; info != nil {
-			return p.parseOption(grp, args, name, info, true, argument, index)
-		}
-	}
-
-	p.errorAt = fmt.Sprintf("--%v", name)
-	return ErrUnknownFlag, index
-}
-
-func (p *Parser) getShort(name rune) (*Info, *Group) {
-	for _, grp := range p.Groups {
-		info := grp.ShortNames[name]
-
-		if info != nil {
-			return info, grp
-		}
-	}
-
-	return nil, nil
-}
-
-func (p *Parser) parseShort(args []string, name rune, islast bool, argument *string, index int) (error, int) {
-	names := make([]byte, utf8.RuneLen(name))
-	utf8.EncodeRune(names, name)
-
-	info, grp := p.getShort(name)
-
-	if info != nil {
-		if info.canArgument() && !islast && !info.OptionalArgument {
-			p.errorAt = info
-			return ErrExpectedArgument, index
-		}
-
-		return p.parseOption(grp, args, string(names), info, islast, argument, index)
-	}
-
-	p.errorAt = fmt.Sprintf("-%v", string(names))
-	return ErrUnknownFlag, index
-}
-
-// PrintError prints an error which occurred while parsing command line
-// arguments. This is more useful than simply printing the error message
-// because context information on where the error occurred will also be
-// written. The error is printed to writer (commonly os.Stderr).
-func (p *Parser) PrintError(writer io.Writer, err error) {
-	s := fmt.Sprintf("Error at `%v': %s\n", p.errorAt, err)
-	writer.Write([]byte(s))
 }
 
 // Parse parses the command line arguments from os.Args using Parser.ParseArgs.
@@ -202,13 +119,27 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	ret := make([]string, 0, len(args))
 	i := 0
 
+	if (p.Options & ShowHelp) != None {
+		var help struct {
+			ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
+		}
+
+		help.ShowHelp = func() error {
+			p.ShowHelp(os.Stderr)
+			return ErrHelp
+		}
+
+		p.Groups = append([]*Group {NewGroup("Help Options", &help)}, p.Groups...)
+		p.Options &^= ShowHelp
+	}
+
 	for i < len(args) {
 		arg := args[i]
 		i++
 
 		// When PassDoubleDash is set and we encounter a --, then
 		// simply append all the rest as arguments and break out
-		if p.PassDoubleDash && arg == "--" {
+		if (p.Options & PassDoubleDash) != None && arg == "--" {
 			ret = append(ret, args[i:]...)
 			break
 		}
@@ -262,19 +193,20 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		if err != nil {
-			if p.IgnoreUnknown {
+			if (p.Options & IgnoreUnknown) != None {
 				ret = append(ret, arg)
 			} else {
+				if err.(*Error) == nil {
+					err = newError(ErrUnknown, err.Error())
+				}
+
+				if (p.Options & PrintErrors) != None && err != ErrHelp {
+					fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
+				}
+
 				return nil, err
 			}
 		}
-	}
-
-	if p.help != nil && p.help.IsHelp {
-		p.ShowHelp(p.help.writer)
-		p.errorAt = "--help"
-
-		return ret, ErrHelp
 	}
 
 	return ret, nil
