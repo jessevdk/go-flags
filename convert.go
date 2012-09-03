@@ -77,7 +77,17 @@ func convert(val string, retval reflect.Value, options reflect.StructTag) error 
 	case reflect.String:
 		retval.SetString(val)
 	case reflect.Bool:
-		retval.SetBool(true)
+		if val == "" {
+			retval.SetBool(true)
+		} else {
+			b, err := strconv.ParseBool(val)
+
+			if err != nil {
+				return err
+			}
+
+			retval.SetBool(b)
+		}
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, err := getBase(options, 10)
 
