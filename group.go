@@ -20,7 +20,7 @@ var ErrShortNameTooLong = errors.New("short names can only be 1 character")
 // Option flag information. Contains a description of the option, short and
 // long name as well as a default value and whether an argument for this
 // flag is optional.
-type Info struct {
+type Option struct {
 	// The short name of the option (a single character). If not 0, the
 	// option flag can be 'activated' using -<ShortName>. Either ShortName
 	// or LongName needs to be non-empty.
@@ -57,14 +57,14 @@ type Group struct {
 	// The name of the group.
 	Name string
 
-	// A map of long names to option info descriptions.
-	LongNames map[string]*Info
+	// A map of long names to option option descriptions.
+	LongNames map[string]*Option
 
-	// A map of short names to option info descriptions.
-	ShortNames map[rune]*Info
+	// A map of short names to option option descriptions.
+	ShortNames map[rune]*Option
 
 	// A list of all the options in the group.
-	Options []*Info
+	Options []*Option
 
 	// An error which occurred when creating the group.
 	Error error
@@ -75,35 +75,35 @@ type Group struct {
 // Set the value of an option to the specified value. An error will be returned
 // if the specified value could not be converted to the corresponding option
 // value type.
-func (info *Info) Set(value *string) error {
-	if info.isFunc() {
-		return info.call(value)
+func (option *Option) Set(value *string) error {
+	if option.isFunc() {
+		return option.call(value)
 	} else if value != nil {
-		return convert(*value, info.value, info.options)
+		return convert(*value, option.value, option.options)
 	} else {
-		return convert("", info.value, info.options)
+		return convert("", option.value, option.options)
 	}
 
 	return nil
 }
 
 // Convert an option to a human friendly readable string describing the option.
-func (info *Info) String() string {
+func (option *Option) String() string {
 	var s string
 	var short string
 
-	if info.ShortName != 0 {
-		data := make([]byte, utf8.RuneLen(info.ShortName))
-		utf8.EncodeRune(data, info.ShortName)
+	if option.ShortName != 0 {
+		data := make([]byte, utf8.RuneLen(option.ShortName))
+		utf8.EncodeRune(data, option.ShortName)
 		short = string(data)
 
-		if len(info.LongName) != 0 {
-			s = fmt.Sprintf("-%s, --%s", short, info.LongName)
+		if len(option.LongName) != 0 {
+			s = fmt.Sprintf("-%s, --%s", short, option.LongName)
 		} else {
 			s = fmt.Sprintf("-%s", short)
 		}
-	} else if len(info.LongName) != 0 {
-		s = fmt.Sprintf("--%s", info.LongName)
+	} else if len(option.LongName) != 0 {
+		s = fmt.Sprintf("--%s", option.LongName)
 	}
 
 	return s
@@ -117,8 +117,8 @@ func (info *Info) String() string {
 func NewGroup(name string, data interface{}) *Group {
 	ret := &Group{
 		Name:       name,
-		LongNames:  make(map[string]*Info),
-		ShortNames: make(map[rune]*Info),
+		LongNames:  make(map[string]*Option),
+		ShortNames: make(map[rune]*Option),
 		data:       data,
 	}
 

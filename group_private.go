@@ -5,20 +5,20 @@ import (
 	"unicode/utf8"
 )
 
-func (info *Info) canArgument() bool {
-	if info.isBool() {
+func (option *Option) canArgument() bool {
+	if option.isBool() {
 		return false
 	}
 
-	if info.isFunc() {
-		return (info.value.Type().NumIn() > 0)
+	if option.isFunc() {
+		return (option.value.Type().NumIn() > 0)
 	}
 
 	return true
 }
 
-func (info *Info) isBool() bool {
-	tp := info.value.Type()
+func (option *Option) isBool() bool {
+	tp := option.value.Type()
 
 	switch tp.Kind() {
 	case reflect.Bool:
@@ -30,26 +30,26 @@ func (info *Info) isBool() bool {
 	return false
 }
 
-func (info *Info) isFunc() bool {
-	return info.value.Type().Kind() == reflect.Func
+func (option *Option) isFunc() bool {
+	return option.value.Type().Kind() == reflect.Func
 }
 
-func (info *Info) call(value *string) error {
+func (option *Option) call(value *string) error {
 	var retval []reflect.Value
 
 	if value == nil {
-		retval = info.value.Call(nil)
+		retval = option.value.Call(nil)
 	} else {
-		tp := info.value.Type().In(0)
+		tp := option.value.Type().In(0)
 
 		val := reflect.New(tp)
 		val = reflect.Indirect(val)
 
-		if err := convert(*value, val, info.options); err != nil {
+		if err := convert(*value, val, option.options); err != nil {
 			return err
 		}
 
-		retval = info.value.Call([]reflect.Value{val})
+		retval = option.value.Call([]reflect.Value{val})
 	}
 
 	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {
@@ -115,7 +115,7 @@ func (g *Group) scan() error {
 
 		optional := (field.Tag.Get("optional") != "")
 
-		info := &Info{
+		option := &Option{
 			Description:      description,
 			ShortName:        short,
 			LongName:         longname,
@@ -125,14 +125,14 @@ func (g *Group) scan() error {
 			options:          field.Tag,
 		}
 
-		g.Options = append(g.Options, info)
+		g.Options = append(g.Options, option)
 
-		if info.ShortName != 0 {
-			g.ShortNames[info.ShortName] = info
+		if option.ShortName != 0 {
+			g.ShortNames[option.ShortName] = option
 		}
 
-		if info.LongName != "" {
-			g.LongNames[info.LongName] = info
+		if option.LongName != "" {
+			g.LongNames[option.LongName] = option
 		}
 	}
 

@@ -33,33 +33,33 @@ func (p *Parser) maxLongLen() (int, bool) {
 	return maxlonglen, hasshort
 }
 
-func (p *Parser) showHelpOption(writer *bufio.Writer, info *Info, maxlen int, hasshort bool) {
-	if info.ShortName != 0 {
+func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int, hasshort bool) {
+	if option.ShortName != 0 {
 		writer.WriteString("  -")
-		writer.WriteRune(info.ShortName)
+		writer.WriteRune(option.ShortName)
 	} else if hasshort {
 		writer.WriteString("    ")
 	}
 
 	written := 0
 
-	if info.LongName != "" {
-		if info.ShortName != 0 {
+	if option.LongName != "" {
+		if option.ShortName != 0 {
 			writer.WriteString(", ")
 		} else {
 			writer.WriteString("  ")
 		}
 
-		fmt.Fprintf(writer, "--%s", info.LongName)
-		written = utf8.RuneCountInString(info.LongName)
+		fmt.Fprintf(writer, "--%s", option.LongName)
+		written = utf8.RuneCountInString(option.LongName)
 	}
 
-	if info.Description != "" {
+	if option.Description != "" {
 		if written < maxlen {
 			writer.WriteString(strings.Repeat(" ", maxlen-written))
 		}
 
-		writer.WriteString(info.Description)
+		writer.WriteString(option.Description)
 	}
 
 	writer.WriteString("\n")
