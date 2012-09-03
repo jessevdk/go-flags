@@ -105,12 +105,16 @@ func (info *Info) call(value *string) {
 	if value == nil {
 		info.value.Call(nil)
 	} else {
-		val := reflect.New(reflect.TypeOf(*value))
+		tp := info.value.Type().In(0)
+
+		val := reflect.New(tp)
 		val = reflect.Indirect(val)
 
-		val.SetString(*value)
+		if err := convert(*value, val, info.options); err != nil {
+			return err
+		}
 
-		info.value.Call([]reflect.Value{val})
+		 info.value.Call([]reflect.Value{val})
 	}
 }
 
