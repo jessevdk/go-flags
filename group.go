@@ -106,10 +106,6 @@ func (info *Info) String() string {
 		s = fmt.Sprintf("--%s", info.LongName)
 	}
 
-	if len(info.Description) != 0 {
-		return fmt.Sprintf("%s (%s)", s, info.Description)
-	}
-
 	return s
 }
 
