@@ -3,6 +3,7 @@ package flags
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -65,6 +66,10 @@ func readIni(filename string) (Ini, error) {
 
 	for {
 		line, err := readFullLine(reader)
+
+		if err == io.EOF {
+			break
+		}
 
 		if err != nil {
 			return nil, err
