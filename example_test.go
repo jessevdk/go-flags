@@ -31,29 +31,10 @@ func Example() {
 		cmd.Process.Release()
 	}
 
-	// Create a new parser
-	parser := flags.NewParser()
-
-	// Add the standard help group to the parser
-	parser.AddHelp(os.Stderr)
-
-	// Add a new group for our own options. Note that we need to pass
-	// opts by reference (as a pointer) to allow the parser to set
-	// the fields values when needed.
-	parser.AddGroup("Application Options", &opts)
-
-	// Finally, parse the command line arguments (uses os.Args by
-	// default). The resulting args are the remaining unparsed command
-	// line arguments. err will be set if there was a problem while
-	// parsing the command line options. It will take the special
-	// value flags.ErrHelp if the standard help was shown.
-	args, err := parser.Parse()
+	// Parse flags
+	args, err := flags.Parse(&opts)
 
 	if err != nil {
-		if err != flags.ErrHelp {
-			parser.PrintError(os.Stderr, err)
-		}
-
 		os.Exit(1)
 	}
 
