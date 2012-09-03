@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func getBase(options reflect.StructTag, base int) (int, error) {
@@ -106,6 +107,19 @@ func convert(val string, retval reflect.Value, options reflect.StructTag) error 
 		}
 
 		retval.SetMapIndex(reflect.Indirect(keyval), reflect.Indirect(valueval))
+	}
+
+	// Special cases
+
+	// Support for time.Duration
+	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+		parsed, err := time.ParseDuration(val)
+
+		if err != nil {
+			return err
+		}
+
+		retval.SetInt(int64(parsed))
 	}
 
 	return nil
