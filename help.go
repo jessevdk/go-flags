@@ -33,7 +33,7 @@ func (p *Parser) maxLongLen() (int, bool) {
 	return maxlonglen, hasshort
 }
 
-func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int, hasshort bool) {
+func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int, hasshort bool, termcol int) {
 	if option.ShortName != 0 {
 		writer.WriteString("  -")
 		writer.WriteRune(option.ShortName)
@@ -42,6 +42,7 @@ func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int
 	}
 
 	written := 0
+	prelen := 4
 
 	if option.LongName != "" {
 		if option.ShortName != 0 {
@@ -52,20 +53,30 @@ func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int
 
 		fmt.Fprintf(writer, "--%s", option.LongName)
 		written = utf8.RuneCountInString(option.LongName)
+
+		prelen += written + 4
 	}
 
 	if option.Description != "" {
 		if written < maxlen {
-			writer.WriteString(strings.Repeat(" ", maxlen-written))
+			dw := maxlen - written
+
+			writer.WriteString(strings.Repeat(" ", dw))
+			prelen += dw
 		}
 
 		def := convertToString(option.value, option.options)
+		var desc string
 
 		if def != "" {
-			fmt.Fprintf(writer, "%s (%v)", option.Description, def)
+			desc = fmt.Sprintf("%s (%v)", option.Description, def)
 		} else {
-			writer.WriteString(option.Description)
+			desc = option.Description
 		}
+
+		writer.WriteString(wrapText(desc,
+		                            termcol - prelen,
+		                            strings.Repeat(" ", prelen)))
 	}
 
 	writer.WriteString("\n")
@@ -97,13 +108,15 @@ func (p *Parser) ShowHelp(writer io.Writer) {
 	maxlonglen, hasshort := p.maxLongLen()
 	maxlen := maxlonglen + 4
 
+	termcol := getTerminalColumns()
+
 	for _, grp := range p.Groups {
 		wr.WriteString("\n")
 
 		fmt.Fprintf(wr, "%s:\n", grp.Name)
 
 		for _, info := range grp.Options {
-			p.showHelpOption(wr, info, maxlen, hasshort)
+			p.showHelpOption(wr, info, maxlen, hasshort, termcol)
 		}
 	}
 
