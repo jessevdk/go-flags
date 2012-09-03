@@ -57,6 +57,9 @@ type Group struct {
 	// The name of the group.
 	Name string
 
+	Names    map[string]*Option
+	IniNames map[string]*Option
+
 	// A map of long names to option option descriptions.
 	LongNames map[string]*Option
 
@@ -117,6 +120,8 @@ func (option *Option) String() string {
 func NewGroup(name string, data interface{}) *Group {
 	ret := &Group{
 		Name:       name,
+		Names:      make(map[string]*Option),
+		IniNames:   make(map[string]*Option),
 		LongNames:  make(map[string]*Option),
 		ShortNames: make(map[rune]*Option),
 		data:       data,

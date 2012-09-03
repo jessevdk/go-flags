@@ -13,6 +13,9 @@ const (
 	// Unknown flag
 	ErrUnknownFlag
 
+	// Unknown group
+	ErrUnknownGroup
+
 	// Failed to marshal value
 	ErrMarshal
 
@@ -43,6 +46,14 @@ func newError(tp ErrorType, message string) error {
 		Type:    tp,
 		Message: message,
 	}
+}
+
+func wrapError(err error) error {
+	if _, ok := err.(*Error); !ok {
+		return newError(ErrUnknown, err.Error())
+	}
+
+	return err
 }
 
 // The builtin help message was printed. This value will be returned from

@@ -16,7 +16,8 @@ import (
 // option groups each with their own set of options.
 type Parser struct {
 	// The option groups available to the parser
-	Groups []*Group
+	Groups    []*Group
+	GroupsMap map[string]*Group
 
 	// The parser application name
 	ApplicationName string
@@ -63,6 +64,14 @@ func Parse(data interface{}) ([]string, error) {
 	return NewParser(data, Default).Parse()
 }
 
+// ParseIni is a convenience function to parse command line options with default
+// settings from an ini file. The provided data is a pointer to a struct
+// representing the default option group (named "Application Options"). For
+// more control, use flags.NewParser.
+func ParseIni(filename string, data interface{}) error {
+	return NewParser(data, Default).ParseIni(filename)
+}
+
 // NewParser creates a new parser. It uses os.Args[0] as the application
 // name and then calls Parser.NewNamedParser (see Parser.NewNamedParser for
 // more details). The provided data is a pointer to a struct representing the
@@ -82,19 +91,30 @@ func NewParser(data interface{}, options Options) *Parser {
 // can be specified when constructing a parser, but you can also add additional
 // option groups later (see Parser.AddGroup).
 func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
-	return &Parser{
+	ret := &Parser{
 		ApplicationName: appname,
 		Groups:          groups,
+		GroupsMap:       make(map[string]*Group),
 		Options:         options,
 		Usage:           "[OPTIONS]",
 	}
+
+	for _, group := range groups {
+		ret.GroupsMap[group.Name] = group
+	}
+
+	return ret
 }
 
 // AddGroup adds a new group to the parser with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
 func (p *Parser) AddGroup(name string, data interface{}) *Parser {
-	p.Groups = append(p.Groups, NewGroup(name, data))
+	group := NewGroup(name, data)
+
+	p.Groups = append(p.Groups, group)
+	p.GroupsMap[name] = group
+
 	return p
 }
 
@@ -102,6 +122,55 @@ func (p *Parser) AddGroup(name string, data interface{}) *Parser {
 // For more detailed information see ParseArgs.
 func (p *Parser) Parse() ([]string, error) {
 	return p.ParseArgs(os.Args[1:])
+}
+
+// Parse parses the command line arguments from os.Args using Parser.ParseArgs.
+// For more detailed information see ParseArgs. The returned errors can be of
+// the type flags.Error or flags.IniError.
+func (p *Parser) ParseIni(filename string) error {
+	ini, err := readIni(filename)
+
+	if err != nil {
+		return err
+	}
+
+	for groupName, section := range ini {
+		group := p.GroupsMap[groupName]
+
+		if group == nil {
+			return newError(ErrUnknownGroup,
+				fmt.Sprintf("could not find option group `%s'", groupName))
+		}
+
+		for name, val := range section {
+			opt := group.lookupByName(name, true)
+
+			if opt == nil {
+				if (p.Options & IgnoreUnknown) == None {
+					return newError(ErrUnknownFlag,
+						fmt.Sprintf("unknown option: %s", name))
+				}
+
+				continue
+			}
+
+			if opt.options.Get("no-ini") != "" {
+				continue
+			}
+
+			pval := &val
+
+			if opt.isBool() && len(val) == 0 {
+				pval = nil
+			}
+
+			if err := opt.Set(pval); err != nil {
+				return wrapError(err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // ParseArgs parses the command line arguments according to the option groups that
@@ -196,15 +265,11 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			if (p.Options & IgnoreUnknown) != None {
 				ret = append(ret, arg)
 			} else {
-				if err.(*Error) == nil {
-					err = newError(ErrUnknown, err.Error())
-				}
-
 				if (p.Options&PrintErrors) != None && err != ErrHelp {
 					fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
 				}
 
-				return nil, err
+				return nil, wrapError(err)
 			}
 		}
 	}

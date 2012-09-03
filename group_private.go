@@ -2,6 +2,7 @@ package flags
 
 import (
 	"reflect"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -54,6 +55,34 @@ func (option *Option) call(value *string) error {
 
 	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {
 		return retval[0].Interface().(error)
+	}
+
+	return nil
+}
+
+func (g *Group) lookupByName(name string, ini bool) *Option {
+	name = strings.ToLower(name)
+
+	if ini {
+		if ret := g.IniNames[name]; ret != nil {
+			return ret
+		}
+
+		if ret := g.Names[name]; ret != nil {
+			return ret
+		}
+	}
+
+	if ret := g.LongNames[name]; ret != nil {
+		return ret
+	}
+
+	if utf8.RuneCountInString(name) == 1 {
+		r, _ := utf8.DecodeRuneInString(name)
+
+		if ret := g.ShortNames[r]; ret != nil {
+			return ret
+		}
 	}
 
 	return nil
@@ -132,7 +161,15 @@ func (g *Group) scan() error {
 		}
 
 		if option.LongName != "" {
-			g.LongNames[option.LongName] = option
+			g.LongNames[strings.ToLower(option.LongName)] = option
+		}
+
+		g.Names[strings.ToLower(field.Name)] = option
+
+		ininame := field.Tag.Get("ini-name")
+
+		if len(ininame) != 0 {
+			g.IniNames[strings.ToLower(ininame)] = option
 		}
 	}
 

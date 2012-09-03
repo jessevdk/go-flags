@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -53,10 +54,20 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 }
 
 func (p *Parser) parseLong(args []string, name string, argument *string, index int) (error, int) {
+	name = strings.ToLower(name)
+
+	var option *Option
+	var group *Group
+
 	for _, grp := range p.Groups {
-		if option := grp.LongNames[name]; option != nil {
-			return p.parseOption(grp, args, name, option, true, argument, index)
+		if opt := grp.LongNames[name]; opt != nil {
+			option = opt
+			group = grp
 		}
+	}
+
+	if option != nil {
+		return p.parseOption(group, args, name, option, true, argument, index)
 	}
 
 	return newError(ErrUnknownFlag,
@@ -65,12 +76,18 @@ func (p *Parser) parseLong(args []string, name string, argument *string, index i
 }
 
 func (p *Parser) getShort(name rune) (*Option, *Group) {
-	for _, grp := range p.Groups {
-		option := grp.ShortNames[name]
+	var option *Option
+	var group *Group
 
-		if option != nil {
-			return option, grp
+	for _, grp := range p.Groups {
+		if opt := grp.ShortNames[name]; opt != nil {
+			option = opt
+			group = grp
 		}
+	}
+
+	if option != nil {
+		return option, group
 	}
 
 	return nil, nil
