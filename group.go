@@ -100,10 +100,11 @@ func (info *Info) isBool() bool {
 func (info *Info) isFunc() bool {
 	return info.value.Type().Kind() == reflect.Func
 }
+func (info *Info) call(value *string) error {
+	var retval []reflect.Value
 
-func (info *Info) call(value *string) {
 	if value == nil {
-		info.value.Call(nil)
+		retval = info.value.Call(nil)
 	} else {
 		tp := info.value.Type().In(0)
 
@@ -114,8 +115,14 @@ func (info *Info) call(value *string) {
 			return err
 		}
 
-		 info.value.Call([]reflect.Value{val})
+		retval = info.value.Call([]reflect.Value{val})
 	}
+
+	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {
+		return retval[0].Interface().(error)
+	}
+
+	return nil
 }
 
 // Set the value of an option to the specified value. An error will be returned
@@ -123,7 +130,7 @@ func (info *Info) call(value *string) {
 // value type.
 func (info *Info) Set(value *string) error {
 	if info.isFunc() {
-		info.call(value)
+		return info.call(value)
 	} else if value != nil {
 		return convert(*value, info.value, info.options)
 	} else {
