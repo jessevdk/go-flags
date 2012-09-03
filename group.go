@@ -125,5 +125,3 @@ func NewGroup(name string, data interface{}) *Group {
 	ret.Error = ret.scan()
 	return ret
 }
-
-

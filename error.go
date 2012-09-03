@@ -39,8 +39,8 @@ func (e *Error) Error() string {
 }
 
 func newError(tp ErrorType, message string) error {
-	return &Error {
-		Type: tp,
+	return &Error{
+		Type:    tp,
 		Message: message,
 	}
 }

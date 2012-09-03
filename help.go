@@ -75,8 +75,8 @@ func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int
 		}
 
 		writer.WriteString(wrapText(desc,
-		                            termcol - prelen,
-		                            strings.Repeat(" ", prelen)))
+			termcol-prelen,
+			strings.Repeat(" ", prelen)))
 	}
 
 	writer.WriteString("\n")

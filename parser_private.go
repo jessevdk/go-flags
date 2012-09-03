@@ -20,8 +20,8 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 	if !option.canArgument() {
 		if canarg && argument != nil {
 			return newError(ErrNoArgumentForBool,
-			                fmt.Sprintf("bool flag `%s' cannot have an argument", option)),
-			       index
+					fmt.Sprintf("bool flag `%s' cannot have an argument", option)),
+				index
 		}
 
 		err = option.Set(nil)
@@ -36,16 +36,16 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 		err = option.Set(&option.Default)
 	} else {
 		return newError(ErrExpectedArgument,
-			        fmt.Sprintf("expected argument for flag `%s'", option)),
+				fmt.Sprintf("expected argument for flag `%s'", option)),
 			index
 	}
 
 	if err != nil {
 		if _, ok := err.(*Error); !ok {
 			err = newError(ErrMarshal,
-			               fmt.Sprintf("invalid argument for flag `%s' (expected %s)",
-			                           option,
-			                           option.value.Type()))
+				fmt.Sprintf("invalid argument for flag `%s' (expected %s)",
+					option,
+					option.value.Type()))
 		}
 	}
 
@@ -60,7 +60,7 @@ func (p *Parser) parseLong(args []string, name string, argument *string, index i
 	}
 
 	return newError(ErrUnknownFlag,
-		        fmt.Sprintf("unknown flag `%s'", name)),
+			fmt.Sprintf("unknown flag `%s'", name)),
 		index
 }
 
@@ -85,14 +85,14 @@ func (p *Parser) parseShort(args []string, name rune, islast bool, argument *str
 	if option != nil {
 		if option.canArgument() && !islast && !option.OptionalArgument {
 			return newError(ErrExpectedArgument,
-			                fmt.Sprintf("expected argument for flag `%s'", option)),
-			        index
+					fmt.Sprintf("expected argument for flag `%s'", option)),
+				index
 		}
 
 		return p.parseOption(grp, args, string(names), option, islast, argument, index)
 	}
 
 	return newError(ErrUnknownFlag,
-		        fmt.Sprintf("unknown flag `%s'", string(names))),
+			fmt.Sprintf("unknown flag `%s'", string(names))),
 		index
 }

@@ -2,11 +2,11 @@
 package flags_test
 
 import (
+	"fmt"
 	flags "github.com/jessevdk/go-flags"
 	"os"
-	"fmt"
-	"strings"
 	"os/exec"
+	"strings"
 )
 
 func Example() {
@@ -26,7 +26,7 @@ func Example() {
 	// Note that this works just on OS X (and probably only with
 	// Skype) but it shows the idea.
 	opts.Call = func(num string) {
-		cmd := exec.Command("open", "callto:" + num)
+		cmd := exec.Command("open", "callto:"+num)
 		cmd.Start()
 		cmd.Process.Release()
 	}

@@ -5,10 +5,10 @@
 package flags
 
 import (
+	"fmt"
+	"os"
 	"path"
 	"strings"
-	"os"
-	"fmt"
 	"unicode/utf8"
 )
 
@@ -85,7 +85,7 @@ func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
 	return &Parser{
 		ApplicationName: appname,
 		Groups:          groups,
-		Options:  options,
+		Options:         options,
 		Usage:           "[OPTIONS]",
 	}
 }
@@ -129,7 +129,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			return ErrHelp
 		}
 
-		p.Groups = append([]*Group {NewGroup("Help Options", &help)}, p.Groups...)
+		p.Groups = append([]*Group{NewGroup("Help Options", &help)}, p.Groups...)
 		p.Options &^= ShowHelp
 	}
 
@@ -139,7 +139,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 		// When PassDoubleDash is set and we encounter a --, then
 		// simply append all the rest as arguments and break out
-		if (p.Options & PassDoubleDash) != None && arg == "--" {
+		if (p.Options&PassDoubleDash) != None && arg == "--" {
 			ret = append(ret, args[i:]...)
 			break
 		}
@@ -200,7 +200,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 					err = newError(ErrUnknown, err.Error())
 				}
 
-				if (p.Options & PrintErrors) != None && err != ErrHelp {
+				if (p.Options&PrintErrors) != None && err != ErrHelp {
 					fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
 				}
 
