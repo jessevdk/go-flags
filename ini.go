@@ -92,7 +92,7 @@ func readIni(filename string) (Ini, error) {
 				}
 			}
 
-			name := strings.TrimSpace(line[1 : len(line)-2])
+			name := strings.TrimSpace(line[1 : len(line)-1])
 
 			if len(name) == 0 {
 				return nil, &IniError{
