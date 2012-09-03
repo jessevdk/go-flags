@@ -40,11 +40,13 @@ func (p *Parser) parseOption(group *Group, args []string, name string, info *Inf
 			index
 	}
 
-	if err != nil && err.(*Error) == nil {
-		err = newError(ErrMarshal,
-		               fmt.Sprintf("failed to marshal argument for flag `%s': %s",
-		                           info,
-		                           err.Error()))
+	if err != nil {
+		if _, ok := err.(*Error); !ok {
+			err = newError(ErrMarshal,
+			               fmt.Sprintf("invalid argument for flag `%s' (expected %s)",
+			                           info,
+			                           info.value.Type()))
+		}
 	}
 
 	return err, index
