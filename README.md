@@ -51,6 +51,12 @@ Example:
 		os.Exit(1)
 	}
 
+	fmt.Printf("Verbosity: %d\n", len(opts.Verbose))
+	fmt.Printf("Offset: %d\n", opts.Offset)
 	fmt.Printf("Remaining args: %s\n", strings.Join(args, " "))
+
+	// Output: Verbosity: 0
+	// Offset: 0
+	// Remaining args:
 
 More information can be found in the godocs: <http://go.pkgdoc.org/github.com/jessevdk/go-flags>
