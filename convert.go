@@ -25,6 +25,51 @@ func getBase(options reflect.StructTag, base int) (int, error) {
 	return base, err
 }
 
+func convertToString(val reflect.Value, options reflect.StructTag) string {
+	tp := val.Type()
+
+	switch tp.Kind() {
+	case reflect.String:
+		return val.String()
+	case reflect.Bool:
+		return ""
+	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
+		base, _ := getBase(options, 10)
+		return strconv.FormatInt(val.Int(), base)
+	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		base, _ := getBase(options, 10)
+		return strconv.FormatUint(val.Uint(), base)
+	case reflect.Float32, reflect.Float64:
+		return strconv.FormatFloat(val.Float(), 'g', -1, tp.Bits())
+	case reflect.Slice:
+		ret := "["
+
+		for i := 0; i < val.Len(); i++ {
+			if i != 0 {
+				ret += ", "
+			}
+
+			ret += convertToString(val.Index(i), options)
+		}
+
+		return ret + "]"
+	case reflect.Map:
+		ret := "{"
+
+		for i, key := range val.MapKeys() {
+			if i != 0 {
+				ret += ", "
+			}
+
+			ret += convertToString(val.MapIndex(key), options)
+		}
+
+		return ret + "}"
+	}
+
+	return ""
+}
+
 func convert(val string, retval reflect.Value, options reflect.StructTag) error {
 	tp := retval.Type()
 

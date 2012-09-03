@@ -59,7 +59,13 @@ func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int
 			writer.WriteString(strings.Repeat(" ", maxlen-written))
 		}
 
-		writer.WriteString(option.Description)
+		def := convertToString(option.value, option.options)
+
+		if def != "" {
+			fmt.Fprintf(writer, "%s (%v)", option.Description, def)
+		} else {
+			writer.WriteString(option.Description)
+		}
 	}
 
 	writer.WriteString("\n")
