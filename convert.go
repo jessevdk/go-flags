@@ -77,6 +77,17 @@ func convertToString(val reflect.Value, options reflect.StructTag) string {
 func convert(val string, retval reflect.Value, options reflect.StructTag) error {
 	tp := retval.Type()
 
+	// Support for time.Duration
+	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+		parsed, err := time.ParseDuration(val)
+
+		if err != nil {
+			return err
+		}
+
+		retval.SetInt(int64(parsed))
+	}
+
 	switch tp.Kind() {
 	case reflect.String:
 		retval.SetString(val)
@@ -166,19 +177,6 @@ func convert(val string, retval reflect.Value, options reflect.StructTag) error 
 		}
 
 		retval.SetMapIndex(reflect.Indirect(keyval), reflect.Indirect(valueval))
-	}
-
-	// Special cases
-
-	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
-		parsed, err := time.ParseDuration(val)
-
-		if err != nil {
-			return err
-		}
-
-		retval.SetInt(int64(parsed))
 	}
 
 	return nil
