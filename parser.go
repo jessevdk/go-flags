@@ -10,6 +10,7 @@ import (
 	"path"
 	"strings"
 	"unicode/utf8"
+	"io"
 )
 
 // A Parser provides command line option parsing. It can contain several
@@ -69,7 +70,7 @@ func Parse(data interface{}) ([]string, error) {
 // representing the default option group (named "Application Options"). For
 // more control, use flags.NewParser.
 func ParseIni(filename string, data interface{}) error {
-	return NewParser(data, Default).ParseIni(filename)
+	return NewParser(data, Default).ParseIniFile(filename)
 }
 
 // NewParser creates a new parser. It uses os.Args[0] as the application
@@ -124,53 +125,77 @@ func (p *Parser) Parse() ([]string, error) {
 	return p.ParseArgs(os.Args[1:])
 }
 
-// Parse parses the command line arguments from os.Args using Parser.ParseArgs.
-// For more detailed information see ParseArgs. The returned errors can be of
-// the type flags.Error or flags.IniError.
-func (p *Parser) ParseIni(filename string) error {
-	ini, err := readIni(filename)
+// ParseIniFile parses flags from an ini formatted file. See ParseIni for more
+// information on the ini file foramt. The returned errors can be of the type
+// flags.Error or flags.IniError.
+func (p *Parser) ParseIniFile(filename string) error {
+	p.storeDefaults()
+
+	ini, err := readIniFromFile(filename)
 
 	if err != nil {
 		return err
 	}
 
-	for groupName, section := range ini {
-		group := p.GroupsMap[groupName]
+	return p.parseIni(ini)
+}
 
-		if group == nil {
-			return newError(ErrUnknownGroup,
-				fmt.Sprintf("could not find option group `%s'", groupName))
-		}
+// ParseIni parses flags from an ini format. You can use ParseIniFile as a
+// convenience function to parse from a filename instead of a general
+// io.Reader.
+//
+// The format of the ini file is as follows:
+//
+// [Option group name]
+// option = value
+//
+// Each section in the ini file represents an option group in the flags parser.
+// The default flags parser option group (i.e. when using flags.Parse) is
+// named 'Application Options'. The ini option name is matched in the following
+// order:
+//
+// 1. Compared to the ini-name tag on the option struct field (if present)
+// 2. Compared to the struct field name
+// 3. Compared to the option long name (if present)
+// 4. Compared to the option short name (if present)
+//
+// The returned errors can be of the type flags.Error or
+// flags.IniError.
+func (p *Parser) ParseIni(reader io.Reader) error {
+	p.storeDefaults()
 
-		for name, val := range section {
-			opt := group.lookupByName(name, true)
+	ini, err := readIni(reader, "")
 
-			if opt == nil {
-				if (p.Options & IgnoreUnknown) == None {
-					return newError(ErrUnknownFlag,
-						fmt.Sprintf("unknown option: %s", name))
-				}
-
-				continue
-			}
-
-			if opt.options.Get("no-ini") != "" {
-				continue
-			}
-
-			pval := &val
-
-			if opt.isBool() && len(val) == 0 {
-				pval = nil
-			}
-
-			if err := opt.Set(pval); err != nil {
-				return wrapError(err)
-			}
-		}
+	if err != nil {
+		return err
 	}
 
+	return p.parseIni(ini)
+}
+
+// WriteIniToFile writes the flags as ini format into a file. See WriteIni
+// for more information. The returned error occurs when the specified file
+// could not be opened for writing.
+func (p *Parser) WriteIniToFile(filename string, options IniOptions) error {
+	file, err := os.Create(filename)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	p.WriteIni(file, options)
+
 	return nil
+}
+
+// WriteIni writes the current values of all the flags to an ini format.
+// See ParseIni for more information on the ini file format. You typically
+// call this only after settings have been parsed since the default values of each
+// option are stored just before parsing the flags (this is only relevant when
+// IniIncludeDefaults is _not_ set in options).
+func (p *Parser) WriteIni(writer io.Writer, options IniOptions) {
+	writeIni(p, writer, options)
 }
 
 // ParseArgs parses the command line arguments according to the option groups that
@@ -187,6 +212,8 @@ func (p *Parser) ParseIni(filename string) error {
 func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	ret := make([]string, 0, len(args))
 	i := 0
+
+	p.storeDefaults()
 
 	if (p.Options & ShowHelp) != None {
 		var help struct {

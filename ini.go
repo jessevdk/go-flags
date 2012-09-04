@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"reflect"
 )
 
 type IniSection map[string]string
@@ -48,9 +49,74 @@ func (x *IniError) Error() string {
 		x.Message)
 }
 
-func readIni(filename string) (Ini, error) {
-	ret := make(Ini)
+type IniOptions uint
 
+const (
+	IniNone IniOptions = 0
+	IniIncludeDefaults = 1 << iota
+	IniIncludeComments
+	IniDefault = IniIncludeComments
+)
+
+func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
+	for i, group := range parser.Groups {
+		if i != 0 {
+			io.WriteString(writer, "\n")
+		}
+
+		fmt.Fprintf(writer, "[%s]\n", group.Name)
+
+		for _, option := range group.Options {
+			if option.isFunc() {
+				continue
+			}
+
+			if len(option.options.Get("no-ini")) != 0 {
+				continue
+			}
+
+			val := option.value
+
+			if (options & IniIncludeDefaults) == IniNone &&
+			   reflect.DeepEqual(val, option.defaultValue) {
+				continue
+			}
+
+			if (options & IniIncludeComments) != IniNone {
+				fmt.Fprintf(writer, "; %s\n", option.Description)
+			}
+
+			switch val.Type().Kind() {
+			case reflect.Slice:
+				for idx := 0; idx < val.Len(); idx++ {
+					fmt.Fprintf(writer,
+					            "%s = %s\n",
+					            option.iniName(),
+					            convertToString(val.Index(idx),
+					                            option.options))
+				}
+			case reflect.Map:
+				for _, key := range val.MapKeys() {
+					fmt.Fprintf(writer,
+					            "%s = %s:%s\n",
+					            option.iniName(),
+					            convertToString(key,
+					                            option.options),
+					            convertToString(val.MapIndex(key),
+					                            option.options))
+				}
+			default:
+				fmt.Fprintf(writer,
+				            "%s = %s\n",
+				            option.iniName(),
+				            convertToString(val,
+				                            option.options))
+			}
+		}
+	}
+}
+
+func readIniFromFile(filename string) (Ini, error) {
 	file, err := os.Open(filename)
 
 	if err != nil {
@@ -59,7 +125,13 @@ func readIni(filename string) (Ini, error) {
 
 	defer file.Close()
 
-	reader := bufio.NewReader(file)
+	return readIni(file, filename)
+}
+
+func readIni(contents io.Reader, filename string) (Ini, error) {
+	ret := make(Ini)
+
+	reader := bufio.NewReader(contents)
 	var section IniSection
 
 	var lineno uint

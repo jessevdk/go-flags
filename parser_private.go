@@ -15,6 +15,12 @@ func (p *Parser) removeGroup(group *Group) {
 	}
 }
 
+func (p *Parser) storeDefaults() {
+	for _, grp := range p.Groups {
+		grp.storeDefaults()
+	}
+}
+
 func (p *Parser) parseOption(group *Group, args []string, name string, option *Option, canarg bool, argument *string, index int) (error, int) {
 	var err error
 
@@ -112,4 +118,46 @@ func (p *Parser) parseShort(args []string, name rune, islast bool, argument *str
 	return newError(ErrUnknownFlag,
 			fmt.Sprintf("unknown flag `%s'", string(names))),
 		index
+}
+
+func (p *Parser) parseIni(ini Ini) error {
+	for groupName, section := range ini {
+		group := p.GroupsMap[groupName]
+
+		if group == nil {
+			return newError(ErrUnknownGroup,
+				fmt.Sprintf("could not find option group `%s'", groupName))
+		}
+
+		for name, val := range section {
+			opt, usedName := group.lookupByName(name, true)
+
+			if opt == nil {
+				if (p.Options & IgnoreUnknown) == None {
+					return newError(ErrUnknownFlag,
+						fmt.Sprintf("unknown option: %s", name))
+				}
+
+				continue
+			}
+
+			if opt.options.Get("no-ini") != "" {
+				continue
+			}
+
+			opt.iniUsedName = usedName
+
+			pval := &val
+
+			if opt.isBool() && len(val) == 0 {
+				pval = nil
+			}
+
+			if err := opt.Set(pval); err != nil {
+				return wrapError(err)
+			}
+		}
+	}
+
+	return nil
 }
