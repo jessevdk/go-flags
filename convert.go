@@ -32,7 +32,11 @@ func convertToString(val reflect.Value, options reflect.StructTag) string {
 	case reflect.String:
 		return val.String()
 	case reflect.Bool:
-		return ""
+		if val.Bool() {
+			return "true"
+		} else {
+			return "false"
+		}
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, _ := getBase(options, 10)
 		return strconv.FormatInt(val.Int(), base)
