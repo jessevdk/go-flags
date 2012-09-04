@@ -59,7 +59,7 @@ const (
 )
 
 func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
-	for i, group := range parser.Groups {
+	parser.EachGroup(func (i int, group *Group) {
 		if i != 0 {
 			io.WriteString(writer, "\n")
 		}
@@ -113,7 +113,7 @@ func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
 						option.options))
 			}
 		}
-	}
+	})
 }
 
 func readIniFromFile(filename string) (Ini, error) {

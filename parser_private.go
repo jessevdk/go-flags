@@ -6,19 +6,10 @@ import (
 	"unicode/utf8"
 )
 
-func (p *Parser) removeGroup(group *Group) {
-	for i, grp := range p.Groups {
-		if grp == group {
-			p.Groups = append(p.Groups[:i], p.Groups[i+1:]...)
-			break
-		}
-	}
-}
-
 func (p *Parser) storeDefaults() {
-	for _, grp := range p.Groups {
+	p.EachGroup(func (index int, grp *Group) {
 		grp.storeDefaults()
-	}
+	})
 }
 
 func (p *Parser) parseOption(group *Group, args []string, name string, option *Option, canarg bool, argument *string, index int) (error, int, *Option) {
@@ -67,12 +58,12 @@ func (p *Parser) parseLong(args []string, name string, argument *string, index i
 	var option *Option
 	var group *Group
 
-	for _, grp := range p.Groups {
+	p.EachGroup(func (index int, grp *Group) {
 		if opt := grp.LongNames[name]; opt != nil {
 			option = opt
 			group = grp
 		}
-	}
+	})
 
 	if option != nil {
 		return p.parseOption(group, args, name, option, true, argument, index)
@@ -88,12 +79,12 @@ func (p *Parser) getShort(name rune) (*Option, *Group) {
 	var option *Option
 	var group *Group
 
-	for _, grp := range p.Groups {
+	p.EachGroup(func (index int, grp *Group) {
 		if opt := grp.ShortNames[name]; opt != nil {
 			option = opt
 			group = grp
 		}
-	}
+	})
 
 	if option != nil {
 		return option, group
@@ -127,7 +118,7 @@ func (p *Parser) parseShort(args []string, name rune, islast bool, argument *str
 
 func (p *Parser) parseIni(ini Ini) error {
 	for groupName, section := range ini {
-		group := p.GroupsMap[groupName]
+		group := p.GroupsMap[strings.ToLower(groupName)]
 
 		if group == nil {
 			return newError(ErrUnknownGroup,

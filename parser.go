@@ -111,9 +111,9 @@ func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
 		Usage:           "[OPTIONS]",
 	}
 
-	for _, group := range groups {
-		ret.GroupsMap[group.Name] = group
-	}
+	ret.EachGroup(func (index int, grp *Group) {
+		ret.GroupsMap[strings.ToLower(grp.Name)] = grp
+	})
 
 	return ret
 }
@@ -125,7 +125,10 @@ func (p *Parser) AddGroup(name string, data interface{}) *Parser {
 	group := NewGroup(name, data)
 
 	p.Groups = append(p.Groups, group)
-	p.GroupsMap[name] = group
+
+	group.each(0, func (index int, grp *Group) {
+		p.GroupsMap[strings.ToLower(group.Name)] = grp
+	})
 
 	return p
 }
@@ -149,6 +152,14 @@ func (p *Parser) ParseIniFile(filename string) error {
 	}
 
 	return p.parseIni(ini)
+}
+
+func (p *Parser) EachGroup(cb func(int, *Group)) {
+	index := 0
+
+	for _, group := range p.Groups {
+		index = group.each(index, cb)
+	}
 }
 
 // ParseIni parses flags from an ini format. You can use ParseIniFile as a

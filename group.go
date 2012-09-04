@@ -34,6 +34,8 @@ type Group struct {
 	// An error which occurred when creating the group.
 	Error error
 
+	EmbeddedGroups []*Group
+
 	data interface{}
 }
 

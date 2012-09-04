@@ -40,35 +40,28 @@ func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
 
 func (g *Group) storeDefaults() {
 	for _, option := range g.Options {
-		if !option.value.CanAddr() {
+		if !option.value.CanSet() {
 			continue
 		}
 
-		addr := option.value.UnsafeAddr()
-
-		// Create a pointer to the current value
-		ptr := reflect.NewAt(option.value.Type(), unsafe.Pointer(addr))
-
-		// Indirect the pointer to the value to make a copy
-		option.defaultValue = reflect.Indirect(ptr)
+		option.defaultValue = reflect.ValueOf(option.value.Interface())
 	}
 }
 
-func (g *Group) scan() error {
-	// Get all the public fields in the data struct
-	ptrval := reflect.ValueOf(g.data)
+func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) error {
+	stype := realval.Type()
 
-	if ptrval.Type().Kind() != reflect.Ptr {
-		panic(ErrNotPointerToStruct)
+	if sfield != nil {
+		groupName := sfield.Tag.Get("group")
+
+		if len(groupName) != 0 {
+			ptrval := reflect.NewAt(realval.Type(), unsafe.Pointer(realval.UnsafeAddr()))
+			newGroup := NewGroup(groupName, ptrval.Interface())
+
+			g.EmbeddedGroups = append(g.EmbeddedGroups, newGroup)
+			return g.Error
+		}
 	}
-
-	stype := ptrval.Type().Elem()
-
-	if stype.Kind() != reflect.Struct {
-		panic(ErrNotPointerToStruct)
-	}
-
-	realval := reflect.Indirect(ptrval)
 
 	for i := 0; i < stype.NumField(); i++ {
 		field := stype.Field(i)
@@ -78,15 +71,29 @@ func (g *Group) scan() error {
 			continue
 		}
 
-		// Skip anonymous fields.
-		// TODO: would be useful to support
-		if field.Anonymous {
-			continue
-		}
-
 		// Skip fields with the no-flag tag
 		if field.Tag.Get("no-flag") != "" {
 			continue
+		}
+
+		// Dive deep into structs or pointers to structs
+		kind := field.Type.Kind()
+
+		if kind == reflect.Struct {
+			err := g.scanStruct(realval.Field(i), &field)
+
+			if err != nil {
+				return err
+			}
+		} else if kind == reflect.Ptr &&
+		          field.Type.Elem().Kind() == reflect.Struct &&
+		          !realval.Field(i).IsNil() {
+			err := g.scanStruct(reflect.Indirect(realval.Field(i)),
+			                    &field)
+
+			if err != nil {
+				return err
+			}
 		}
 
 		longname := field.Tag.Get("long")
@@ -143,4 +150,34 @@ func (g *Group) scan() error {
 	}
 
 	return nil
+}
+
+func (g *Group) each(index int, cb func(int, *Group)) int {
+	cb(index, g)
+	index++
+
+	for _, group := range g.EmbeddedGroups {
+		group.each(index, cb)
+		index++
+	}
+
+	return index
+}
+
+func (g *Group) scan() error {
+	// Get all the public fields in the data struct
+	ptrval := reflect.ValueOf(g.data)
+
+	if ptrval.Type().Kind() != reflect.Ptr {
+		panic(ErrNotPointerToStruct)
+	}
+
+	stype := ptrval.Type().Elem()
+
+	if stype.Kind() != reflect.Struct {
+		panic(ErrNotPointerToStruct)
+	}
+
+	realval := reflect.Indirect(ptrval)
+	return g.scanStruct(realval, nil)
 }
