@@ -38,7 +38,7 @@ const (
 	// --help options. When either -h or --help is specified on the command
 	// line, a pretty formatted help message will be printed to os.Stderr.
 	// The parser will return ErrHelp.
-	ShowHelp = 1 << iota
+	HelpFlag = 1 << iota
 
 	// Pass all arguments after a double dash, --, as remaining command line
 	// arguments (i.e. they will not be parsed for flags)
@@ -52,7 +52,7 @@ const (
 	PrintErrors
 
 	// A convenient default set of options
-	Default = ShowHelp | PrintErrors | PassDoubleDash
+	Default = HelpFlag | PrintErrors | PassDoubleDash
 )
 
 // Parse is a convenience function to parse command line options with default
@@ -119,7 +119,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	ret := make([]string, 0, len(args))
 	i := 0
 
-	if (p.Options & ShowHelp) != None {
+	if (p.Options & HelpFlag) != None {
 		var help struct {
 			ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
 		}
@@ -130,7 +130,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		p.Groups = append([]*Group{NewGroup("Help Options", &help)}, p.Groups...)
-		p.Options &^= ShowHelp
+		p.Options &^= HelpFlag
 	}
 
 	for i < len(args) {
