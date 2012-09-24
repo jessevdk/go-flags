@@ -33,7 +33,7 @@ func (p *Parser) maxLongLen() (int, bool) {
 	return maxlonglen, hasshort
 }
 
-func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int, hasshort bool, termcol int) {
+func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, maxlen int, hasshort bool, termcol int) {
 	if option.ShortName != 0 {
 		writer.WriteString("  -")
 		writer.WriteRune(option.ShortName)
@@ -82,12 +82,12 @@ func (p *Parser) showHelpOption(writer *bufio.Writer, option *Option, maxlen int
 	writer.WriteString("\n")
 }
 
-// ShowHelp writes a help message containing all the possible options and
-// their descriptions to the provided writer. Note that the ShowHelp parser
+// WriteHelp writes a help message containing all the possible options and
+// their descriptions to the provided writer. Note that the HelpFlag parser
 // option provides a convenient way to add a -h/--help option group to the
 // command line parser which will automatically show the help messages using
 // this method.
-func (p *Parser) ShowHelp(writer io.Writer) {
+func (p *Parser) WriteHelp(writer io.Writer) {
 	if writer == nil {
 		return
 	}
@@ -116,10 +116,9 @@ func (p *Parser) ShowHelp(writer io.Writer) {
 		fmt.Fprintf(wr, "%s:\n", grp.Name)
 
 		for _, info := range grp.Options {
-			p.showHelpOption(wr, info, maxlen, hasshort, termcol)
+			p.writeHelpOption(wr, info, maxlen, hasshort, termcol)
 		}
 	}
 
-	wr.WriteString("\n")
 	wr.Flush()
 }

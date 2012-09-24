@@ -5,6 +5,7 @@
 package flags
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -38,7 +39,7 @@ const (
 	// --help options. When either -h or --help is specified on the command
 	// line, a pretty formatted help message will be printed to os.Stderr.
 	// The parser will return ErrHelp.
-	ShowHelp = 1 << iota
+	HelpFlag = 1 << iota
 
 	// Pass all arguments after a double dash, --, as remaining command line
 	// arguments (i.e. they will not be parsed for flags)
@@ -52,7 +53,7 @@ const (
 	PrintErrors
 
 	// A convenient default set of options
-	Default = ShowHelp | PrintErrors | PassDoubleDash
+	Default = HelpFlag | PrintErrors | PassDoubleDash
 )
 
 // Parse is a convenience function to parse command line options with default
@@ -112,25 +113,25 @@ func (p *Parser) Parse() ([]string, error) {
 //
 // When the common help group has been added (AddHelp) and either -h or --help
 // was specified in the command line arguments, a help message will be
-// automatically printed. Furthermore, the special error ErrHelp is returned
-// to indicate that the help was shown. It is up to the caller to exit the
-// program if so desired.
+// automatically printed. Furthermore, the special error type ErrHelp is returned.
+// It is up to the caller to exit the program if so desired.
 func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	ret := make([]string, 0, len(args))
 	i := 0
 
-	if (p.Options & ShowHelp) != None {
+	if (p.Options & HelpFlag) != None {
 		var help struct {
 			ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
 		}
 
 		help.ShowHelp = func() error {
-			p.ShowHelp(os.Stderr)
-			return ErrHelp
+			var b bytes.Buffer
+			p.WriteHelp(&b)
+			return newError(ErrHelp, b.String())
 		}
 
 		p.Groups = append([]*Group{NewGroup("Help Options", &help)}, p.Groups...)
-		p.Options &^= ShowHelp
+		p.Options &^= HelpFlag
 	}
 
 	for i < len(args) {
@@ -196,12 +197,18 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			if (p.Options & IgnoreUnknown) != None {
 				ret = append(ret, arg)
 			} else {
-				if err.(*Error) == nil {
-					err = newError(ErrUnknown, err.Error())
+				parseErr, ok := err.(*Error)
+
+				if !ok {
+					parseErr = newError(ErrUnknown, err.Error())
 				}
 
-				if (p.Options&PrintErrors) != None && err != ErrHelp {
-					fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
+				if (p.Options&PrintErrors) != None {
+					if parseErr.Type == ErrHelp {
+						fmt.Fprintln(os.Stderr, err)
+					} else {
+						fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
+					}
 				}
 
 				return nil, err
