@@ -16,8 +16,8 @@ const (
 	// Failed to marshal value
 	ErrMarshal
 
-	// The builtin help message was printed
-	ErrHelpShown
+	// The error contains the builtin help message
+	ErrHelp
 
 	// An argument for a boolean value was specified
 	ErrNoArgumentForBool
@@ -38,14 +38,9 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func newError(tp ErrorType, message string) error {
+func newError(tp ErrorType, message string) *Error {
 	return &Error{
 		Type:    tp,
 		Message: message,
 	}
 }
-
-// The builtin help message was printed. This value will be returned from
-// Parse when the builtin help message was shown (i.e. when the ShowHelp
-// option is set and either -h or --help was specified on the command line).
-var ErrHelp = newError(ErrHelpShown, "help shown")

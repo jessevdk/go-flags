@@ -5,6 +5,7 @@
 package flags
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -112,9 +113,8 @@ func (p *Parser) Parse() ([]string, error) {
 //
 // When the common help group has been added (AddHelp) and either -h or --help
 // was specified in the command line arguments, a help message will be
-// automatically printed. Furthermore, the special error ErrHelp is returned
-// to indicate that the help was shown. It is up to the caller to exit the
-// program if so desired.
+// automatically printed. Furthermore, the special error type ErrHelp is returned.
+// It is up to the caller to exit the program if so desired.
 func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	ret := make([]string, 0, len(args))
 	i := 0
@@ -125,8 +125,9 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		help.ShowHelp = func() error {
-			p.ShowHelp(os.Stderr)
-			return ErrHelp
+			var b bytes.Buffer
+			p.WriteHelp(&b)
+			return newError(ErrHelp, b.String())
 		}
 
 		p.Groups = append([]*Group{NewGroup("Help Options", &help)}, p.Groups...)
@@ -196,12 +197,18 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			if (p.Options & IgnoreUnknown) != None {
 				ret = append(ret, arg)
 			} else {
-				if err.(*Error) == nil {
-					err = newError(ErrUnknown, err.Error())
+				parseErr, ok := err.(*Error)
+
+				if !ok {
+					parseErr = newError(ErrUnknown, err.Error())
 				}
 
-				if (p.Options&PrintErrors) != None && err != ErrHelp {
-					fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
+				if (p.Options&PrintErrors) != None {
+					if parseErr.Type == ErrHelp {
+						fmt.Fprintln(os.Stderr, err)
+					} else {
+						fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
+					}
 				}
 
 				return nil, err
