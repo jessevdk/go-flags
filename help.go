@@ -109,6 +109,9 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	maxlen := maxlonglen + 4
 
 	termcol := getTerminalColumns()
+	if termcol <= 0 {
+		termcol = 80
+	}
 
 	for _, grp := range p.Groups {
 		wr.WriteString("\n")
