@@ -114,6 +114,7 @@ func (g *Group) scan() error {
 		def := field.Tag.Get("default")
 
 		optional := (field.Tag.Get("optional") != "")
+		required := (field.Tag.Get("required") != "")
 
 		option := &Option{
 			Description:      description,
@@ -121,6 +122,7 @@ func (g *Group) scan() error {
 			LongName:         longname,
 			Default:          def,
 			OptionalArgument: optional,
+			Required:         required,
 			value:            realval.Field(i),
 			options:          field.Tag,
 		}

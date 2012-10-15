@@ -134,6 +134,17 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.Options &^= HelpFlag
 	}
 
+	required := make(map[*Option]struct{})
+
+	// Mark required arguments in a map
+	for _, group := range p.Groups {
+		for _, option := range group.Options {
+			if option.Required {
+				required[option] = struct {}{}
+			}
+		}
+	}
+
 	for i < len(args) {
 		arg := args[i]
 		i++
@@ -161,9 +172,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		var err error
+		var option *Option
 
 		if strings.HasPrefix(arg, "--") {
-			err, i = p.parseLong(args, arg[2:], argument, i)
+			err, i, option = p.parseLong(args, arg[2:], argument, i)
 		} else {
 			short := arg[1:]
 
@@ -185,7 +197,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 					}
 				}
 
-				err, i = p.parseShort(args, c, islast, argument, i)
+				err, i, option = p.parseShort(args, c, islast, argument, i)
 
 				if err != nil || islast {
 					break
@@ -213,7 +225,34 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 				return nil, err
 			}
+		} else {
+			delete(required, option)
 		}
+	}
+
+	if len(required) > 0 {
+		names := make([]string, 0, len(required))
+
+		for k, _ := range required {
+			names = append(names, "`" + k.String() + "'")
+		}
+
+		var msg string
+
+		if len(names) == 1 {
+			msg = fmt.Sprintf("the required flag %s was not specified", names[0])
+		} else {
+			msg = fmt.Sprintf("the required flags %s and %s were not specified",
+			                  strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
+		}
+
+		err := newError(ErrRequired, msg)
+
+		if (p.Options&PrintErrors) != None {
+			fmt.Fprintln(os.Stderr, err)
+		}
+
+		return nil, err
 	}
 
 	return ret, nil

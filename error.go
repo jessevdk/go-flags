@@ -21,6 +21,9 @@ const (
 
 	// An argument for a boolean value was specified
 	ErrNoArgumentForBool
+
+	// A required flag was not specified
+	ErrRequired
 )
 
 // Error represents a parser error. The error returned from Parse is of this

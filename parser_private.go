@@ -14,14 +14,15 @@ func (p *Parser) removeGroup(group *Group) {
 	}
 }
 
-func (p *Parser) parseOption(group *Group, args []string, name string, option *Option, canarg bool, argument *string, index int) (error, int) {
+func (p *Parser) parseOption(group *Group, args []string, name string, option *Option, canarg bool, argument *string, index int) (error, int, *Option) {
 	var err error
 
 	if !option.canArgument() {
 		if canarg && argument != nil {
 			return newError(ErrNoArgumentForBool,
 					fmt.Sprintf("bool flag `%s' cannot have an argument", option)),
-				index
+				index,
+				option
 		}
 
 		err = option.Set(nil)
@@ -37,7 +38,8 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 	} else {
 		return newError(ErrExpectedArgument,
 				fmt.Sprintf("expected argument for flag `%s'", option)),
-			index
+			index,
+			option
 	}
 
 	if err != nil {
@@ -49,10 +51,10 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 		}
 	}
 
-	return err, index
+	return err, index, option
 }
 
-func (p *Parser) parseLong(args []string, name string, argument *string, index int) (error, int) {
+func (p *Parser) parseLong(args []string, name string, argument *string, index int) (error, int, *Option) {
 	for _, grp := range p.Groups {
 		if option := grp.LongNames[name]; option != nil {
 			return p.parseOption(grp, args, name, option, true, argument, index)
@@ -61,7 +63,8 @@ func (p *Parser) parseLong(args []string, name string, argument *string, index i
 
 	return newError(ErrUnknownFlag,
 			fmt.Sprintf("unknown flag `%s'", name)),
-		index
+		index,
+		nil
 }
 
 func (p *Parser) getShort(name rune) (*Option, *Group) {
@@ -76,7 +79,7 @@ func (p *Parser) getShort(name rune) (*Option, *Group) {
 	return nil, nil
 }
 
-func (p *Parser) parseShort(args []string, name rune, islast bool, argument *string, index int) (error, int) {
+func (p *Parser) parseShort(args []string, name rune, islast bool, argument *string, index int) (error, int, *Option) {
 	names := make([]byte, utf8.RuneLen(name))
 	utf8.EncodeRune(names, name)
 
@@ -86,7 +89,8 @@ func (p *Parser) parseShort(args []string, name rune, islast bool, argument *str
 		if option.canArgument() && !islast && !option.OptionalArgument {
 			return newError(ErrExpectedArgument,
 					fmt.Sprintf("expected argument for flag `%s'", option)),
-				index
+				index,
+				option
 		}
 
 		return p.parseOption(grp, args, string(names), option, islast, argument, index)
@@ -94,5 +98,6 @@ func (p *Parser) parseShort(args []string, name rune, islast bool, argument *str
 
 	return newError(ErrUnknownFlag,
 			fmt.Sprintf("unknown flag `%s'", string(names))),
-		index
+		index,
+		nil
 }

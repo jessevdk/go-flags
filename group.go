@@ -48,6 +48,11 @@ type Option struct {
 	// This is only valid for non-boolean options.
 	OptionalArgument bool
 
+	// If true, the option _must_ be specified on the command line. If the
+	// option is not specified, the parser will generate an ErrRequired type
+	// error.
+	Required bool
+
 	value   reflect.Value
 	options reflect.StructTag
 }
