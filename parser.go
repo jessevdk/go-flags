@@ -64,6 +64,16 @@ func Parse(data interface{}) ([]string, error) {
 	return NewParser(data, Default).Parse()
 }
 
+// ParseArgs is a convenience function to parse command line options with default
+// settings. The provided data is a pointer to a struct representing the
+// default option group (named "Application Options"). The args argument is
+// the list of command line arguments to parse. If you just want to parse the
+// default program command line arguments (i.e. os.Args), then use flags.Parse
+// instead. For more control, use flags.NewParser.
+func ParseArgs(data interface{}, args []string) ([]string, error) {
+	return NewParser(data, Default).ParseArgs(args)
+}
+
 // NewParser creates a new parser. It uses os.Args[0] as the application
 // name and then calls Parser.NewNamedParser (see Parser.NewNamedParser for
 // more details). The provided data is a pointer to a struct representing the
