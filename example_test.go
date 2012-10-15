@@ -20,6 +20,9 @@ func Example() {
 
 		// Example of a callback, called each time the option is found.
 		Call func(string) `short:"c" description:"Call phone number"`
+
+		// Example of a required flag
+		Name string `short:"n" long:"name" description:"A name" required:"true"`
 	}
 
 	// Callback which will invoke callto:<argument> to call a number.
@@ -31,8 +34,20 @@ func Example() {
 		cmd.Process.Release()
 	}
 
-	// Parse flags
-	args, err := flags.Parse(&opts)
+	// Make some fake arguments to parse.
+	args := []string {
+		"-vv",
+		"--offset=5",
+		"-n", "Me",
+		"arg1",
+		"arg2",
+		"arg3",
+	}
+
+	// Parse flags from `args'. Note that here we use flags.ParseArgs for
+	// the sake of making a working example. Normally, you would simply use
+	// flags.Parse(&opts) which uses os.Args
+	args, err := flags.ParseArgs(&opts, args)
 
 	if err != nil {
 		os.Exit(1)
@@ -40,9 +55,11 @@ func Example() {
 
 	fmt.Printf("Verbosity: %d\n", len(opts.Verbose))
 	fmt.Printf("Offset: %d\n", opts.Offset)
+	fmt.Printf("Name: %s\n", opts.Name)
 	fmt.Printf("Remaining args: %s\n", strings.Join(args, " "))
 
-	// Output: Verbosity: 0
-	// Offset: 0
-	// Remaining args:
+	// Output: Verbosity: 2
+	// Offset: 5
+	// Name: Me
+	// Remaining args: arg1 arg2 arg3
 }
