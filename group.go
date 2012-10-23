@@ -34,9 +34,18 @@ type Group struct {
 	// An error which occurred when creating the group.
 	Error error
 
+	// Groups embedded in this group
 	EmbeddedGroups []*Group
 
+	// Mapping representing commands
+	Commands  map[string]*Group
+	IsCommand bool
+
 	data interface{}
+}
+
+type Command interface {
+	Execute(args []string) error
 }
 
 // NewGroup creates a new option group with a given name and underlying data
@@ -51,6 +60,8 @@ func NewGroup(name string, data interface{}) *Group {
 		IniNames:   make(map[string]*Option),
 		LongNames:  make(map[string]*Option),
 		ShortNames: make(map[rune]*Option),
+		Commands:   make(map[string]*Group),
+		IsCommand:  false,
 		data:       data,
 	}
 

@@ -28,6 +28,10 @@ type Parser struct {
 	Usage string
 
 	Options Options
+
+	Commands map[string]*Group
+
+	currentCommand *Group
 }
 
 // Parser options
@@ -109,9 +113,10 @@ func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
 		GroupsMap:       make(map[string]*Group),
 		Options:         options,
 		Usage:           "[OPTIONS]",
+		Commands:        make(map[string]*Group),
 	}
 
-	ret.EachGroup(func (index int, grp *Group) {
+	ret.EachGroup(func(index int, grp *Group) {
 		ret.GroupsMap[strings.ToLower(grp.Name)] = grp
 	})
 
@@ -126,9 +131,23 @@ func (p *Parser) AddGroup(name string, data interface{}) *Parser {
 
 	p.Groups = append(p.Groups, group)
 
-	group.each(0, func (index int, grp *Group) {
+	group.each(0, func(index int, grp *Group) {
 		p.GroupsMap[strings.ToLower(group.Name)] = grp
 	})
+
+	return p
+}
+
+// AddCommand adds a new command to the parser with the given name and data. The
+// data needs to be a pointer to a struct from which the fields indicate which
+// options are in the command.
+func (p *Parser) AddCommand(name string, command string, data interface{}) *Parser {
+	p.AddGroup(name, data)
+
+	group := p.Groups[len(p.Groups)-1]
+	group.IsCommand = true
+
+	p.Commands[command] = group
 
 	return p
 }
@@ -157,8 +176,14 @@ func (p *Parser) ParseIniFile(filename string) error {
 func (p *Parser) EachGroup(cb func(int, *Group)) {
 	index := 0
 
-	for _, group := range p.Groups {
-		index = group.each(index, cb)
+	if p.currentCommand != nil {
+		p.currentCommand.each(index, cb)
+	} else {
+		for _, group := range p.Groups {
+			if !group.IsCommand {
+				index = group.each(index, cb)
+			}
+		}
 	}
 }
 
@@ -252,6 +277,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	required := make(map[*Option]struct{})
+	commands := make(map[string]*Group)
 
 	// Mark required arguments in a map
 	for _, group := range p.Groups {
@@ -259,6 +285,11 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			if option.Required {
 				required[option] = struct{}{}
 			}
+		}
+
+		// Initial set of commands
+		for command, subgroup := range group.Commands {
+			commands[command] = subgroup
 		}
 	}
 
@@ -273,9 +304,18 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			break
 		}
 
-		// If the argument is not an option, then append it to the rest
+		// If the argument is not an option then
+		// 1) Check for subcommand
+		// 2) Append it to the rest if subcommand is not found
 		if arg[0] != '-' {
-			ret = append(ret, arg)
+			if cmdgroup := commands[arg]; cmdgroup != nil {
+				// Set current 'root' group
+				p.currentCommand = cmdgroup
+				commands = cmdgroup.Commands
+			} else {
+				ret = append(ret, arg)
+			}
+
 			continue
 		}
 
@@ -370,6 +410,16 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		return nil, err
+	}
+
+	if p.currentCommand != nil {
+		// Execute group
+		cmd, ok := p.currentCommand.data.(Command)
+
+		if ok {
+			err := cmd.Execute(ret)
+			return nil, err
+		}
 	}
 
 	return ret, nil

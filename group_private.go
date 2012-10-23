@@ -53,10 +53,26 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 
 	if sfield != nil {
 		groupName := sfield.Tag.Get("group")
+		commandName := sfield.Tag.Get("command")
+
+		iscommand := false
+
+		if len(commandName) != 0 {
+			iscommand = true
+
+			if len(groupName) == 0 {
+				groupName = commandName
+			}
+		}
 
 		if len(groupName) != 0 {
 			ptrval := reflect.NewAt(realval.Type(), unsafe.Pointer(realval.UnsafeAddr()))
 			newGroup := NewGroup(groupName, ptrval.Interface())
+
+			if iscommand {
+				newGroup.IsCommand = true
+				g.Commands[commandName] = newGroup
+			}
 
 			g.EmbeddedGroups = append(g.EmbeddedGroups, newGroup)
 			return g.Error
@@ -85,11 +101,12 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			if err != nil {
 				return err
 			}
+
 		} else if kind == reflect.Ptr &&
-		          field.Type.Elem().Kind() == reflect.Struct &&
-		          !realval.Field(i).IsNil() {
+			field.Type.Elem().Kind() == reflect.Struct &&
+			!realval.Field(i).IsNil() {
 			err := g.scanStruct(reflect.Indirect(realval.Field(i)),
-			                    &field)
+				&field)
 
 			if err != nil {
 				return err
