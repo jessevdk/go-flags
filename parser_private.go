@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Parser) storeDefaults() {
-	p.EachGroup(func (index int, grp *Group) {
+	p.EachGroup(func(index int, grp *Group) {
 		grp.storeDefaults()
 	})
 }
@@ -58,7 +58,7 @@ func (p *Parser) parseLong(args []string, name string, argument *string, index i
 	var option *Option
 	var group *Group
 
-	p.EachGroup(func (index int, grp *Group) {
+	p.EachGroup(func(index int, grp *Group) {
 		if opt := grp.LongNames[name]; opt != nil {
 			option = opt
 			group = grp
@@ -79,7 +79,7 @@ func (p *Parser) getShort(name rune) (*Option, *Group) {
 	var option *Option
 	var group *Group
 
-	p.EachGroup(func (index int, grp *Group) {
+	p.EachGroup(func(index int, grp *Group) {
 		if opt := grp.ShortNames[name]; opt != nil {
 			option = opt
 			group = grp

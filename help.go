@@ -16,7 +16,7 @@ func (p *Parser) maxLongLen() (int, bool) {
 	maxlonglen := 0
 	hasshort := false
 
-	p.EachGroup(func (index int, grp *Group) {
+	p.EachGroup(func(index int, grp *Group) {
 		for _, info := range grp.Options {
 			if info.ShortName != 0 {
 				hasshort = true
@@ -113,7 +113,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		termcol = 80
 	}
 
-	p.EachGroup(func (index int, grp *Group) {
+	p.EachGroup(func(index int, grp *Group) {
 		wr.WriteString("\n")
 
 		fmt.Fprintf(wr, "%s:\n", grp.Name)

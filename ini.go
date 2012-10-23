@@ -59,7 +59,7 @@ const (
 )
 
 func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
-	parser.EachGroup(func (i int, group *Group) {
+	parser.EachGroup(func(i int, group *Group) {
 		if i != 0 {
 			io.WriteString(writer, "\n")
 		}
