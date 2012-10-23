@@ -35,7 +35,7 @@ func Example() {
 	}
 
 	// Make some fake arguments to parse.
-	args := []string {
+	args := []string{
 		"-vv",
 		"--offset=5",
 		"-n", "Me",

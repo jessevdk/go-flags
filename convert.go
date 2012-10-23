@@ -32,7 +32,11 @@ func convertToString(val reflect.Value, options reflect.StructTag) string {
 	case reflect.String:
 		return val.String()
 	case reflect.Bool:
-		return ""
+		if val.Bool() {
+			return "true"
+		} else {
+			return "false"
+		}
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, _ := getBase(options, 10)
 		return strconv.FormatInt(val.Int(), base)
@@ -73,11 +77,32 @@ func convertToString(val reflect.Value, options reflect.StructTag) string {
 func convert(val string, retval reflect.Value, options reflect.StructTag) error {
 	tp := retval.Type()
 
+	// Support for time.Duration
+	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+		parsed, err := time.ParseDuration(val)
+
+		if err != nil {
+			return err
+		}
+
+		retval.SetInt(int64(parsed))
+	}
+
 	switch tp.Kind() {
 	case reflect.String:
 		retval.SetString(val)
 	case reflect.Bool:
-		retval.SetBool(true)
+		if val == "" {
+			retval.SetBool(true)
+		} else {
+			b, err := strconv.ParseBool(val)
+
+			if err != nil {
+				return err
+			}
+
+			retval.SetBool(b)
+		}
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, err := getBase(options, 10)
 
@@ -152,19 +177,6 @@ func convert(val string, retval reflect.Value, options reflect.StructTag) error 
 		}
 
 		retval.SetMapIndex(reflect.Indirect(keyval), reflect.Indirect(valueval))
-	}
-
-	// Special cases
-
-	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
-		parsed, err := time.ParseDuration(val)
-
-		if err != nil {
-			return err
-		}
-
-		retval.SetInt(int64(parsed))
 	}
 
 	return nil

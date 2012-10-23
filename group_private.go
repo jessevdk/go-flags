@@ -2,61 +2,56 @@ package flags
 
 import (
 	"reflect"
+	"strings"
 	"unicode/utf8"
+	"unsafe"
 )
 
-func (option *Option) canArgument() bool {
-	if option.isBool() {
-		return false
-	}
+func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
+	name = strings.ToLower(name)
 
-	if option.isFunc() {
-		return (option.value.Type().NumIn() > 0)
-	}
-
-	return true
-}
-
-func (option *Option) isBool() bool {
-	tp := option.value.Type()
-
-	switch tp.Kind() {
-	case reflect.Bool:
-		return true
-	case reflect.Slice:
-		return (tp.Elem().Kind() == reflect.Bool)
-	}
-
-	return false
-}
-
-func (option *Option) isFunc() bool {
-	return option.value.Type().Kind() == reflect.Func
-}
-
-func (option *Option) call(value *string) error {
-	var retval []reflect.Value
-
-	if value == nil {
-		retval = option.value.Call(nil)
-	} else {
-		tp := option.value.Type().In(0)
-
-		val := reflect.New(tp)
-		val = reflect.Indirect(val)
-
-		if err := convert(*value, val, option.options); err != nil {
-			return err
+	if ini {
+		if ret := g.IniNames[name]; ret != nil {
+			return ret, ret.options.Get("ini-name")
 		}
 
-		retval = option.value.Call([]reflect.Value{val})
+		if ret := g.Names[name]; ret != nil {
+			return ret, ret.fieldName
+		}
 	}
 
-	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {
-		return retval[0].Interface().(error)
+	if ret := g.LongNames[name]; ret != nil {
+		return ret, ret.LongName
 	}
 
-	return nil
+	if utf8.RuneCountInString(name) == 1 {
+		r, _ := utf8.DecodeRuneInString(name)
+
+		if ret := g.ShortNames[r]; ret != nil {
+			data := make([]byte, utf8.RuneLen(ret.ShortName))
+			utf8.EncodeRune(data, ret.ShortName)
+
+			return ret, string(data)
+		}
+	}
+
+	return nil, ""
+}
+
+func (g *Group) storeDefaults() {
+	for _, option := range g.Options {
+		if !option.value.CanAddr() {
+			continue
+		}
+
+		addr := option.value.UnsafeAddr()
+
+		// Create a pointer to the current value
+		ptr := reflect.NewAt(option.value.Type(), unsafe.Pointer(addr))
+
+		// Indirect the pointer to the value to make a copy
+		option.defaultValue = reflect.Indirect(ptr)
+	}
 }
 
 func (g *Group) scan() error {
@@ -125,6 +120,7 @@ func (g *Group) scan() error {
 			Required:         required,
 			value:            realval.Field(i),
 			options:          field.Tag,
+			fieldName:        field.Name,
 		}
 
 		g.Options = append(g.Options, option)
@@ -134,7 +130,15 @@ func (g *Group) scan() error {
 		}
 
 		if option.LongName != "" {
-			g.LongNames[option.LongName] = option
+			g.LongNames[strings.ToLower(option.LongName)] = option
+		}
+
+		g.Names[strings.ToLower(field.Name)] = option
+
+		ininame := field.Tag.Get("ini-name")
+
+		if len(ininame) != 0 {
+			g.IniNames[strings.ToLower(ininame)] = option
 		}
 	}
 

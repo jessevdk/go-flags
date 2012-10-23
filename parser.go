@@ -7,6 +7,7 @@ package flags
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -17,7 +18,8 @@ import (
 // option groups each with their own set of options.
 type Parser struct {
 	// The option groups available to the parser
-	Groups []*Group
+	Groups    []*Group
+	GroupsMap map[string]*Group
 
 	// The parser application name
 	ApplicationName string
@@ -74,6 +76,14 @@ func ParseArgs(data interface{}, args []string) ([]string, error) {
 	return NewParser(data, Default).ParseArgs(args)
 }
 
+// ParseIni is a convenience function to parse command line options with default
+// settings from an ini file. The provided data is a pointer to a struct
+// representing the default option group (named "Application Options"). For
+// more control, use flags.NewParser.
+func ParseIni(filename string, data interface{}) error {
+	return NewParser(data, Default).ParseIniFile(filename)
+}
+
 // NewParser creates a new parser. It uses os.Args[0] as the application
 // name and then calls Parser.NewNamedParser (see Parser.NewNamedParser for
 // more details). The provided data is a pointer to a struct representing the
@@ -93,19 +103,30 @@ func NewParser(data interface{}, options Options) *Parser {
 // can be specified when constructing a parser, but you can also add additional
 // option groups later (see Parser.AddGroup).
 func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
-	return &Parser{
+	ret := &Parser{
 		ApplicationName: appname,
 		Groups:          groups,
+		GroupsMap:       make(map[string]*Group),
 		Options:         options,
 		Usage:           "[OPTIONS]",
 	}
+
+	for _, group := range groups {
+		ret.GroupsMap[group.Name] = group
+	}
+
+	return ret
 }
 
 // AddGroup adds a new group to the parser with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
 func (p *Parser) AddGroup(name string, data interface{}) *Parser {
-	p.Groups = append(p.Groups, NewGroup(name, data))
+	group := NewGroup(name, data)
+
+	p.Groups = append(p.Groups, group)
+	p.GroupsMap[name] = group
+
 	return p
 }
 
@@ -113,6 +134,79 @@ func (p *Parser) AddGroup(name string, data interface{}) *Parser {
 // For more detailed information see ParseArgs.
 func (p *Parser) Parse() ([]string, error) {
 	return p.ParseArgs(os.Args[1:])
+}
+
+// ParseIniFile parses flags from an ini formatted file. See ParseIni for more
+// information on the ini file foramt. The returned errors can be of the type
+// flags.Error or flags.IniError.
+func (p *Parser) ParseIniFile(filename string) error {
+	p.storeDefaults()
+
+	ini, err := readIniFromFile(filename)
+
+	if err != nil {
+		return err
+	}
+
+	return p.parseIni(ini)
+}
+
+// ParseIni parses flags from an ini format. You can use ParseIniFile as a
+// convenience function to parse from a filename instead of a general
+// io.Reader.
+//
+// The format of the ini file is as follows:
+//
+// [Option group name]
+// option = value
+//
+// Each section in the ini file represents an option group in the flags parser.
+// The default flags parser option group (i.e. when using flags.Parse) is
+// named 'Application Options'. The ini option name is matched in the following
+// order:
+//
+// 1. Compared to the ini-name tag on the option struct field (if present)
+// 2. Compared to the struct field name
+// 3. Compared to the option long name (if present)
+// 4. Compared to the option short name (if present)
+//
+// The returned errors can be of the type flags.Error or
+// flags.IniError.
+func (p *Parser) ParseIni(reader io.Reader) error {
+	p.storeDefaults()
+
+	ini, err := readIni(reader, "")
+
+	if err != nil {
+		return err
+	}
+
+	return p.parseIni(ini)
+}
+
+// WriteIniToFile writes the flags as ini format into a file. See WriteIni
+// for more information. The returned error occurs when the specified file
+// could not be opened for writing.
+func (p *Parser) WriteIniToFile(filename string, options IniOptions) error {
+	file, err := os.Create(filename)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	p.WriteIni(file, options)
+
+	return nil
+}
+
+// WriteIni writes the current values of all the flags to an ini format.
+// See ParseIni for more information on the ini file format. You typically
+// call this only after settings have been parsed since the default values of each
+// option are stored just before parsing the flags (this is only relevant when
+// IniIncludeDefaults is _not_ set in options).
+func (p *Parser) WriteIni(writer io.Writer, options IniOptions) {
+	writeIni(p, writer, options)
 }
 
 // ParseArgs parses the command line arguments according to the option groups that
@@ -128,6 +222,8 @@ func (p *Parser) Parse() ([]string, error) {
 func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	ret := make([]string, 0, len(args))
 	i := 0
+
+	p.storeDefaults()
 
 	if (p.Options & HelpFlag) != None {
 		var help struct {
@@ -150,7 +246,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	for _, group := range p.Groups {
 		for _, option := range group.Options {
 			if option.Required {
-				required[option] = struct {}{}
+				required[option] = struct{}{}
 			}
 		}
 	}
@@ -225,7 +321,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 					parseErr = newError(ErrUnknown, err.Error())
 				}
 
-				if (p.Options&PrintErrors) != None {
+				if (p.Options & PrintErrors) != None {
 					if parseErr.Type == ErrHelp {
 						fmt.Fprintln(os.Stderr, err)
 					} else {
@@ -233,7 +329,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 					}
 				}
 
-				return nil, err
+				return nil, wrapError(err)
 			}
 		} else {
 			delete(required, option)
@@ -244,7 +340,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		names := make([]string, 0, len(required))
 
 		for k, _ := range required {
-			names = append(names, "`" + k.String() + "'")
+			names = append(names, "`"+k.String()+"'")
 		}
 
 		var msg string
@@ -253,12 +349,12 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			msg = fmt.Sprintf("the required flag %s was not specified", names[0])
 		} else {
 			msg = fmt.Sprintf("the required flags %s and %s were not specified",
-			                  strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
+				strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
 		}
 
 		err := newError(ErrRequired, msg)
 
-		if (p.Options&PrintErrors) != None {
+		if (p.Options & PrintErrors) != None {
 			fmt.Fprintln(os.Stderr, err)
 		}
 

@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -11,6 +12,12 @@ func (p *Parser) removeGroup(group *Group) {
 			p.Groups = append(p.Groups[:i], p.Groups[i+1:]...)
 			break
 		}
+	}
+}
+
+func (p *Parser) storeDefaults() {
+	for _, grp := range p.Groups {
+		grp.storeDefaults()
 	}
 }
 
@@ -55,10 +62,20 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 }
 
 func (p *Parser) parseLong(args []string, name string, argument *string, index int) (error, int, *Option) {
+	name = strings.ToLower(name)
+
+	var option *Option
+	var group *Group
+
 	for _, grp := range p.Groups {
-		if option := grp.LongNames[name]; option != nil {
-			return p.parseOption(grp, args, name, option, true, argument, index)
+		if opt := grp.LongNames[name]; opt != nil {
+			option = opt
+			group = grp
 		}
+	}
+
+	if option != nil {
+		return p.parseOption(group, args, name, option, true, argument, index)
 	}
 
 	return newError(ErrUnknownFlag,
@@ -68,12 +85,18 @@ func (p *Parser) parseLong(args []string, name string, argument *string, index i
 }
 
 func (p *Parser) getShort(name rune) (*Option, *Group) {
-	for _, grp := range p.Groups {
-		option := grp.ShortNames[name]
+	var option *Option
+	var group *Group
 
-		if option != nil {
-			return option, grp
+	for _, grp := range p.Groups {
+		if opt := grp.ShortNames[name]; opt != nil {
+			option = opt
+			group = grp
 		}
+	}
+
+	if option != nil {
+		return option, group
 	}
 
 	return nil, nil
@@ -100,4 +123,46 @@ func (p *Parser) parseShort(args []string, name rune, islast bool, argument *str
 			fmt.Sprintf("unknown flag `%s'", string(names))),
 		index,
 		nil
+}
+
+func (p *Parser) parseIni(ini Ini) error {
+	for groupName, section := range ini {
+		group := p.GroupsMap[groupName]
+
+		if group == nil {
+			return newError(ErrUnknownGroup,
+				fmt.Sprintf("could not find option group `%s'", groupName))
+		}
+
+		for name, val := range section {
+			opt, usedName := group.lookupByName(name, true)
+
+			if opt == nil {
+				if (p.Options & IgnoreUnknown) == None {
+					return newError(ErrUnknownFlag,
+						fmt.Sprintf("unknown option: %s", name))
+				}
+
+				continue
+			}
+
+			if opt.options.Get("no-ini") != "" {
+				continue
+			}
+
+			opt.iniUsedName = usedName
+
+			pval := &val
+
+			if opt.isBool() && len(val) == 0 {
+				pval = nil
+			}
+
+			if err := opt.Set(pval); err != nil {
+				return wrapError(err)
+			}
+		}
+	}
+
+	return nil
 }

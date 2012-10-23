@@ -13,6 +13,9 @@ const (
 	// Unknown flag
 	ErrUnknownFlag
 
+	// Unknown group
+	ErrUnknownGroup
+
 	// Failed to marshal value
 	ErrMarshal
 
@@ -46,4 +49,12 @@ func newError(tp ErrorType, message string) *Error {
 		Type:    tp,
 		Message: message,
 	}
+}
+
+func wrapError(err error) error {
+	if _, ok := err.(*Error); !ok {
+		return newError(ErrUnknown, err.Error())
+	}
+
+	return err
 }
