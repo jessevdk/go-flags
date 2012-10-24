@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sort"
 	"unicode/utf8"
 )
 
@@ -245,6 +246,66 @@ func (p *Parser) WriteIni(writer io.Writer, options IniOptions) {
 	writeIni(p, writer, options)
 }
 
+func (p *Parser) levenshtein(s string, t string) int {
+	if len(s) == 0 {
+		return len(t)
+	}
+
+	if len(t) == 0 {
+		return len(s)
+	}
+
+	var l1, l2, l3 int
+
+	if len(s) == 1 {
+		l1 = len(t) + 1
+	} else {
+		l1 = p.levenshtein(s[1:len(s)-1], t) + 1
+	}
+
+	if len(t) == 1 {
+		l2 = len(s) + 1
+	} else {
+		l2 = p.levenshtein(t[1:len(t)-1], s) + 1
+	}
+
+	l3 = p.levenshtein(s[1:len(s)], t[1:len(t)])
+
+	if s[0] != t[0] {
+		l3 += 1
+	}
+
+	if l2 < l1 {
+		l1 = l2
+	}
+
+	if l1 < l3 {
+		return l1
+	}
+
+	return l3
+}
+
+func (p *Parser) closest(cmd string, commands []string) (string, int) {
+	if len(commands) == 0 {
+		return "", 0
+	}
+
+	mincmd := -1
+	mindist := -1
+
+	for i, c := range commands {
+		l := p.levenshtein(cmd, c)
+
+		if mincmd < 0 || l < mindist {
+			mindist = l
+			mincmd = i
+		}
+	}
+
+	return commands[mincmd], mindist
+}
+
 // ParseArgs parses the command line arguments according to the option groups that
 // were added to the parser. On successful parsing of the arguments, the
 // remaining, non-option, arguments (if any) are returned. The returned error
@@ -278,6 +339,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 	required := make(map[*Option]struct{})
 	commands := make(map[string]*Group)
+
+	for command, subgroup := range p.Commands {
+		commands[command] = subgroup
+	}
 
 	// Mark required arguments in a map
 	for _, group := range p.Groups {
@@ -420,6 +485,38 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			err := cmd.Execute(ret)
 			return nil, err
 		}
+	} else if len(commands) != 0 {
+		cmdnames := make([]string, 0, len(commands))
+
+		for k, _ := range commands {
+			cmdnames = append(cmdnames, k)
+		}
+
+		sort.Strings(cmdnames)
+		var msg string
+
+		if len(args) != 0 {
+			c, l := p.closest(args[0], cmdnames)
+			msg = fmt.Sprintf("Unknown command `%s'", args[0])
+
+			if l <= 3 {
+				msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
+			} else {
+				msg = fmt.Sprintf("%s. Please specify one command of: %s",
+				                  msg,
+				                  strings.Join(cmdnames, ", "))
+			}
+		} else {
+			msg = fmt.Sprintf("Please specify one command of: %s", strings.Join(cmdnames, ", "))
+		}
+
+		err := newError(ErrRequired, msg)
+
+		if (p.Options & PrintErrors) != None {
+			fmt.Fprintln(os.Stderr, msg)
+		}
+
+		return nil, err
 	}
 
 	return ret, nil
