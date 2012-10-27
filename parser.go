@@ -483,6 +483,11 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 		if ok {
 			err := cmd.Execute(ret)
+
+			if err != nil && (p.Options&PrintErrors) != None {
+				fmt.Fprintln(os.Stderr, err)
+			}
+
 			return nil, err
 		}
 	} else if len(commands) != 0 {
