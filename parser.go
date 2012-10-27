@@ -504,7 +504,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			c, l := p.closest(ret[0], cmdnames)
 			msg = fmt.Sprintf("Unknown command `%s'", ret[0])
 
-			if l <= 3 {
+			if float32(l)/float32(len(c)) < 0.5 {
 				msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
 			} else {
 				msg = fmt.Sprintf("%s. Please specify one command of: %s",
