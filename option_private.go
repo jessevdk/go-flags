@@ -66,6 +66,10 @@ func (option *Option) call(value *string) error {
 	}
 
 	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {
+		if retval[0].Interface() == nil {
+			return nil
+		}
+
 		return retval[0].Interface().(error)
 	}
 
