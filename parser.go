@@ -495,9 +495,9 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		sort.Strings(cmdnames)
 		var msg string
 
-		if len(args) != 0 {
-			c, l := p.closest(args[0], cmdnames)
-			msg = fmt.Sprintf("Unknown command `%s'", args[0])
+		if len(ret) != 0 {
+			c, l := p.closest(ret[0], cmdnames)
+			msg = fmt.Sprintf("Unknown command `%s'", ret[0])
 
 			if l <= 3 {
 				msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
