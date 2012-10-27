@@ -10,8 +10,8 @@ import (
 	"io"
 	"os"
 	"path"
-	"strings"
 	"sort"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -508,8 +508,8 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 				msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
 			} else {
 				msg = fmt.Sprintf("%s. Please specify one command of: %s",
-				                  msg,
-				                  strings.Join(cmdnames, ", "))
+					msg,
+					strings.Join(cmdnames, ", "))
 			}
 		} else {
 			msg = fmt.Sprintf("Please specify one command of: %s", strings.Join(cmdnames, ", "))
