@@ -32,7 +32,7 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 
 		err = option.Set(argument)
 	} else if option.OptionalArgument {
-		err = option.Set(&option.Default)
+		err = option.Set(&option.OptionalValue)
 	} else {
 		return newError(ErrExpectedArgument,
 				fmt.Sprintf("expected argument for flag `%s'", option)),

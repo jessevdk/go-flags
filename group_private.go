@@ -40,6 +40,10 @@ func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
 
 func (g *Group) storeDefaults() {
 	for _, option := range g.Options {
+		if option.Default != "" {
+			option.Set(&option.Default)
+		}
+
 		if !option.value.CanSet() {
 			continue
 		}
@@ -131,6 +135,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 
 		description := field.Tag.Get("description")
 		def := field.Tag.Get("default")
+		optionalValue := field.Tag.Get("optional-value")
 
 		optional := (field.Tag.Get("optional") != "")
 		required := (field.Tag.Get("required") != "")
@@ -141,6 +146,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			LongName:         longname,
 			Default:          def,
 			OptionalArgument: optional,
+			OptionalValue:    optionalValue,
 			Required:         required,
 			value:            realval.Field(i),
 			options:          field.Tag,

@@ -24,11 +24,7 @@ type Option struct {
 	// automatically in the builtin help.
 	Description string
 
-	// The default value of the option. The default value is used when
-	// the option flag is marked as having an OptionalArgument. This means
-	// that when the flag is specified, but no option argument is given,
-	// the value of the field this option represents will be set to
-	// Default. This is only valid for non-boolean options.
+	// The default value of the option.
 	Default string
 
 	// If true, specifies that the argument to an option flag is optional.
@@ -36,6 +32,13 @@ type Option struct {
 	// value of Default will be set in the field this option represents.
 	// This is only valid for non-boolean options.
 	OptionalArgument bool
+
+	// The optional value of the option. The optional value is used when
+	// the option flag is marked as having an OptionalArgument. This means
+	// that when the flag is specified, but no option argument is given,
+	// the value of the field this option represents will be set to
+	// OptionalValue. This is only valid for non-boolean options.
+	OptionalValue string
 
 	// If true, the option _must_ be specified on the command line. If the
 	// option is not specified, the parser will generate an ErrRequired type
