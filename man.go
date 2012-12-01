@@ -94,7 +94,10 @@ func (x *Parser) WriteManPage(wr io.Writer, description string) {
 	fmt.Fprintln(wr, ".SH SYNOPSIS")
 	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", x.ApplicationName, x.Usage)
 	fmt.Fprintln(wr, ".SH DESCRIPTION")
-	fmt.Fprintln(wr, description)
+
+	x.formatForMan(wr, description)
+	fmt.Fprintln(wr, "")
+
 	fmt.Fprintln(wr, ".SH OPTIONS")
 
 	x.writeManPageOptions(wr, x.Groups...)
