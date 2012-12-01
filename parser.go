@@ -27,6 +27,9 @@ type Parser struct {
 	// The parser application name
 	ApplicationName string
 
+	// The application short description
+	Description string
+
 	// The usage (e.g. [OPTIONS] <filename>)
 	Usage string
 
