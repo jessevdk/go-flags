@@ -16,6 +16,8 @@ var ErrShortNameTooLong = errors.New("short names can only be 1 character")
 
 // An option group. The option group has a name and a set of options.
 type Group struct {
+	Commander
+
 	// The name of the group.
 	Name string
 
@@ -37,9 +39,8 @@ type Group struct {
 	// Groups embedded in this group
 	EmbeddedGroups []*Group
 
-	// Mapping representing commands
-	Commands  map[string]*Group
 	IsCommand bool
+	LongDescription string
 
 	data interface{}
 }
@@ -55,12 +56,15 @@ type Command interface {
 // arguments.
 func NewGroup(name string, data interface{}) *Group {
 	ret := &Group{
+		Commander: Commander {
+			Commands:   make(map[string]*Group),
+		},
+
 		Name:       name,
 		Names:      make(map[string]*Option),
 		IniNames:   make(map[string]*Option),
 		LongNames:  make(map[string]*Option),
 		ShortNames: make(map[rune]*Option),
-		Commands:   make(map[string]*Group),
 		IsCommand:  false,
 		data:       data,
 	}

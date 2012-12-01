@@ -157,3 +157,21 @@ func (p *Parser) parseIni(ini Ini) error {
 
 	return nil
 }
+
+func (p *Parser) currentCommander() *Commander {
+	if p.currentCommand != nil {
+		return &p.currentCommand.Commander
+	}
+
+	return &p.Commander
+}
+
+func (p *Parser) eachTopLevelGroup(cb func(int, *Group)) {
+	index := 0
+
+	for _, group := range p.Groups {
+		if !group.IsCommand {
+			index = group.each(index, cb)
+		}
+	}
+}

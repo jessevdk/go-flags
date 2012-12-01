@@ -107,18 +107,38 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			fmt.Fprintf(wr, " %s", p.Usage)
 		}
 
-		wr.WriteString("\n")
+		if len(p.currentCommandString) > 0 {
+			fmt.Fprintf(wr, " %s [%s-OPTIONS]",
+			            strings.Join(p.currentCommandString, " "),
+			            p.currentCommandString[len(p.currentCommandString)-1])
+		}
+
+		fmt.Fprintln(wr)
+
+		if p.currentCommand != nil && len(p.currentCommand.LongDescription) != 0 {
+			fmt.Fprintln(wr)
+			fmt.Fprintln(wr, p.currentCommand.LongDescription)
+		}
 	}
 
 	maxlonglen, hasshort := p.maxLongLen()
 	maxlen := maxlonglen + 4
 
 	termcol := getTerminalColumns()
+
 	if termcol <= 0 {
 		termcol = 80
 	}
 
-	p.EachGroup(func(index int, grp *Group) {
+	seen := make(map[*Group]bool)
+
+	writeHelp := func (index int, grp *Group) {
+		if len(grp.Options) == 0 || seen[grp] {
+			return
+		}
+
+		seen[grp] = true
+
 		wr.WriteString("\n")
 
 		fmt.Fprintf(wr, "%s:\n", grp.Name)
@@ -126,7 +146,45 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		for _, info := range grp.Options {
 			p.writeHelpOption(wr, info, maxlen, hasshort, termcol)
 		}
-	})
+	}
+
+	// If there is a command, still write all the toplevel help too
+	if p.currentCommand != nil {
+		p.eachTopLevelGroup(writeHelp)
+	}
+
+	p.EachGroup(writeHelp)
+
+	commander := p.currentCommander()
+	names := commander.sortedNames()
+
+	if len(names) > 0 {
+		maxnamelen := len(names[0])
+
+		for i := 1; i < len(names); i++ {
+			l := len(names[i])
+
+			if l > maxnamelen {
+				maxnamelen = l
+			}
+		}
+
+		fmt.Fprintln(wr)
+		fmt.Fprintln(wr, "Available commands:")
+
+		for _, name := range names {
+			fmt.Fprintf(wr, "  %s", name)
+
+			cmd := commander.Commands[name]
+
+			if len(cmd.Name) > 0 {
+				pad := strings.Repeat(" ", maxnamelen - len(name))
+				fmt.Fprintf(wr, "%s  %s", pad, cmd.Name)
+			}
+
+			fmt.Fprintln(wr)
+		}
+	}
 
 	wr.Flush()
 }

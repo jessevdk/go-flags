@@ -18,6 +18,8 @@ import (
 // A Parser provides command line option parsing. It can contain several
 // option groups each with their own set of options.
 type Parser struct {
+	Commander
+
 	// The option groups available to the parser
 	Groups    []*Group
 	GroupsMap map[string]*Group
@@ -30,9 +32,8 @@ type Parser struct {
 
 	Options Options
 
-	Commands map[string]*Group
-
 	currentCommand *Group
+	currentCommandString []string
 }
 
 // Parser options
@@ -109,12 +110,15 @@ func NewParser(data interface{}, options Options) *Parser {
 // option groups later (see Parser.AddGroup).
 func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
 	ret := &Parser{
+		Commander: Commander {
+			Commands: make(map[string]*Group),
+		},
+
 		ApplicationName: appname,
 		Groups:          groups,
 		GroupsMap:       make(map[string]*Group),
 		Options:         options,
 		Usage:           "[OPTIONS]",
-		Commands:        make(map[string]*Group),
 	}
 
 	ret.EachGroup(func(index int, grp *Group) {
@@ -142,11 +146,12 @@ func (p *Parser) AddGroup(name string, data interface{}) *Parser {
 // AddCommand adds a new command to the parser with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the command.
-func (p *Parser) AddCommand(name string, command string, data interface{}) *Parser {
-	p.AddGroup(name, data)
+func (p *Parser) AddCommand(command string, description string, longDescription string, data interface{}) *Parser {
+	p.AddGroup(description, data)
 
 	group := p.Groups[len(p.Groups)-1]
 	group.IsCommand = true
+	group.LongDescription = longDescription
 
 	p.Commands[command] = group
 
@@ -175,16 +180,10 @@ func (p *Parser) ParseIniFile(filename string) error {
 }
 
 func (p *Parser) EachGroup(cb func(int, *Group)) {
-	index := 0
-
 	if p.currentCommand != nil {
-		p.currentCommand.each(index, cb)
+		p.currentCommand.each(0, cb)
 	} else {
-		for _, group := range p.Groups {
-			if !group.IsCommand {
-				index = group.each(index, cb)
-			}
-		}
+		p.eachTopLevelGroup(cb)
 	}
 }
 
@@ -333,7 +332,16 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			return newError(ErrHelp, b.String())
 		}
 
-		p.Groups = append([]*Group{NewGroup("Help Options", &help)}, p.Groups...)
+		helpgrp := NewGroup("Help Options", &help)
+
+		// Append the help group to toplevel
+		p.Groups = append([]*Group{helpgrp}, p.Groups...)
+
+		// Also append the help group to every command
+		p.Commander.EachCommand(func (command string, grp *Group) {
+			grp.EmbeddedGroups = append([]*Group{helpgrp}, grp.EmbeddedGroups...)
+		})
+
 		p.Options &^= HelpFlag
 	}
 
@@ -376,6 +384,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			if cmdgroup := commands[arg]; cmdgroup != nil {
 				// Set current 'root' group
 				p.currentCommand = cmdgroup
+
+				p.currentCommandString = append(p.currentCommandString,
+				                                arg)
+
 				commands = cmdgroup.Commands
 			} else {
 				ret = append(ret, arg)

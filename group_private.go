@@ -5,6 +5,7 @@ import (
 	"strings"
 	"unicode/utf8"
 	"unsafe"
+	"sort"
 )
 
 func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
@@ -58,13 +59,17 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 	if sfield != nil {
 		groupName := sfield.Tag.Get("group")
 		commandName := sfield.Tag.Get("command")
+		name := sfield.Tag.Get("name")
+		description := sfield.Tag.Get("description")
 
 		iscommand := false
 
 		if len(commandName) != 0 {
 			iscommand = true
 
-			if len(groupName) == 0 {
+			if len(name) != 0 {
+				groupName = name
+			} else if len(commandName) != 0 {
 				groupName = commandName
 			}
 		}
@@ -77,6 +82,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 				newGroup.IsCommand = true
 				g.Commands[commandName] = newGroup
 			}
+
+			newGroup.LongDescription = description
 
 			g.EmbeddedGroups = append(g.EmbeddedGroups, newGroup)
 			return g.Error
@@ -185,6 +192,21 @@ func (g *Group) each(index int, cb func(int, *Group)) int {
 	}
 
 	return index
+}
+
+func (g *Group) eachCommand(cb func(string, *Group)) {
+	cmds := make([]string, len(g.Commands))
+	i := 0
+
+	for k, _ := range g.Commands {
+		cmds[i] = k
+	}
+
+	sort.Strings(cmds)
+
+	for _, k := range cmds {
+		cb(k, g.Commands[k])
+	}
 }
 
 func (g *Group) scan() error {
