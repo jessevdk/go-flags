@@ -75,7 +75,7 @@ func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
 				continue
 			}
 
-			val := option.value
+			val := option.Value
 
 			if (options&IniIncludeDefaults) == IniNone &&
 				reflect.DeepEqual(val, option.defaultValue) {

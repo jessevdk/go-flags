@@ -45,7 +45,7 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 			err = newError(ErrMarshal,
 				fmt.Sprintf("invalid argument for flag `%s' (expected %s)",
 					option,
-					option.value.Type()))
+					option.Value.Type()))
 		}
 	}
 

@@ -45,11 +45,12 @@ type Option struct {
 	// error.
 	Required bool
 
-	// The name of the struct field by which this option is represented.
-	FieldName string
+	// The struct field which the option represents.
+	Field reflect.StructField
 
-	value        reflect.Value
-	options      reflect.StructTag
+	// The struct field value which the option represents.
+	Value reflect.Value
+
 	defaultValue reflect.Value
 	iniUsedName  string
 }
@@ -61,9 +62,9 @@ func (option *Option) Set(value *string) error {
 	if option.isFunc() {
 		return option.call(value)
 	} else if value != nil {
-		return convert(*value, option.value, option.options)
+		return convert(*value, option.Value, option.Field.Tag)
 	} else {
-		return convert("", option.value, option.options)
+		return convert("", option.Value, option.Field.Tag)
 	}
 
 	return nil

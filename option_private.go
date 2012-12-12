@@ -10,14 +10,14 @@ func (option *Option) canArgument() bool {
 	}
 
 	if option.isFunc() {
-		return (option.value.Type().NumIn() > 0)
+		return (option.Value.Type().NumIn() > 0)
 	}
 
 	return true
 }
 
 func (option *Option) isBool() bool {
-	tp := option.value.Type()
+	tp := option.Value.Type()
 
 	switch tp.Kind() {
 	case reflect.Bool:
@@ -30,7 +30,7 @@ func (option *Option) isBool() bool {
 }
 
 func (option *Option) isFunc() bool {
-	return option.value.Type().Kind() == reflect.Func
+	return option.Value.Type().Kind() == reflect.Func
 }
 
 func (option *Option) iniName() string {
@@ -44,16 +44,16 @@ func (option *Option) iniName() string {
 		return name
 	}
 
-	return option.FieldName
+	return option.Field.Name
 }
 
 func (option *Option) call(value *string) error {
 	var retval []reflect.Value
 
 	if value == nil {
-		retval = option.value.Call(nil)
+		retval = option.Value.Call(nil)
 	} else {
-		tp := option.value.Type().In(0)
+		tp := option.Value.Type().In(0)
 
 		val := reflect.New(tp)
 		val = reflect.Indirect(val)
@@ -62,7 +62,7 @@ func (option *Option) call(value *string) error {
 			return err
 		}
 
-		retval = option.value.Call([]reflect.Value{val})
+		retval = option.Value.Call([]reflect.Value{val})
 	}
 
 	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {

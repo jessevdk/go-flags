@@ -68,7 +68,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, maxlen in
 		def := option.Default
 
 		if def == "" && !option.isBool() {
-			def = convertToString(option.value, option.options)
+			def = convertToString(option.Value, option.options)
 		}
 
 		var desc string
