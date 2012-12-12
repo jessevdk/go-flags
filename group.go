@@ -39,7 +39,7 @@ type Group struct {
 	// Groups embedded in this group
 	EmbeddedGroups []*Group
 
-	IsCommand bool
+	IsCommand       bool
 	LongDescription string
 
 	data interface{}
@@ -56,8 +56,8 @@ type Command interface {
 // arguments.
 func NewGroup(name string, data interface{}) *Group {
 	ret := &Group{
-		Commander: Commander {
-			Commands:   make(map[string]*Group),
+		Commander: Commander{
+			Commands: make(map[string]*Group),
 		},
 
 		Name:       name,

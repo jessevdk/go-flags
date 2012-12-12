@@ -19,7 +19,7 @@ func (x *Commander) sortedNames() []string {
 	return ret
 }
 
-func (x *Commander) EachCommand(cb func (command string, grp *Group)) {
+func (x *Commander) EachCommand(cb func(command string, grp *Group)) {
 	for k, v := range x.Commands {
 		cb(k, v)
 

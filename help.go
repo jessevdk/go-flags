@@ -109,8 +109,8 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 		if len(p.currentCommandString) > 0 {
 			fmt.Fprintf(wr, " %s [%s-OPTIONS]",
-			            strings.Join(p.currentCommandString, " "),
-			            p.currentCommandString[len(p.currentCommandString)-1])
+				strings.Join(p.currentCommandString, " "),
+				p.currentCommandString[len(p.currentCommandString)-1])
 		}
 
 		fmt.Fprintln(wr)
@@ -132,7 +132,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 	seen := make(map[*Group]bool)
 
-	writeHelp := func (index int, grp *Group) {
+	writeHelp := func(index int, grp *Group) {
 		if len(grp.Options) == 0 || seen[grp] {
 			return
 		}
@@ -178,7 +178,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			cmd := commander.Commands[name]
 
 			if len(cmd.Name) > 0 {
-				pad := strings.Repeat(" ", maxnamelen - len(name))
+				pad := strings.Repeat(" ", maxnamelen-len(name))
 				fmt.Fprintf(wr, "%s  %s", pad, cmd.Name)
 			}
 

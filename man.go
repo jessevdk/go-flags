@@ -1,10 +1,10 @@
 package flags
 
 import (
-	"io"
-	"time"
 	"fmt"
+	"io"
 	"strings"
+	"time"
 )
 
 func (x *Parser) formatForMan(wr io.Writer, s string) {
@@ -79,7 +79,7 @@ func (x *Parser) writeManPageCommand(wr io.Writer, command string, grp *Group) {
 	x.writeManPageOptions(wr, grp)
 
 	for k, v := range grp.Commander.Commands {
-		x.writeManPageCommand(wr, command + " " + k, v)
+		x.writeManPageCommand(wr, command+" "+k, v)
 	}
 }
 

@@ -2,10 +2,10 @@ package flags
 
 import (
 	"reflect"
+	"sort"
 	"strings"
 	"unicode/utf8"
 	"unsafe"
-	"sort"
 )
 
 func (g *Group) lookupByName(name string, ini bool) (*Option, string) {

@@ -35,7 +35,7 @@ type Parser struct {
 
 	Options Options
 
-	currentCommand *Group
+	currentCommand       *Group
 	currentCommandString []string
 }
 
@@ -113,7 +113,7 @@ func NewParser(data interface{}, options Options) *Parser {
 // option groups later (see Parser.AddGroup).
 func NewNamedParser(appname string, options Options, groups ...*Group) *Parser {
 	ret := &Parser{
-		Commander: Commander {
+		Commander: Commander{
 			Commands: make(map[string]*Group),
 		},
 
@@ -341,7 +341,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.Groups = append([]*Group{helpgrp}, p.Groups...)
 
 		// Also append the help group to every command
-		p.Commander.EachCommand(func (command string, grp *Group) {
+		p.Commander.EachCommand(func(command string, grp *Group) {
 			grp.EmbeddedGroups = append([]*Group{helpgrp}, grp.EmbeddedGroups...)
 		})
 
@@ -389,7 +389,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 				p.currentCommand = cmdgroup
 
 				p.currentCommandString = append(p.currentCommandString,
-				                                arg)
+					arg)
 
 				commands = cmdgroup.Commands
 			} else {
