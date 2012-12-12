@@ -44,7 +44,7 @@ func (option *Option) iniName() string {
 		return name
 	}
 
-	return option.fieldName
+	return option.FieldName
 }
 
 func (option *Option) call(value *string) error {

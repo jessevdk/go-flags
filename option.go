@@ -45,7 +45,9 @@ type Option struct {
 	// error.
 	Required bool
 
-	fieldName    string
+	// The name of the struct field by which this option is represented.
+	FieldName    string
+
 	value        reflect.Value
 	options      reflect.StructTag
 	defaultValue reflect.Value

@@ -17,7 +17,7 @@ func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
 		}
 
 		if ret := g.Names[name]; ret != nil {
-			return ret, ret.fieldName
+			return ret, ret.FieldName
 		}
 	}
 
@@ -155,9 +155,9 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			OptionalArgument: optional,
 			OptionalValue:    optionalValue,
 			Required:         required,
+			FieldName:        field.Name,
 			value:            realval.Field(i),
 			options:          field.Tag,
-			fieldName:        field.Name,
 		}
 
 		g.Options = append(g.Options, option)
