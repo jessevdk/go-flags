@@ -38,7 +38,7 @@ func (option *Option) iniName() string {
 		return option.iniUsedName
 	}
 
-	name := option.options.Get("ini-name")
+	name := option.Field.Tag.Get("ini-name")
 
 	if len(name) != 0 {
 		return name
@@ -58,7 +58,7 @@ func (option *Option) call(value *string) error {
 		val := reflect.New(tp)
 		val = reflect.Indirect(val)
 
-		if err := convert(*value, val, option.options); err != nil {
+		if err := convert(*value, val, option.Field.Tag); err != nil {
 			return err
 		}
 

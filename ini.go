@@ -71,7 +71,7 @@ func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
 				continue
 			}
 
-			if len(option.options.Get("no-ini")) != 0 {
+			if len(option.Field.Tag.Get("no-ini")) != 0 {
 				continue
 			}
 
@@ -93,7 +93,7 @@ func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
 						"%s = %s\n",
 						option.iniName(),
 						convertToString(val.Index(idx),
-							option.options))
+							option.Field.Tag))
 				}
 			case reflect.Map:
 				for _, key := range val.MapKeys() {
@@ -101,16 +101,16 @@ func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
 						"%s = %s:%s\n",
 						option.iniName(),
 						convertToString(key,
-							option.options),
+							option.Field.Tag),
 						convertToString(val.MapIndex(key),
-							option.options))
+							option.Field.Tag))
 				}
 			default:
 				fmt.Fprintf(writer,
 					"%s = %s\n",
 					option.iniName(),
 					convertToString(val,
-						option.options))
+						option.Field.Tag))
 			}
 		}
 	})

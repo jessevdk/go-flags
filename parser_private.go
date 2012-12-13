@@ -137,7 +137,7 @@ func (p *Parser) parseIni(ini Ini) error {
 				continue
 			}
 
-			if opt.options.Get("no-ini") != "" {
+			if opt.Field.Tag.Get("no-ini") != "" {
 				continue
 			}
 

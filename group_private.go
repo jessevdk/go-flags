@@ -13,7 +13,7 @@ func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
 
 	if ini {
 		if ret := g.IniNames[name]; ret != nil {
-			return ret, ret.options.Get("ini-name")
+			return ret, ret.Field.Tag.Get("ini-name")
 		}
 
 		if ret := g.Names[name]; ret != nil {
