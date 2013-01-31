@@ -86,6 +86,7 @@ func convert(val string, retval reflect.Value, options reflect.StructTag) error 
 		}
 
 		retval.SetInt(int64(parsed))
+		return nil
 	}
 
 	switch tp.Kind() {
