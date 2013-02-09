@@ -13,29 +13,50 @@ import (
 	"bytes"
 )
 
-func (p *Parser) maxLongLen() (int, bool) {
-	maxlonglen := 0
-	hasshort := false
+type alignmentInfo struct {
+	maxLongLen int
+	hasShort bool
+	hasValueName bool
+	terminalColumns int
+}
+
+func (p *Parser) getAlignmentInfo() alignmentInfo {
+	ret := alignmentInfo {
+		maxLongLen: 0,
+		hasShort: false,
+		hasValueName: false,
+		terminalColumns: getTerminalColumns(),
+	}
+
+	if ret.terminalColumns <= 0 {
+		ret.terminalColumns = 80
+	}
 
 	p.EachGroup(func(index int, grp *Group) {
 		for _, info := range grp.Options {
 			if info.ShortName != 0 {
-				hasshort = true
+				ret.hasShort = true
 			}
 
-			l := utf8.RuneCountInString(info.LongName)
+			lv := utf8.RuneCountInString(info.ValueName)
 
-			if l > maxlonglen {
-				maxlonglen = l
+			if lv != 0 {
+				ret.hasValueName = true
+			}
+
+			l := utf8.RuneCountInString(info.LongName) + lv
+
+			if l > ret.maxLongLen {
+				ret.maxLongLen = l
 			}
 		}
 	})
 
-	return maxlonglen, hasshort
+	return ret
 }
 
-func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, maxlen int, hasshort bool, termcol int) {
-	line := bytes.Buffer {}
+func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alignmentInfo) {
+	line := &bytes.Buffer {}
 
 	distanceBetweenOptionAndDescription := 2
 	paddingBeforeOption := 2
@@ -45,29 +66,37 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, maxlen in
 	if option.ShortName != 0 {
 		line.WriteString("-")
 		line.WriteRune(option.ShortName)
-	} else if hasshort {
+	} else if info.hasShort {
 		line.WriteString("  ")
 	}
 
-	descstart := maxlen + paddingBeforeOption + distanceBetweenOptionAndDescription
+	descstart := info.maxLongLen + paddingBeforeOption + distanceBetweenOptionAndDescription
 
-	if hasshort {
+	if info.hasShort {
 		descstart += 2
 	}
 
-	if maxlen > 0 {
+	if info.maxLongLen > 0 {
 		descstart += 4
 	}
 
-	if option.LongName != "" {
+	if info.hasValueName {
+		descstart += 3
+	}
+
+	if len(option.LongName) > 0 {
 		if option.ShortName != 0 {
 			line.WriteString(", ")
-		} else if hasshort {
+		} else if info.hasShort {
 			line.WriteString("  ")
 		}
 
 		line.WriteString("--")
 		line.WriteString(option.LongName)
+	}
+
+	if len(option.ValueName) > 0 {
+		fmt.Fprintf(line, " [%s]", option.ValueName)
 	}
 
 	written := line.Len()
@@ -92,7 +121,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, maxlen in
 		}
 
 		writer.WriteString(wrapText(desc,
-			termcol-descstart,
+			info.terminalColumns-descstart,
 			strings.Repeat(" ", descstart)))
 	}
 
@@ -133,13 +162,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		}
 	}
 
-	maxlonglen, hasshort := p.maxLongLen()
-
-	termcol := getTerminalColumns()
-
-	if termcol <= 0 {
-		termcol = 80
-	}
+	aligninfo := p.getAlignmentInfo()
 
 	seen := make(map[*Group]bool)
 
@@ -155,7 +178,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		fmt.Fprintf(wr, "%s:\n", grp.Name)
 
 		for _, info := range grp.Options {
-			p.writeHelpOption(wr, info, maxlonglen, hasshort, termcol)
+			p.writeHelpOption(wr, info, aligninfo)
 		}
 	}
 

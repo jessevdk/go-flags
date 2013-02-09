@@ -45,6 +45,9 @@ type Option struct {
 	// error.
 	Required bool
 
+	// A name for the value of an option shown in the Help as --flag [ValueName]
+	ValueName string
+
 	// The struct field which the option represents.
 	Field reflect.StructField
 

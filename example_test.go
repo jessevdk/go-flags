@@ -23,6 +23,9 @@ func Example() {
 
 		// Example of a required flag
 		Name string `short:"n" long:"name" description:"A name" required:"true"`
+
+		// Example of a value name
+		File string `short:"f" long:"file" description:"A file" value-name:"FILE"`
 	}
 
 	// Callback which will invoke callto:<argument> to call a number.

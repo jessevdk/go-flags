@@ -143,6 +143,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 		description := field.Tag.Get("description")
 		def := field.Tag.Get("default")
 		optionalValue := field.Tag.Get("optional-value")
+		valueName := field.Tag.Get("value-name")
 
 		optional := (field.Tag.Get("optional") != "")
 		required := (field.Tag.Get("required") != "")
@@ -157,6 +158,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			Required:         required,
 			Field:            field,
 			Value:            realval.Field(i),
+			ValueName:        valueName,
 		}
 
 		g.Options = append(g.Options, option)
