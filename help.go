@@ -10,6 +10,7 @@ import (
 	"io"
 	"strings"
 	"unicode/utf8"
+	"bytes"
 )
 
 func (p *Parser) maxLongLen() (int, bool) {
@@ -34,36 +35,47 @@ func (p *Parser) maxLongLen() (int, bool) {
 }
 
 func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, maxlen int, hasshort bool, termcol int) {
+	line := bytes.Buffer {}
+
+	distanceBetweenOptionAndDescription := 2
+	paddingBeforeOption := 2
+
+	line.WriteString(strings.Repeat(" ", paddingBeforeOption))
+
 	if option.ShortName != 0 {
-		writer.WriteString("  -")
-		writer.WriteRune(option.ShortName)
+		line.WriteString("-")
+		line.WriteRune(option.ShortName)
 	} else if hasshort {
-		writer.WriteString("    ")
+		line.WriteString("  ")
 	}
 
-	written := 0
-	prelen := 4
+	descstart := maxlen + paddingBeforeOption + distanceBetweenOptionAndDescription
+
+	if hasshort {
+		descstart += 2
+	}
+
+	if maxlen > 0 {
+		descstart += 4
+	}
 
 	if option.LongName != "" {
 		if option.ShortName != 0 {
-			writer.WriteString(", ")
-		} else {
-			writer.WriteString("  ")
+			line.WriteString(", ")
+		} else if hasshort {
+			line.WriteString("  ")
 		}
 
-		fmt.Fprintf(writer, "--%s", option.LongName)
-		written = utf8.RuneCountInString(option.LongName)
-
-		prelen += written + 4
+		line.WriteString("--")
+		line.WriteString(option.LongName)
 	}
 
-	if option.Description != "" {
-		if written < maxlen {
-			dw := maxlen - written
+	written := line.Len()
+	line.WriteTo(writer)
 
-			writer.WriteString(strings.Repeat(" ", dw))
-			prelen += dw
-		}
+	if option.Description != "" {
+		dw := descstart - written
+		writer.WriteString(strings.Repeat(" ", dw))
 
 		def := option.Default
 
@@ -80,8 +92,8 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, maxlen in
 		}
 
 		writer.WriteString(wrapText(desc,
-			termcol-prelen,
-			strings.Repeat(" ", prelen)))
+			termcol-descstart,
+			strings.Repeat(" ", descstart)))
 	}
 
 	writer.WriteString("\n")
@@ -122,7 +134,6 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	}
 
 	maxlonglen, hasshort := p.maxLongLen()
-	maxlen := maxlonglen + 4
 
 	termcol := getTerminalColumns()
 
@@ -144,7 +155,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		fmt.Fprintf(wr, "%s:\n", grp.Name)
 
 		for _, info := range grp.Options {
-			p.writeHelpOption(wr, info, maxlen, hasshort, termcol)
+			p.writeHelpOption(wr, info, maxlonglen, hasshort, termcol)
 		}
 	}
 
