@@ -36,6 +36,19 @@
 // will be appended to the Verbose field. e.g. when specifying -vvv, the
 // resulting value of Verbose will be {[true, true, true]}.
 //
+// Slice options work exactly the same as primitive type options, except that
+// whenever the option is encountered, a value is appended to the slice.
+//
+// Map options from string to primitive type are also supported. On the command
+// line, you specify the value for such an option as key:value. For example
+//
+//     type Options struct {
+//         AuthorInfo string[string] `short:"a"`
+//     }
+//
+// Then, the AuthorInfo map can be filled with something like
+// -a name:Jesse -a "surname:van den Kieboom".
+//
 // Available field tags:
 //     short:       the short name of the option (single character)
 //     long:        the long name of the option
