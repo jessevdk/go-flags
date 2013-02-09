@@ -44,6 +44,7 @@
 //     default:     the default argument value if the option occurs without
 //                  an argument (optional)
 //     base:        a base used to convert strings to integer values (optional)
+//     value-name:  the name of the argument value (to be shown in the help, optional)
 //
 // Either short: or long: must be specified to make the field eligible as an
 // option.
