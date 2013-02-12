@@ -142,13 +142,15 @@ func convert(val string, retval reflect.Value, options reflect.StructTag) error 
 		retval.SetFloat(parsed)
 	case reflect.Slice:
 		elemtp := tp.Elem()
-		elemval := reflect.New(elemtp)
+
+		elemvalptr := reflect.New(elemtp)
+		elemval := reflect.Indirect(elemvalptr)
 
 		if err := convert(val, elemval, options); err != nil {
 			return err
 		}
 
-		retval.Set(reflect.Append(retval, reflect.Indirect(elemval)))
+		retval.Set(reflect.Append(retval, elemval))
 	case reflect.Map:
 		parts := strings.SplitN(val, ":", 2)
 
