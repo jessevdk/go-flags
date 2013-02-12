@@ -43,9 +43,10 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 	if err != nil {
 		if _, ok := err.(*Error); !ok {
 			err = newError(ErrMarshal,
-				fmt.Sprintf("invalid argument for flag `%s' (expected %s)",
+				fmt.Sprintf("invalid argument for flag `%s' (expected %s): %s",
 					option,
-					option.Value.Type()))
+					option.Value.Type(),
+					err.Error()))
 		}
 	}
 
