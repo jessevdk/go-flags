@@ -178,6 +178,12 @@ func convert(val string, retval reflect.Value, options reflect.StructTag) error 
 		}
 
 		retval.SetMapIndex(reflect.Indirect(keyval), reflect.Indirect(valueval))
+	case reflect.Ptr:
+		if retval.IsNil() {
+			retval.Set(reflect.New(retval.Type().Elem()))
+		}
+
+		return convert(val, reflect.Indirect(retval), options)
 	}
 
 	return nil
