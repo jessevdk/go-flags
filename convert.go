@@ -46,6 +46,10 @@ func convertToString(val reflect.Value, options reflect.StructTag) string {
 	case reflect.Float32, reflect.Float64:
 		return strconv.FormatFloat(val.Float(), 'g', -1, tp.Bits())
 	case reflect.Slice:
+		if val.Len() == 0 {
+			return ""
+		}
+
 		ret := "["
 
 		for i := 0; i < val.Len(); i++ {
