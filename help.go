@@ -97,10 +97,10 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 	if !option.isBool() {
 		line.WriteString("=")
-	}
 
-	if len(option.ValueName) > 0 {
-		line.WriteString(option.ValueName)
+		if len(option.ValueName) > 0 {
+			line.WriteString(option.ValueName)
+		}
 	}
 
 	written := line.Len()
