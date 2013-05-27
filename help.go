@@ -95,8 +95,12 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		line.WriteString(option.LongName)
 	}
 
+	if !option.isBool() {
+		line.WriteString("=")
+	}
+
 	if len(option.ValueName) > 0 {
-		fmt.Fprintf(line, " [%s]", option.ValueName)
+		line.WriteString(option.ValueName)
 	}
 
 	written := line.Len()
