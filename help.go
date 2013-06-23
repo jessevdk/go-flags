@@ -32,7 +32,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		ret.terminalColumns = 80
 	}
 
-	p.EachGroup(func(index int, grp *Group) {
+	p.EachGroupWithTopLevel(func(index int, grp *Group) {
 		for _, info := range grp.Options {
 			if info.ShortName != 0 {
 				ret.hasShort = true
