@@ -56,6 +56,9 @@ const (
 	// arguments (i.e. they will not be parsed for flags)
 	PassDoubleDash
 
+	// Pass all arguments after a normal argument occurs
+	PassArgument
+
 	// Ignore any unknown options and pass them as remaining command line
 	// arguments
 	IgnoreUnknown
@@ -64,7 +67,7 @@ const (
 	PrintErrors
 
 	// A convenient default set of options
-	Default = HelpFlag | PrintErrors | PassDoubleDash
+	Default = HelpFlag | PrintErrors | PassDoubleDash | PassArgument
 )
 
 // Parse is a convenience function to parse command line options with default
@@ -393,7 +396,14 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 				commands = cmdgroup.Commands
 			} else {
-				ret = append(ret, arg)
+				// When PassArgument is set and we encounter a argument, then
+				// simply append all the rest as arguments and break out
+				if p.Options&PassArgument != None {
+					ret = append(ret, args[i-1:]...)
+					break
+				} else {
+					ret = append(ret, arg)
+				}
 			}
 
 			continue
