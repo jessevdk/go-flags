@@ -193,6 +193,13 @@ func (p *Parser) EachGroup(cb func(int, *Group)) {
 	}
 }
 
+func (p *Parser) EachGroupWithTopLevel(cb func(int, *Group)) {
+	if p.currentCommand != nil {
+		p.currentCommand.each(0, cb)
+	}
+	p.eachTopLevelGroup(cb)
+}
+
 // ParseIni parses flags from an ini format. You can use ParseIniFile as a
 // convenience function to parse from a filename instead of a general
 // io.Reader.

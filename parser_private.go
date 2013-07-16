@@ -10,6 +10,9 @@ func (p *Parser) storeDefaults() {
 	p.EachGroup(func(index int, grp *Group) {
 		grp.storeDefaults()
 	})
+	p.Commander.EachCommand(func(command string, grp *Group) {
+		grp.storeDefaults()
+	})
 }
 
 func (p *Parser) parseOption(group *Group, args []string, name string, option *Option, canarg bool, argument *string, index int) (error, int, *Option) {
