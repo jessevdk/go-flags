@@ -443,23 +443,23 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		if err != nil {
-			if (p.Options & IgnoreUnknown) != None {
+			ignoreUnknown := (p.Options & IgnoreUnknown) != None
+
+			parseErr, ok := err.(*Error)
+			if !ok {
+				parseErr = newError(ErrUnknown, err.Error())
+			}
+
+			if ignoreUnknown {
 				ret = append(ret, arg)
-			} else {
-				parseErr, ok := err.(*Error)
+			}
 
-				if !ok {
-					parseErr = newError(ErrUnknown, err.Error())
+			if !(parseErr.Type == ErrUnknownFlag && ignoreUnknown) && (p.Options & PrintErrors) != None {
+				if parseErr.Type == ErrHelp {
+					fmt.Fprintln(os.Stderr, err)
+				} else {
+					fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
 				}
-
-				if (p.Options & PrintErrors) != None {
-					if parseErr.Type == ErrHelp {
-						fmt.Fprintln(os.Stderr, err)
-					} else {
-						fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
-					}
-				}
-
 				return nil, wrapError(err)
 			}
 		} else {
