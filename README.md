@@ -53,17 +53,20 @@ Then, the `AuthorInfo` map can be filled with something like
 `-a name:Jesse -a "surname:van den Kieboom"`.
 
 Available field tags:
-* short:       the short name of the option (single character)
-* long:        the long name of the option
-* description: the description of the option (optional)
-* optional:    whether an argument of the option is optional (optional)
-* default:     the default argument value if the option occurs without
-               an argument (optional)
-* required:    whether an option is required to appear on the command line.
-               If a required option is not present, the parser will return
-               ErrRequired.
-* base:        a base used to convert strings to integer values (optional)
-* value-name:  the name of the argument value (to be shown in the help, optional)
+ * short:          the short name of the option (single character)
+ * long:           the long name of the option
+ * description:    the description of the option (optional)
+ * optional:       whether an argument of the option is optional (optional)
+ * optional-value: the value of an optional option when the option occurs
+                   without an argument (optional)
+ * default:        the default value of an option.
+ * required:       whether an option is required to appear on the command
+                   line. If a required option is not present, the parser
+                   will return ErrRequired.
+ * base:           a base used to convert strings to integer values
+                   (optional)
+ * value-name:     the name of the argument value (to be shown in the help,
+                   optional)
 
 Either short: or long: must be specified to make the field eligible as an
 option.
