@@ -32,7 +32,15 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 
 		err = option.Set(argument)
 	} else if option.OptionalArgument {
-		err = option.Set(&option.OptionalValue)
+		option.clear()
+
+		for _, v := range option.OptionalValue {
+			err = option.Set(&v)
+
+			if err != nil {
+				break
+			}
+		}
 	} else {
 		return newError(ErrExpectedArgument,
 				fmt.Sprintf("expected argument for flag `%s'", option)),
@@ -138,7 +146,7 @@ func (p *Parser) parseIni(ini Ini) error {
 				continue
 			}
 
-			if opt.Field.Tag.Get("no-ini") != "" {
+			if opt.tag.Get("no-ini") != "" {
 				continue
 			}
 

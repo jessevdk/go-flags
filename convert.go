@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func getBase(options reflect.StructTag, base int) (int, error) {
+func getBase(options multiTag, base int) (int, error) {
 	sbase := options.Get("base")
 
 	var err error
@@ -25,7 +25,7 @@ func getBase(options reflect.StructTag, base int) (int, error) {
 	return base, err
 }
 
-func convertToString(val reflect.Value, options reflect.StructTag) string {
+func convertToString(val reflect.Value, options multiTag) string {
 	tp := val.Type()
 
 	switch tp.Kind() {
@@ -80,7 +80,7 @@ func convertToString(val reflect.Value, options reflect.StructTag) string {
 	return ""
 }
 
-func convert(val string, retval reflect.Value, options reflect.StructTag) error {
+func convert(val string, retval reflect.Value, options multiTag) error {
 	tp := retval.Type()
 
 	// Support for time.Duration

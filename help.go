@@ -111,9 +111,10 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		dw := descstart - written
 		writer.WriteString(strings.Repeat(" ", dw))
 
-		def := option.Default
+		def := ""
+		defs := option.Default
 
-		if def == "" && !option.isBool() {
+		if len(defs) == 0 && !option.isBool() {
 			var showdef bool
 
 			switch option.Field.Type.Kind() {
@@ -129,8 +130,10 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			}
 
 			if showdef {
-				def = convertToString(option.Value, option.Field.Tag)
+				def = convertToString(option.Value, option.tag)
 			}
+		} else if len(defs) != 0 {
+			def = strings.Join(defs, ", ")
 		}
 
 		var desc string

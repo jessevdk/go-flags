@@ -55,8 +55,10 @@
 //     description:    the description of the option (optional)
 //     optional:       whether an argument of the option is optional (optional)
 //     optional-value: the value of an optional option when the option occurs
-//                     without an argument (optional)
-//     default:        the default value of an option.
+//                     without an argument. This tag can be specified multiple
+//                     times in the case of maps or slices (optional)
+//     default:        the default value of an option. This tag can be specified
+//                     multiple times in the case of slices or maps (optional).
 //     required:       whether an option is required to appear on the command
 //                     line. If a required option is not present, the parser
 //                     will return ErrRequired.

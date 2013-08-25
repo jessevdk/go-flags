@@ -16,6 +16,21 @@ func (option *Option) canArgument() bool {
 	return true
 }
 
+func (option *Option) clear() {
+	tp := option.Value.Type()
+
+	switch tp.Kind() {
+	case reflect.Func:
+		// Skip
+	case reflect.Map:
+		// Empty the map
+		option.Value.Set(reflect.MakeMap(tp))
+	default:
+		zeroval := reflect.Zero(tp)
+		option.Value.Set(zeroval)
+	}
+}
+
 func (option *Option) isBool() bool {
 	tp := option.Value.Type()
 
@@ -38,7 +53,7 @@ func (option *Option) iniName() string {
 		return option.iniUsedName
 	}
 
-	name := option.Field.Tag.Get("ini-name")
+	name := option.tag.Get("ini-name")
 
 	if len(name) != 0 {
 		return name
@@ -58,7 +73,7 @@ func (option *Option) call(value *string) error {
 		val := reflect.New(tp)
 		val = reflect.Indirect(val)
 
-		if err := convert(*value, val, option.Field.Tag); err != nil {
+		if err := convert(*value, val, option.tag); err != nil {
 			return err
 		}
 

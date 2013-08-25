@@ -25,7 +25,7 @@ type Option struct {
 	Description string
 
 	// The default value of the option.
-	Default string
+	Default []string
 
 	// If true, specifies that the argument to an option flag is optional.
 	// When no argument to the flag is specified on the command line, the
@@ -38,7 +38,7 @@ type Option struct {
 	// that when the flag is specified, but no option argument is given,
 	// the value of the field this option represents will be set to
 	// OptionalValue. This is only valid for non-boolean options.
-	OptionalValue string
+	OptionalValue []string
 
 	// If true, the option _must_ be specified on the command line. If the
 	// option is not specified, the parser will generate an ErrRequired type
@@ -56,6 +56,7 @@ type Option struct {
 
 	defaultValue reflect.Value
 	iniUsedName  string
+	tag          multiTag
 }
 
 // Set the value of an option to the specified value. An error will be returned
@@ -65,9 +66,9 @@ func (option *Option) Set(value *string) error {
 	if option.isFunc() {
 		return option.call(value)
 	} else if value != nil {
-		return convert(*value, option.Value, option.Field.Tag)
+		return convert(*value, option.Value, option.tag)
 	} else {
-		return convert("", option.Value, option.Field.Tag)
+		return convert("", option.Value, option.tag)
 	}
 
 	return nil

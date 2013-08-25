@@ -13,7 +13,7 @@ func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
 
 	if ini {
 		if ret := g.IniNames[name]; ret != nil {
-			return ret, ret.Field.Tag.Get("ini-name")
+			return ret, ret.tag.Get("ini-name")
 		}
 
 		if ret := g.Names[name]; ret != nil {
@@ -41,8 +41,13 @@ func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
 
 func (g *Group) storeDefaults() {
 	for _, option := range g.Options {
-		if option.Default != "" {
-			option.Set(&option.Default)
+		// First. empty out the value
+		if len(option.Default) > 0 {
+			option.clear()
+		}
+
+		for _, d := range option.Default {
+			option.Set(&d)
 		}
 
 		if !option.Value.CanSet() {
@@ -57,10 +62,12 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 	stype := realval.Type()
 
 	if sfield != nil {
-		groupName := sfield.Tag.Get("group")
-		commandName := sfield.Tag.Get("command")
-		name := sfield.Tag.Get("name")
-		description := sfield.Tag.Get("description")
+		mtag := newMultiTag(string(sfield.Tag))
+
+		groupName := mtag.Get("group")
+		commandName := mtag.Get("command")
+		name := mtag.Get("name")
+		description := mtag.Get("description")
 
 		iscommand := false
 
@@ -98,8 +105,10 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			continue
 		}
 
+		mtag := newMultiTag(string(field.Tag))
+
 		// Skip fields with the no-flag tag
-		if field.Tag.Get("no-flag") != "" {
+		if mtag.Get("no-flag") != "" {
 			continue
 		}
 
@@ -124,8 +133,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			}
 		}
 
-		longname := field.Tag.Get("long")
-		shortname := field.Tag.Get("short")
+		longname := mtag.Get("long")
+		shortname := mtag.Get("short")
 
 		if longname == "" && shortname == "" {
 			continue
@@ -140,13 +149,13 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			short, _ = utf8.DecodeRuneInString(shortname)
 		}
 
-		description := field.Tag.Get("description")
-		def := field.Tag.Get("default")
-		optionalValue := field.Tag.Get("optional-value")
-		valueName := field.Tag.Get("value-name")
+		description := mtag.Get("description")
+		def := mtag.GetMany("default")
+		optionalValue := mtag.GetMany("optional-value")
+		valueName := mtag.Get("value-name")
 
-		optional := (field.Tag.Get("optional") != "")
-		required := (field.Tag.Get("required") != "")
+		optional := (mtag.Get("optional") != "")
+		required := (mtag.Get("required") != "")
 
 		option := &Option{
 			Description:      description,
@@ -159,6 +168,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			Field:            field,
 			Value:            realval.Field(i),
 			ValueName:        valueName,
+			tag:              mtag,
 		}
 
 		g.Options = append(g.Options, option)
@@ -173,7 +183,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 
 		g.Names[strings.ToLower(field.Name)] = option
 
-		ininame := field.Tag.Get("ini-name")
+		ininame := mtag.Get("ini-name")
 
 		if len(ininame) != 0 {
 			g.IniNames[strings.ToLower(ininame)] = option
