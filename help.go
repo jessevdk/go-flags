@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 	"unicode/utf8"
 )
@@ -113,7 +114,23 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		def := option.Default
 
 		if def == "" && !option.isBool() {
-			def = convertToString(option.Value, option.Field.Tag)
+			var showdef bool
+
+			switch option.Field.Type.Kind() {
+			case reflect.Func, reflect.Ptr:
+				showdef = !option.Value.IsNil()
+			case reflect.Slice, reflect.String, reflect.Array:
+				showdef = option.Value.Len() > 0
+			case reflect.Map:
+				showdef = !option.Value.IsNil() && option.Value.Len() > 0
+			default:
+				zeroval := reflect.Zero(option.Field.Type)
+				showdef = !reflect.DeepEqual(zeroval.Interface(), option.Value.Interface())
+			}
+
+			if showdef {
+				def = convertToString(option.Value, option.Field.Tag)
+			}
 		}
 
 		var desc string
