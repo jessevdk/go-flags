@@ -73,6 +73,8 @@ func convertToString(val reflect.Value, options reflect.StructTag) string {
 		}
 
 		return ret + "}"
+	case reflect.Ptr:
+		return convertToString(reflect.Indirect(val), options)
 	}
 
 	return ""
