@@ -54,6 +54,7 @@
 //     long:        the long name of the option
 //     description: the description of the option (optional)
 //     optional:    whether an argument of the option is optional (optional)
+//	   required:	whether an argument of the option is required (optional)
 //     default:     the default argument value if the option occurs without
 //                  an argument (optional)
 //     required:    whether an option is required to appear on the command line.
