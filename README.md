@@ -39,38 +39,6 @@ When either -v or --verbose is found on the command line, a 'true' value
 will be appended to the Verbose field. e.g. when specifying -vvv, the
 resulting value of Verbose will be {[true, true, true]}.
 
-Slice options work exactly the same as primitive type options, except that
-whenever the option is encountered, a value is appended to the slice.
-
-Map options from string to primitive type are also supported. On the command
-line, you specify the value for such an option as key:value. For example
-
-    type Options struct {
-        AuthorInfo string[string] `short:"a"`
-    }
-
-Then, the `AuthorInfo` map can be filled with something like
-`-a name:Jesse -a "surname:van den Kieboom"`.
-
-Available field tags:
- * short:          the short name of the option (single character)
- * long:           the long name of the option
- * description:    the description of the option (optional)
- * optional:       whether an argument of the option is optional (optional)
- * optional-value: the value of an optional option when the option occurs
-                   without an argument (optional)
- * default:        the default value of an option.
- * required:       whether an option is required to appear on the command
-                   line. If a required option is not present, the parser
-                   will return ErrRequired.
- * base:           a base used to convert strings to integer values
-                   (optional)
- * value-name:     the name of the argument value (to be shown in the help,
-                   optional)
-
-Either short: or long: must be specified to make the field eligible as an
-option.
-
 Example:
 --------
 	var opts struct {
@@ -83,30 +51,78 @@ Example:
 
 		// Example of a callback, called each time the option is found.
 		Call func(string) `short:"c" description:"Call phone number"`
+
+		// Example of a required flag
+		Name string `short:"n" long:"name" description:"A name" required:"true"`
+
+		// Example of a value name
+		File string `short:"f" long:"file" description:"A file" value-name:"FILE"`
+
+		// Example of a pointer
+		Ptr *int `short:"p" description:"A pointer to an integer"`
+
+		// Example of a slice of strings
+		StringSlice []string `short:"s" description:"A slice of strings"`
+
+		// Example of a slice of pointers
+		PtrSlice []*string `long:"ptrslice" description:"A slice of pointers to string"`
+
+		// Example of a map
+		IntMap map[string]int `long:"intmap" description:"A map from string to int"`
 	}
 
 	// Callback which will invoke callto:<argument> to call a number.
 	// Note that this works just on OS X (and probably only with
 	// Skype) but it shows the idea.
 	opts.Call = func(num string) {
-		cmd := exec.Command("open", "callto:" + num)
+		cmd := exec.Command("open", "callto:"+num)
 		cmd.Start()
 		cmd.Process.Release()
 	}
 
-	// Parse flags
-	args, err := flags.Parse(&opts)
+	// Make some fake arguments to parse.
+	args := []string{
+		"-vv",
+		"--offset=5",
+		"-n", "Me",
+		"-p", "3",
+		"-s", "hello",
+		"-s", "world",
+		"--ptrslice", "hello",
+		"--ptrslice", "world",
+		"--intmap", "a:1",
+		"--intmap", "b:5",
+		"arg1",
+		"arg2",
+		"arg3",
+	}
+
+	// Parse flags from `args'. Note that here we use flags.ParseArgs for
+	// the sake of making a working example. Normally, you would simply use
+	// flags.Parse(&opts) which uses os.Args
+	args, err := flags.ParseArgs(&opts, args)
 
 	if err != nil {
+		panic(err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Verbosity: %d\n", len(opts.Verbose))
+	fmt.Printf("Verbosity: %v\n", opts.Verbose)
 	fmt.Printf("Offset: %d\n", opts.Offset)
+	fmt.Printf("Name: %s\n", opts.Name)
+	fmt.Printf("Ptr: %d\n", *opts.Ptr)
+	fmt.Printf("StringSlice: %v\n", opts.StringSlice)
+	fmt.Printf("PtrSlice: [%v %v]\n", *opts.PtrSlice[0], *opts.PtrSlice[1])
+	fmt.Printf("IntMap: [a:%v b:%v]\n", opts.IntMap["a"], opts.IntMap["b"])
 	fmt.Printf("Remaining args: %s\n", strings.Join(args, " "))
 
-	// Output: Verbosity: 0
-	// Offset: 0
-	// Remaining args:
+	// Output: Verbosity: [true true]
+	// Offset: 5
+	// Name: Me
+	// Ptr: 3
+	// StringSlice: [hello world]
+	// PtrSlice: [hello world]
+	// IntMap: [a:1 b:5]
+	// Remaining args: arg1 arg2 arg3
 
-More information can be found in the godocs: <http://go.pkgdoc.org/github.com/jessevdk/go-flags>
+More information can be found in the godocs: <http://godoc.org/github.com/jessevdk/go-flags>
