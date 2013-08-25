@@ -401,7 +401,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 				commands = cmdgroup.Commands
 			} else {
-				if (p.Options&PassAfterNonOption) != None {
+				if (p.Options & PassAfterNonOption) != None {
 					ret = append(ret, args[(i-1):]...)
 					break
 				} else {
