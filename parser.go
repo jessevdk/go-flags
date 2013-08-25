@@ -63,6 +63,10 @@ const (
 	// Print any errors which occured during parsing to os.Stderr
 	PrintErrors
 
+	// Pass all arguments after the first non option. This is equivalent
+	// to strict POSIX processing
+	PassAfterNonOption
+
 	// A convenient default set of options
 	Default = HelpFlag | PrintErrors | PassDoubleDash
 )
@@ -397,7 +401,12 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 				commands = cmdgroup.Commands
 			} else {
-				ret = append(ret, arg)
+				if (p.Options&PassAfterNonOption) != None {
+					ret = append(ret, args[(i-1):]...)
+					break
+				} else {
+					ret = append(ret, arg)
+				}
 			}
 
 			continue
