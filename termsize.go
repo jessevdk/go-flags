@@ -23,6 +23,6 @@ func getTerminalColumns() int {
 
 		return int(ws.ws_col)
 	}
-	
+
 	return 80
 }

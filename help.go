@@ -6,25 +6,25 @@ package flags
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
 	"unicode/utf8"
-	"bytes"
 )
 
 type alignmentInfo struct {
-	maxLongLen int
-	hasShort bool
-	hasValueName bool
+	maxLongLen      int
+	hasShort        bool
+	hasValueName    bool
 	terminalColumns int
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
-	ret := alignmentInfo {
-		maxLongLen: 0,
-		hasShort: false,
-		hasValueName: false,
+	ret := alignmentInfo{
+		maxLongLen:      0,
+		hasShort:        false,
+		hasValueName:    false,
 		terminalColumns: getTerminalColumns(),
 	}
 
@@ -56,7 +56,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 }
 
 func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alignmentInfo) {
-	line := &bytes.Buffer {}
+	line := &bytes.Buffer{}
 
 	distanceBetweenOptionAndDescription := 2
 	paddingBeforeOption := 2
