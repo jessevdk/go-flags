@@ -58,7 +58,7 @@ Available field tags:
 * description: the description of the option (optional)
 * optional:    whether an argument of the option is optional (optional)
 * default:     the default argument value if the option occurs without
-                 an argument (optional)
+               an argument (optional)
 * required:    whether an option is required to appear on the command line.
                If a required option is not present, the parser will return
                ErrRequired.
