@@ -308,6 +308,10 @@ func (p *Parser) closest(cmd string, commands []string) (string, int) {
 	return commands[mincmd], mindist
 }
 
+func argumentIsOption(arg string) bool {
+	return len(arg) > 0 && arg[0] == '-'
+}
+
 // ParseArgs parses the command line arguments according to the option groups that
 // were added to the parser. On successful parsing of the arguments, the
 // remaining, non-option, arguments (if any) are returned. The returned error
@@ -383,7 +387,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		// If the argument is not an option then
 		// 1) Check for subcommand
 		// 2) Append it to the rest if subcommand is not found
-		if arg[0] != '-' {
+		if !argumentIsOption(arg) {
 			if cmdgroup := commands[arg]; cmdgroup != nil {
 				// Set current 'root' group
 				p.currentCommand = cmdgroup

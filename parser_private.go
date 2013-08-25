@@ -24,7 +24,7 @@ func (p *Parser) parseOption(group *Group, args []string, name string, option *O
 		}
 
 		err = option.Set(nil)
-	} else if canarg && (argument != nil || index < len(args)) {
+	} else if canarg && (argument != nil || index < len(args) && !argumentIsOption(args[index])) {
 		if argument == nil {
 			argument = &args[index]
 			index++
