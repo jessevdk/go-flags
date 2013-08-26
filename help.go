@@ -171,6 +171,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	}
 
 	wr := bufio.NewWriter(writer)
+	aligninfo := p.getAlignmentInfo()
 
 	if p.ApplicationName != "" {
 		wr.WriteString("Usage:\n")
@@ -190,11 +191,14 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 		if p.currentCommand != nil && len(p.currentCommand.LongDescription) != 0 {
 			fmt.Fprintln(wr)
-			fmt.Fprintln(wr, p.currentCommand.LongDescription)
+
+			t := wrapText(p.currentCommand.LongDescription,
+			              aligninfo.terminalColumns,
+			              "")
+
+			fmt.Fprintln(wr, t)
 		}
 	}
-
-	aligninfo := p.getAlignmentInfo()
 
 	seen := make(map[*Group]bool)
 
