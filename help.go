@@ -33,7 +33,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		ret.terminalColumns = 80
 	}
 
-	p.EachGroup(func(index int, grp *Group) {
+	alfunc := func(index int, grp *Group) {
 		for _, info := range grp.Options {
 			if info.ShortName != 0 {
 				ret.hasShort = true
@@ -51,7 +51,15 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.maxLongLen = l
 			}
 		}
-	})
+	}
+
+	if p.currentCommand != nil {
+		// Make sure to also check for toplevel arguments for the
+		// alignment since they are included in the help output also
+		p.eachTopLevelGroup(alfunc)
+	}
+
+	p.EachGroup(alfunc)
 
 	return ret
 }
