@@ -182,9 +182,17 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		}
 
 		if len(p.currentCommandString) > 0 {
-			fmt.Fprintf(wr, " %s [%s-OPTIONS]",
+			cmdusage := fmt.Sprintf("[%s-OPTIONS]", p.currentCommandString[len(p.currentCommandString)-1])
+
+			if p.currentCommand != nil {
+				if us, ok := p.currentCommand.data.(Usage); ok {
+					cmdusage = us.Usage()
+				}
+			}
+
+			fmt.Fprintf(wr, " %s %s",
 				strings.Join(p.currentCommandString, " "),
-				p.currentCommandString[len(p.currentCommandString)-1])
+				cmdusage)
 		}
 
 		fmt.Fprintln(wr)

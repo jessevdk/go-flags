@@ -56,6 +56,10 @@ type Command interface {
 	Execute(args []string) error
 }
 
+type Usage interface {
+	Usage() string
+}
+
 // NewGroup creates a new option group with a given name and underlying data
 // container. The data container is a pointer to a struct. The fields of the
 // struct represent the command line options (using field tags) and their values
