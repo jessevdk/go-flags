@@ -201,8 +201,8 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			fmt.Fprintln(wr)
 
 			t := wrapText(p.currentCommand.LongDescription,
-			              aligninfo.terminalColumns,
-			              "")
+				aligninfo.terminalColumns,
+				"")
 
 			fmt.Fprintln(wr, t)
 		}
