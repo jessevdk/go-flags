@@ -134,13 +134,13 @@ func (p *Parser) parseIni(ini Ini) error {
 				fmt.Sprintf("could not find option group `%s'", groupName))
 		}
 
-		for name, val := range section {
-			opt, usedName := group.lookupByName(name, true)
+		for _, inival := range section {
+			opt, usedName := group.lookupByName(inival.Name, true)
 
 			if opt == nil {
 				if (p.Options & IgnoreUnknown) == None {
 					return newError(ErrUnknownFlag,
-						fmt.Sprintf("unknown option: %s", name))
+						fmt.Sprintf("unknown option: %s", inival.Name))
 				}
 
 				continue
@@ -152,9 +152,9 @@ func (p *Parser) parseIni(ini Ini) error {
 
 			opt.iniUsedName = usedName
 
-			pval := &val
+			pval := &inival.Value
 
-			if opt.isBool() && len(val) == 0 {
+			if opt.isBool() && len(inival.Value) == 0 {
 				pval = nil
 			}
 

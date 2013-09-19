@@ -9,7 +9,12 @@ import (
 	"strings"
 )
 
-type IniSection map[string]string
+type IniValue struct {
+	Name  string
+	Value string
+}
+
+type IniSection []IniValue
 type Ini map[string]IniSection
 
 func readFullLine(reader *bufio.Reader) (string, error) {
@@ -132,7 +137,9 @@ func readIni(contents io.Reader, filename string) (Ini, error) {
 	ret := make(Ini)
 
 	reader := bufio.NewReader(contents)
+
 	var section IniSection
+	var sectionname string
 
 	var lineno uint
 
@@ -174,10 +181,11 @@ func readIni(contents io.Reader, filename string) (Ini, error) {
 				}
 			}
 
+			sectionname = name
 			section = ret[name]
 
 			if section == nil {
-				section = make(IniSection)
+				section = make(IniSection, 0, 10)
 				ret[name] = section
 			}
 
@@ -195,7 +203,15 @@ func readIni(contents io.Reader, filename string) (Ini, error) {
 			}
 		}
 
-		section[strings.TrimSpace(keyval[0])] = strings.TrimSpace(keyval[1])
+		name := strings.TrimSpace(keyval[0])
+		value := strings.TrimSpace(keyval[1])
+
+		section = append(section, IniValue{
+			Name:  name,
+			Value: value,
+		})
+
+		ret[sectionname] = section
 	}
 
 	return ret, nil
