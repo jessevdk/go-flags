@@ -62,8 +62,8 @@
 //     required:       whether an option is required to appear on the command
 //                     line. If a required option is not present, the parser
 //                     will return ErrRequired.
-//     base:           a base used to convert strings to integer values
-//                     (optional)
+//     base:           a base (radix) used to convert strings to integer values,
+//                     the default base is 10 (i.e. decimal) (optional)
 //     value-name:     the name of the argument value (to be shown in the help,
 //                     (optional)
 //     group:          when specified on a struct field, makes the struct field
