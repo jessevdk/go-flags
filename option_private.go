@@ -5,15 +5,7 @@ import (
 )
 
 func (option *Option) canArgument() bool {
-	if option.isBool() {
-		return false
-	}
-
-	if option.isFunc() {
-		return (option.Value.Type().NumIn() > 0)
-	}
-
-	return true
+	return !option.isBool()
 }
 
 func (option *Option) clear() {
@@ -39,6 +31,8 @@ func (option *Option) isBool() bool {
 		return true
 	case reflect.Slice:
 		return (tp.Elem().Kind() == reflect.Bool)
+	case reflect.Func:
+		return tp.NumIn() == 0
 	}
 
 	return false
