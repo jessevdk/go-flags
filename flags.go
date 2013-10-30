@@ -59,6 +59,12 @@
 //                     times in the case of maps or slices (optional)
 //     default:        the default value of an option. This tag can be specified
 //                     multiple times in the case of slices or maps (optional).
+//     default-mask:   when specified, this value will be displayed in the help
+//                     instead of the actual default value. This is useful
+//                     mostly for hiding otherwise sensitive information from
+//                     showing up in the help. If default-mask takes the special
+//                     value "-", then no default value will be shown at all
+//                     (optional)
 //     required:       whether an option is required to appear on the command
 //                     line. If a required option is not present, the parser
 //                     will return ErrRequired.

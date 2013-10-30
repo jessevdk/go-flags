@@ -122,7 +122,11 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		def := ""
 		defs := option.Default
 
-		if len(defs) == 0 && !option.isBool() {
+		if len(option.defaultMask) != 0 {
+			if option.defaultMask != "-" {
+				def = option.defaultMask
+			}
+		} else if len(defs) == 0 && !option.isBool() {
 			var showdef bool
 
 			switch option.Field.Type.Kind() {

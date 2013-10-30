@@ -55,6 +55,7 @@ type Option struct {
 	Value reflect.Value
 
 	defaultValue reflect.Value
+	defaultMask  string
 	iniUsedName  string
 	tag          multiTag
 }

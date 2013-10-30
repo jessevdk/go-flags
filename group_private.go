@@ -153,6 +153,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 		def := mtag.GetMany("default")
 		optionalValue := mtag.GetMany("optional-value")
 		valueName := mtag.Get("value-name")
+		defaultMask := mtag.Get("default-mask")
 
 		optional := (mtag.Get("optional") != "")
 		required := (mtag.Get("required") != "")
@@ -169,6 +170,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			Value:            realval.Field(i),
 			ValueName:        valueName,
 			tag:              mtag,
+			defaultMask:      defaultMask,
 		}
 
 		g.Options = append(g.Options, option)
