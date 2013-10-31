@@ -94,28 +94,19 @@ func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
 			switch val.Type().Kind() {
 			case reflect.Slice:
 				for idx := 0; idx < val.Len(); idx++ {
-					fmt.Fprintf(writer,
-						"%s = %s\n",
-						option.iniName(),
-						convertToString(val.Index(idx),
-							option.tag))
+					v, _ := convertToString(val.Index(idx), option.tag)
+					fmt.Fprintf(writer, "%s = %s\n", option.iniName(), v)
 				}
 			case reflect.Map:
 				for _, key := range val.MapKeys() {
-					fmt.Fprintf(writer,
-						"%s = %s:%s\n",
-						option.iniName(),
-						convertToString(key,
-							option.tag),
-						convertToString(val.MapIndex(key),
-							option.tag))
+					k, _ := convertToString(key, option.tag)
+					v, _ := convertToString(val.MapIndex(key), option.tag)
+
+					fmt.Fprintf(writer, "%s = %s:%s\n", option.iniName(), k, v)
 				}
 			default:
-				fmt.Fprintf(writer,
-					"%s = %s\n",
-					option.iniName(),
-					convertToString(val,
-						option.tag))
+				v, _ := convertToString(val, option.tag)
+				fmt.Fprintf(writer, "%s = %s\n", option.iniName(), v)
 			}
 		}
 	})

@@ -11,6 +11,19 @@ import (
 	"time"
 )
 
+// Marshaler is the interface implemented by types that can marshal themselves
+// to a string representation of the flag.
+type Marshaler interface {
+	MarshalFlag() (string, error)
+}
+
+// Unmarshaler is the interface implemented by types that can unmarshal a flag
+// argument to themselves. The provided value is directly passed from the
+// command line.
+type Unmarshaler interface {
+	UnmarshalFlag(value string) error
+}
+
 func getBase(options multiTag, base int) (int, error) {
 	sbase := options.Get("base")
 
@@ -25,29 +38,45 @@ func getBase(options multiTag, base int) (int, error) {
 	return base, err
 }
 
-func convertToString(val reflect.Value, options multiTag) string {
+func convertMarshal(val reflect.Value) (bool, string, error) {
+	// Check first for the Marshaler interface
+	if val.Type().NumMethod() > 0 && val.CanInterface() {
+		if marshaler, ok := val.Interface().(Marshaler); ok {
+			ret, err := marshaler.MarshalFlag()
+			return true, ret, err
+		}
+	}
+
+	return false, "", nil
+}
+
+func convertToString(val reflect.Value, options multiTag) (string, error) {
+	if ok, ret, err := convertMarshal(val); ok {
+		return ret, err
+	}
+
 	tp := val.Type()
 
 	switch tp.Kind() {
 	case reflect.String:
-		return val.String()
+		return val.String(), nil
 	case reflect.Bool:
 		if val.Bool() {
-			return "true"
+			return "true", nil
 		} else {
-			return "false"
+			return "false", nil
 		}
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, _ := getBase(options, 10)
-		return strconv.FormatInt(val.Int(), base)
+		return strconv.FormatInt(val.Int(), base), nil
 	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		base, _ := getBase(options, 10)
-		return strconv.FormatUint(val.Uint(), base)
+		return strconv.FormatUint(val.Uint(), base), nil
 	case reflect.Float32, reflect.Float64:
-		return strconv.FormatFloat(val.Float(), 'g', -1, tp.Bits())
+		return strconv.FormatFloat(val.Float(), 'g', -1, tp.Bits()), nil
 	case reflect.Slice:
 		if val.Len() == 0 {
-			return ""
+			return "", nil
 		}
 
 		ret := "["
@@ -57,10 +86,16 @@ func convertToString(val reflect.Value, options multiTag) string {
 				ret += ", "
 			}
 
-			ret += convertToString(val.Index(i), options)
+			item, err := convertToString(val.Index(i), options)
+
+			if err != nil {
+				return "", err
+			}
+
+			ret += item
 		}
 
-		return ret + "]"
+		return ret + "]", nil
 	case reflect.Map:
 		ret := "{"
 
@@ -69,18 +104,50 @@ func convertToString(val reflect.Value, options multiTag) string {
 				ret += ", "
 			}
 
-			ret += convertToString(val.MapIndex(key), options)
+			item, err := convertToString(val.MapIndex(key), options)
+
+			if err != nil {
+				return "", err
+			}
+
+			ret += item
 		}
 
-		return ret + "}"
+		return ret + "}", nil
 	case reflect.Ptr:
 		return convertToString(reflect.Indirect(val), options)
+	case reflect.Interface:
+		if !val.IsNil() {
+			return convertToString(val.Elem(), options)
+		}
 	}
 
-	return ""
+	return "", nil
+}
+
+func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
+	if retval.Type().NumMethod() > 0 && retval.CanInterface() {
+		if unmarshaler, ok := retval.Interface().(Unmarshaler); ok {
+			return true, unmarshaler.UnmarshalFlag(val)
+		}
+	}
+
+	if retval.Type().Kind() != reflect.Ptr && retval.CanAddr() {
+		return convertUnmarshal(val, retval.Addr())
+	}
+
+	if retval.Type().Kind() == reflect.Interface && !retval.IsNil() {
+		return convertUnmarshal(val, retval.Elem())
+	}
+
+	return false, nil
 }
 
 func convert(val string, retval reflect.Value, options multiTag) error {
+	if ok, err := convertUnmarshal(val, retval); ok {
+		return err
+	}
+
 	tp := retval.Type()
 
 	// Support for time.Duration
@@ -192,6 +259,10 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		}
 
 		return convert(val, reflect.Indirect(retval), options)
+	case reflect.Interface:
+		if !retval.IsNil() {
+			return convert(val, retval.Elem(), options)
+		}
 	}
 
 	return nil

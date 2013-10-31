@@ -49,6 +49,10 @@
 // Then, the AuthorInfo map can be filled with something like
 // -a name:Jesse -a "surname:van den Kieboom".
 //
+// Finally, for full control over the conversion between command line argument
+// values and options, user defined types can choose to implement the Marshaler
+// and Unmarshaler interfaces.
+//
 // Available field tags:
 //     short:          the short name of the option (single character)
 //     long:           the long name of the option

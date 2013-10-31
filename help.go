@@ -142,7 +142,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			}
 
 			if showdef {
-				def = convertToString(option.Value, option.tag)
+				def, _ = convertToString(option.Value, option.tag)
 			}
 		} else if len(defs) != 0 {
 			def = strings.Join(defs, ", ")
