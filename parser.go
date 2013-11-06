@@ -467,12 +467,15 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 				ret = append(ret, arg)
 			}
 
-			if !(parseErr.Type == ErrUnknownFlag && ignoreUnknown) && (p.Options&PrintErrors) != None {
-				if parseErr.Type == ErrHelp {
-					fmt.Fprintln(os.Stderr, err)
-				} else {
-					fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
+			if !(parseErr.Type == ErrUnknownFlag && ignoreUnknown) {
+				if (p.Options&PrintErrors) != None {
+					if parseErr.Type == ErrHelp {
+						fmt.Fprintln(os.Stderr, err)
+					} else {
+						fmt.Fprintf(os.Stderr, "Flags error: %s\n", err.Error())
+					}
 				}
+
 				return nil, wrapError(err)
 			}
 		} else {
