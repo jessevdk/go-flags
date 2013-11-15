@@ -66,10 +66,10 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 		} else {
 			return "false", nil
 		}
-	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, _ := getBase(options, 10)
 		return strconv.FormatInt(val.Int(), base), nil
-	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		base, _ := getBase(options, 10)
 		return strconv.FormatUint(val.Uint(), base), nil
 	case reflect.Float32, reflect.Float64:
@@ -177,7 +177,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 			retval.SetBool(b)
 		}
-	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, err := getBase(options, 10)
 
 		if err != nil {
@@ -191,7 +191,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		}
 
 		retval.SetInt(parsed)
-	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		base, err := getBase(options, 10)
 
 		if err != nil {
