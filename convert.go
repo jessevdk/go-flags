@@ -5,6 +5,7 @@
 package flags
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -56,6 +57,12 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	}
 
 	tp := val.Type()
+
+	// Support for time.Duration
+	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+		stringer := val.Interface().(fmt.Stringer)
+		return stringer.String(), nil
+	}
 
 	switch tp.Kind() {
 	case reflect.String:
