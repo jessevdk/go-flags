@@ -1,14 +1,14 @@
 package flags
 
 import (
-	"testing"
 	"github.com/jessevdk/go-flags"
+	"testing"
 )
 
 func TestUnknownFlags(t *testing.T) {
 	var opts = struct {
-		Verbose[] bool `short:"v" long:"verbose" description:"Verbose output"`
-	} {}
+		Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+	}{}
 
 	args := []string{
 		"-f",
@@ -24,8 +24,8 @@ func TestUnknownFlags(t *testing.T) {
 
 func TestIgnoreUnknownFlags(t *testing.T) {
 	var opts = struct {
-		Verbose[] bool `short:"v" long:"verbose" description:"Verbose output"`
-	} {}
+		Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+	}{}
 
 	args := []string{
 		"hello",

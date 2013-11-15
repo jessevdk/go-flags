@@ -471,7 +471,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			}
 
 			if !(parseErr.Type == ErrUnknownFlag && ignoreUnknown) {
-				if (p.Options&PrintErrors) != None {
+				if (p.Options & PrintErrors) != None {
 					if parseErr.Type == ErrHelp {
 						fmt.Fprintln(os.Stderr, err)
 					} else {
