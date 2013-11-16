@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"runtime"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -313,6 +314,10 @@ func (p *Parser) closest(cmd string, commands []string) (string, int) {
 }
 
 func argumentIsOption(arg string) bool {
+	// Also allow front slash for the option delimiter on Windows.
+	if runtime.GOOS == "windows" {
+		return len(arg) > 0 && (arg[0] == '-' || arg[0] == '/')
+	}
 	return len(arg) > 0 && arg[0] == '-'
 }
 
@@ -333,17 +338,30 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	p.storeDefaults()
 
 	if (p.Options & HelpFlag) != None {
-		var help struct {
-			ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
-		}
-
-		help.ShowHelp = func() error {
+		var showHelp = func() error {
 			var b bytes.Buffer
 			p.WriteHelp(&b)
 			return newError(ErrHelp, b.String())
 		}
 
-		helpgrp := NewGroup("Help Options", &help)
+		// Windows CLI applications typically use /? for help while
+		// POSIX typically use -h and --help.
+		var helpgrp *Group
+		if runtime.GOOS == "windows" {
+			var help struct {
+				ShowHelp  func() error `short:"?" description:"Show this help message"`
+				ShowHelp2 func() error `short:"h" long:"help" description:"Show this help message"`
+			}
+			help.ShowHelp = showHelp
+			help.ShowHelp2 = showHelp
+			helpgrp = NewGroup("Help Options", &help)
+		} else {
+			var help struct {
+				ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
+			}
+			help.ShowHelp = showHelp
+			helpgrp = NewGroup("Help Options", &help)
+		}
 
 		// Append the help group to toplevel
 		p.Groups = append([]*Group{helpgrp}, p.Groups...)
@@ -424,11 +442,26 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			optname = arg
 		}
 
+		var parseLong bool
 		var err error
 		var option *Option
 
+		// Determine if the argument is a long option or not.  Windows
+		// typically supports both long and short options with a single
+		// front slash as the option delimiter, so handle this situation
+		// nicely.
 		if strings.HasPrefix(optname, "--") {
-			err, i, option = p.parseLong(args, optname[2:], argument, i)
+			optname = optname[2:]
+			parseLong = true
+		} else if runtime.GOOS == "windows" && strings.HasPrefix(optname, "/") {
+			if len(optname[1:]) > 1 {
+				optname = optname[1:]
+				parseLong = true
+			}
+		}
+
+		if parseLong {
+			err, i, option = p.parseLong(args, optname, argument, i)
 		} else {
 			short := optname[1:]
 

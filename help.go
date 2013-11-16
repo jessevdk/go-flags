@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"runtime"
 	"strings"
 	"unicode/utf8"
 )
@@ -73,7 +74,11 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	line.WriteString(strings.Repeat(" ", paddingBeforeOption))
 
 	if option.ShortName != 0 {
-		line.WriteString("-")
+		if runtime.GOOS == "windows" {
+			line.WriteString("/")
+		} else {
+			line.WriteString("-")
+		}
 		line.WriteRune(option.ShortName)
 	} else if info.hasShort {
 		line.WriteString("  ")
@@ -100,7 +105,12 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			line.WriteString("  ")
 		}
 
-		line.WriteString("--")
+		if runtime.GOOS == "windows" {
+			line.WriteString("/")
+		} else {
+			line.WriteString("--")
+		}
+
 		line.WriteString(option.LongName)
 	}
 
