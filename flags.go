@@ -26,6 +26,7 @@
 // Additional features specific to Windows:
 //     Options with short names (/v)
 //     Options with long names (/verbose)
+//     Windows-style options with arguments use a colon as the delimiter
 //     Modify generated help message with Windows-style / options
 //
 // The flags package uses structs, reflection and struct field tags

@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"runtime"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -313,14 +312,6 @@ func (p *Parser) closest(cmd string, commands []string) (string, int) {
 	return commands[mincmd], mindist
 }
 
-func argumentIsOption(arg string) bool {
-	// Also allow front slash for the option delimiter on Windows.
-	if runtime.GOOS == "windows" {
-		return len(arg) > 0 && (arg[0] == '-' || arg[0] == '/')
-	}
-	return len(arg) > 0 && arg[0] == '-'
-}
-
 // ParseArgs parses the command line arguments according to the option groups that
 // were added to the parser. On successful parsing of the arguments, the
 // remaining, non-option, arguments (if any) are returned. The returned error
@@ -345,23 +336,9 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		// Windows CLI applications typically use /? for help while
-		// POSIX typically use -h and --help.
-		var helpgrp *Group
-		if runtime.GOOS == "windows" {
-			var help struct {
-				ShowHelp  func() error `short:"?" description:"Show this help message"`
-				ShowHelp2 func() error `short:"h" long:"help" description:"Show this help message"`
-			}
-			help.ShowHelp = showHelp
-			help.ShowHelp2 = showHelp
-			helpgrp = NewGroup("Help Options", &help)
-		} else {
-			var help struct {
-				ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
-			}
-			help.ShowHelp = showHelp
-			helpgrp = NewGroup("Help Options", &help)
-		}
+		// POSIX typically uses -h and --help.  Get a help group
+		// appropriate to the OS.
+		helpgrp := newHelpGroup(showHelp)
 
 		// Append the help group to toplevel
 		p.Groups = append([]*Group{helpgrp}, p.Groups...)
@@ -430,47 +407,20 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			continue
 		}
 
-		pos := strings.Index(arg, "=")
-		var argument *string
-		var optname string
-
-		if pos >= 0 {
-			rest := arg[pos+1:]
-			argument = &rest
-			optname = arg[:pos]
-		} else {
-			optname = arg
-		}
-
-		var parseLong bool
 		var err error
 		var option *Option
 
-		// Determine if the argument is a long option or not.  Windows
-		// typically supports both long and short options with a single
-		// front slash as the option delimiter, so handle this situation
-		// nicely.
-		if strings.HasPrefix(optname, "--") {
-			optname = optname[2:]
-			parseLong = true
-		} else if runtime.GOOS == "windows" && strings.HasPrefix(optname, "/") {
-			if len(optname[1:]) > 1 {
-				optname = optname[1:]
-				parseLong = true
-			}
-		}
-
-		if parseLong {
+		optname, argument := splitOption(arg)
+		optname, islong := stripOptionPrefix(optname)
+		if islong {
 			err, i, option = p.parseLong(args, optname, argument, i)
 		} else {
-			short := optname[1:]
-
-			for j, c := range short {
+			for j, c := range optname {
 				clen := utf8.RuneLen(c)
-				islast := (j+clen == len(short))
+				islast := (j+clen == len(optname))
 
 				if !islast && argument == nil {
-					rr := short[j+clen:]
+					rr := optname[j+clen:]
 					next, _ := utf8.DecodeRuneInString(rr)
 					info, _ := p.getShort(c)
 
