@@ -73,7 +73,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	line.WriteString(strings.Repeat(" ", paddingBeforeOption))
 
 	if option.ShortName != 0 {
-		line.WriteString("-")
+		line.WriteRune(defaultShortOptDelimiter)
 		line.WriteRune(option.ShortName)
 	} else if info.hasShort {
 		line.WriteString("  ")
@@ -100,12 +100,12 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			line.WriteString("  ")
 		}
 
-		line.WriteString("--")
+		line.WriteString(defaultLongOptDelimiter)
 		line.WriteString(option.LongName)
 	}
 
 	if !option.isBool() {
-		line.WriteString("=")
+		line.WriteRune(defaultNameArgDelimiter)
 
 		if len(option.ValueName) > 0 {
 			line.WriteString(option.ValueName)

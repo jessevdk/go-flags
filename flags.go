@@ -23,6 +23,12 @@
 //     Supports maps
 //     Supports function callbacks
 //
+// Additional features specific to Windows:
+//     Options with short names (/v)
+//     Options with long names (/verbose)
+//     Windows-style options with arguments use a colon as the delimiter
+//     Modify generated help message with Windows-style / options
+//
 // The flags package uses structs, reflection and struct field tags
 // to allow users to specify command line options. This results in very simple
 // and consise specification of your application options. For example:

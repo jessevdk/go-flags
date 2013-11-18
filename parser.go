@@ -312,10 +312,6 @@ func (p *Parser) closest(cmd string, commands []string) (string, int) {
 	return commands[mincmd], mindist
 }
 
-func argumentIsOption(arg string) bool {
-	return len(arg) > 0 && arg[0] == '-'
-}
-
 // ParseArgs parses the command line arguments according to the option groups that
 // were added to the parser. On successful parsing of the arguments, the
 // remaining, non-option, arguments (if any) are returned. The returned error
@@ -333,17 +329,16 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	p.storeDefaults()
 
 	if (p.Options & HelpFlag) != None {
-		var help struct {
-			ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
-		}
-
-		help.ShowHelp = func() error {
+		var showHelp = func() error {
 			var b bytes.Buffer
 			p.WriteHelp(&b)
 			return newError(ErrHelp, b.String())
 		}
 
-		helpgrp := NewGroup("Help Options", &help)
+		// Windows CLI applications typically use /? for help while
+		// POSIX typically uses -h and --help.  Get a help group
+		// appropriate to the OS.
+		helpgrp := newHelpGroup(showHelp)
 
 		// Append the help group to toplevel
 		p.Groups = append([]*Group{helpgrp}, p.Groups...)
@@ -412,32 +407,20 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			continue
 		}
 
-		pos := strings.Index(arg, "=")
-		var argument *string
-		var optname string
-
-		if pos >= 0 {
-			rest := arg[pos+1:]
-			argument = &rest
-			optname = arg[:pos]
-		} else {
-			optname = arg
-		}
-
 		var err error
 		var option *Option
 
-		if strings.HasPrefix(optname, "--") {
-			err, i, option = p.parseLong(args, optname[2:], argument, i)
+		optname, argument := splitOption(arg)
+		optname, islong := stripOptionPrefix(optname)
+		if islong {
+			err, i, option = p.parseLong(args, optname, argument, i)
 		} else {
-			short := optname[1:]
-
-			for j, c := range short {
+			for j, c := range optname {
 				clen := utf8.RuneLen(c)
-				islast := (j+clen == len(short))
+				islast := (j+clen == len(optname))
 
 				if !islast && argument == nil {
-					rr := short[j+clen:]
+					rr := optname[j+clen:]
 					next, _ := utf8.DecodeRuneInString(rr)
 					info, _ := p.getShort(c)
 
