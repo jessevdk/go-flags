@@ -7,12 +7,13 @@ import (
 
 func assertStringArray(t *testing.T, a []string, b []string) {
 	if len(a) != len(b) {
-		t.Fatalf("Expected %#v, but got %#v", a, b)
+		t.Errorf("Expected %#v, but got %#v", b, a)
+		return
 	}
 
 	for i, v := range a {
 		if b[i] != v {
-			t.Fatalf("Expected %#v, but got %#v", a, b)
+			t.Errorf("Expected %#v, but got %#v", b, a)
 			return
 		}
 	}
@@ -20,12 +21,13 @@ func assertStringArray(t *testing.T, a []string, b []string) {
 
 func assertBoolArray(t *testing.T, a []bool, b []bool) {
 	if len(a) != len(b) {
-		t.Fatalf("Expected %#v, but got %#v", a, b)
+		t.Errorf("Expected %#v, but got %#v", b, a)
+		return
 	}
 
 	for i, v := range a {
 		if b[i] != v {
-			t.Fatalf("Expected %#v, but got %#v", a, b)
+			t.Errorf("Expected %#v, but got %#v", b, a)
 			return
 		}
 	}
