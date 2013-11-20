@@ -66,15 +66,18 @@ func splitOption(option string) (string, *string) {
 	return option, nil
 }
 
-// newHelpGroup returns a new group that contains default help parameters.
-func newHelpGroup(showHelp func() error) *Group {
+// addHelpGroup adds a new group that contains default help parameters.
+func (c *Command) addHelpGroup(showHelp func() error) *Group {
 	// Windows CLI applications typically use /? for help, so make both
 	// that available as well as the POSIX style h and help.
 	var help struct {
-		ShowHelp  func() error `short:"?" description:"Show this help message"`
-		ShowHelp2 func() error `short:"h" long:"help" description:"Show this help message"`
+		ShowHelpWindows func() error `short:"?" description:"Show this help message"`
+		ShowHelpPosix   func() error `short:"h" long:"help" description:"Show this help message"`
 	}
-	help.ShowHelp = showHelp
-	help.ShowHelp2 = showHelp
-	return NewGroup("Help Options", &help)
+
+	help.ShowHelpWindows = showHelp
+	help.ShowHelpPosix = showHelp
+
+	ret, _ := c.AddGroup"Help Options", "", &help)
+	return ret
 }

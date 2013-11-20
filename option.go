@@ -10,6 +10,10 @@ import (
 // long name as well as a default value and whether an argument for this
 // flag is optional.
 type Option struct {
+	// The description of the option flag. This description is shown
+	// automatically in the builtin help.
+	Description string
+
 	// The short name of the option (a single character). If not 0, the
 	// option flag can be 'activated' using -<ShortName>. Either ShortName
 	// or LongName needs to be non-empty.
@@ -19,10 +23,6 @@ type Option struct {
 	// activated using --<LongName>. Either ShortName or LongName needs
 	// to be non-empty.
 	LongName string
-
-	// The description of the option flag. This description is shown
-	// automatically in the builtin help.
-	Description string
 
 	// The default value of the option.
 	Default []string
@@ -48,31 +48,22 @@ type Option struct {
 	// A name for the value of an option shown in the Help as --flag [ValueName]
 	ValueName string
 
+	// A mask value to show in the help instead of the default value. This
+	// is useful for hiding sensitive information in the help, such as
+	// passwords.
+	DefaultMask  string
+
+	IniName string
+
 	// The struct field which the option represents.
-	Field reflect.StructField
+	field reflect.StructField
 
 	// The struct field value which the option represents.
-	Value reflect.Value
+	value reflect.Value
 
 	defaultValue reflect.Value
-	defaultMask  string
 	iniUsedName  string
 	tag          multiTag
-}
-
-// Set the value of an option to the specified value. An error will be returned
-// if the specified value could not be converted to the corresponding option
-// value type.
-func (option *Option) Set(value *string) error {
-	if option.isFunc() {
-		return option.call(value)
-	} else if value != nil {
-		return convert(*value, option.Value, option.tag)
-	} else {
-		return convert("", option.Value, option.tag)
-	}
-
-	return nil
 }
 
 // Convert an option to a human friendly readable string describing the option.

@@ -2,98 +2,90 @@ package flags
 
 import (
 	"reflect"
-	"sort"
-	"strings"
 	"unicode/utf8"
 	"unsafe"
+	"strings"
 )
 
-func (g *Group) lookupByName(name string, ini bool) (*Option, string) {
-	name = strings.ToLower(name)
+type scanHandler func (reflect.Value, *reflect.StructField) (bool, error)
 
-	if ini {
-		if ret := g.IniNames[name]; ret != nil {
-			return ret, ret.tag.Get("ini-name")
+func newGroup(shortDescription string, longDescription string, data interface{}) *Group {
+	return &Group{
+		ShortDescription: shortDescription,
+		LongDescription:  longDescription,
+
+		data: data,
+	}
+}
+
+func (g *Group) optionByName(name string, namematch func(*Option, string) bool) *Option {
+	prio := 0
+	var retopt *Option
+
+	for _, opt := range g.options {
+		if namematch != nil && namematch(opt, name) && prio < 4 {
+			retopt = opt
+			prio = 4
 		}
 
-		if ret := g.Names[name]; ret != nil {
-			return ret, ret.Field.Name
+		if name == opt.field.Name && prio < 3 {
+			retopt = opt
+			prio = 3
+		}
+
+		if name == opt.LongName && prio < 2 {
+			retopt = opt
+			prio = 2
+		}
+
+		if opt.ShortName != 0 && name == string(opt.ShortName) && prio < 1 {
+			retopt = opt
+			prio = 1
 		}
 	}
 
-	if ret := g.LongNames[name]; ret != nil {
-		return ret, ret.LongName
-	}
-
-	if utf8.RuneCountInString(name) == 1 {
-		r, _ := utf8.DecodeRuneInString(name)
-
-		if ret := g.ShortNames[r]; ret != nil {
-			data := make([]byte, utf8.RuneLen(ret.ShortName))
-			utf8.EncodeRune(data, ret.ShortName)
-
-			return ret, string(data)
-		}
-	}
-
-	return nil, ""
+	return retopt
 }
 
 func (g *Group) storeDefaults() {
-	for _, option := range g.Options {
+	for _, option := range g.options {
 		// First. empty out the value
 		if len(option.Default) > 0 {
 			option.clear()
 		}
 
 		for _, d := range option.Default {
-			option.Set(&d)
+			option.set(&d)
 		}
 
-		if !option.Value.CanSet() {
+		if !option.value.CanSet() {
 			continue
 		}
 
-		option.defaultValue = reflect.ValueOf(option.Value.Interface())
+		option.defaultValue = reflect.ValueOf(option.value.Interface())
 	}
 }
 
-func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) error {
+func (g *Group) eachGroup(f func(*Group), recurse bool) {
+	f(g)
+
+	for _, gg := range g.groups {
+		if recurse {
+			gg.eachGroup(f, true)
+		} else {
+			f(gg)
+		}
+	}
+}
+
+func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler scanHandler) error {
 	stype := realval.Type()
 
 	if sfield != nil {
-		mtag := newMultiTag(string(sfield.Tag))
-
-		groupName := mtag.Get("group")
-		commandName := mtag.Get("command")
-		name := mtag.Get("name")
-		description := mtag.Get("description")
-
-		iscommand := false
-
-		if len(commandName) != 0 {
-			iscommand = true
-
-			if len(name) != 0 {
-				groupName = name
-			} else if len(commandName) != 0 {
-				groupName = commandName
-			}
-		}
-
-		if len(groupName) != 0 {
-			ptrval := reflect.NewAt(realval.Type(), unsafe.Pointer(realval.UnsafeAddr()))
-			newGroup := NewGroup(groupName, ptrval.Interface())
-
-			if iscommand {
-				newGroup.IsCommand = true
-				g.Commands[commandName] = newGroup
-			}
-
-			newGroup.LongDescription = description
-
-			g.EmbeddedGroups = append(g.EmbeddedGroups, newGroup)
-			return g.Error
+		if ok, err := handler(realval, sfield); err != nil {
+			return err
+		} else if ok {
+			return nil
 		}
 	}
 
@@ -116,26 +108,15 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 		kind := field.Type.Kind()
 
 		if kind == reflect.Struct {
-			err := g.scanStruct(realval.Field(i), &field)
-
-			if err != nil {
-				return err
-			}
-
-		} else if kind == reflect.Ptr &&
-			field.Type.Elem().Kind() == reflect.Struct &&
-			!realval.Field(i).IsNil() {
-			err := g.scanStruct(reflect.Indirect(realval.Field(i)),
-				&field)
-
-			if err != nil {
-				return err
-			}
+			return g.scanStruct(realval.Field(i), &field, handler)
+		} else if kind == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct && !realval.Field(i).IsNil() {
+			return g.scanStruct(reflect.Indirect(realval.Field(i)), &field, handler)
 		}
 
 		longname := mtag.Get("long")
 		shortname := mtag.Get("short")
 
+		// Need at least either a short or long name
 		if longname == "" && shortname == "" {
 			continue
 		}
@@ -154,6 +135,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 		optionalValue := mtag.GetMany("optional-value")
 		valueName := mtag.Get("value-name")
 		defaultMask := mtag.Get("default-mask")
+		ininame := mtag.Get("ini-name")
 
 		optional := (mtag.Get("optional") != "")
 		required := (mtag.Get("required") != "")
@@ -166,63 +148,41 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField) e
 			OptionalArgument: optional,
 			OptionalValue:    optionalValue,
 			Required:         required,
-			Field:            field,
-			Value:            realval.Field(i),
 			ValueName:        valueName,
+			DefaultMask:      defaultMask,
+			IniName:          ininame,
+
+			field:            field,
+			value:            realval.Field(i),
 			tag:              mtag,
-			defaultMask:      defaultMask,
 		}
 
-		g.Options = append(g.Options, option)
-
-		if option.ShortName != 0 {
-			g.ShortNames[option.ShortName] = option
-		}
-
-		if option.LongName != "" {
-			g.LongNames[strings.ToLower(option.LongName)] = option
-		}
-
-		g.Names[strings.ToLower(field.Name)] = option
-
-		ininame := mtag.Get("ini-name")
-
-		if len(ininame) != 0 {
-			g.IniNames[strings.ToLower(ininame)] = option
-		}
+		g.options = append(g.options, option)
 	}
 
 	return nil
 }
 
-func (g *Group) each(index int, cb func(int, *Group)) int {
-	cb(index, g)
-	index++
+func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
+	mtag := newMultiTag(string(sfield.Tag))
 
-	for _, group := range g.EmbeddedGroups {
-		group.each(index, cb)
-		index++
+	subgroup := mtag.Get("group")
+
+	if len(subgroup) != 0 {
+		ptrval := reflect.NewAt(realval.Type(), unsafe.Pointer(realval.UnsafeAddr()))
+		description := mtag.Get("description")
+
+		if _, err := g.AddGroup(subgroup, description, ptrval.Interface()); err != nil {
+			return true, err
+		}
+
+		return true, nil
 	}
 
-	return index
+	return false, nil
 }
 
-func (g *Group) eachCommand(cb func(string, *Group)) {
-	cmds := make([]string, len(g.Commands))
-	i := 0
-
-	for k, _ := range g.Commands {
-		cmds[i] = k
-	}
-
-	sort.Strings(cmds)
-
-	for _, k := range cmds {
-		cb(k, g.Commands[k])
-	}
-}
-
-func (g *Group) scan() error {
+func (g *Group) scanType(handler scanHandler) error {
 	// Get all the public fields in the data struct
 	ptrval := reflect.ValueOf(g.data)
 
@@ -237,5 +197,33 @@ func (g *Group) scan() error {
 	}
 
 	realval := reflect.Indirect(ptrval)
-	return g.scanStruct(realval, nil)
+
+	return g.scanStruct(realval, nil, handler)
+}
+
+func (g *Group) scan() error {
+	return g.scanType(g.scanSubGroupHandler)
+}
+
+func (g *Group) groupByName(name string) *Group {
+	name = strings.ToLower(name)
+
+	if len(name) == 0 {
+		return g
+	}
+
+	for _, subg := range g.groups {
+		lname := strings.ToLower(subg.ShortDescription)
+		prefix := lname + "."
+
+		if strings.HasPrefix(name, prefix) {
+			if grp := subg.groupByName(name[len(prefix):]); grp != nil {
+				return grp
+			}
+		} else if name == lname {
+			return subg
+		}
+	}
+
+	return nil
 }

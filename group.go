@@ -16,70 +16,41 @@ var ErrShortNameTooLong = errors.New("short names can only be 1 character")
 
 // An option group. The option group has a name and a set of options.
 type Group struct {
-	Commander
+	// A short description of the group
+	ShortDescription string
 
-	// The name of the group.
-	Name string
-
-	Names    map[string]*Option
-	IniNames map[string]*Option
-
-	// A map of long names to option option descriptions.
-	LongNames map[string]*Option
-
-	// A map of short names to option option descriptions.
-	ShortNames map[rune]*Option
-
-	// A list of all the options in the group.
-	Options []*Option
-
-	// An error which occurred when creating the group.
-	Error error
-
-	// Groups embedded in this group
-	EmbeddedGroups []*Group
-
-	IsCommand       bool
+	// A long description of the group
 	LongDescription string
+
+	// All the options in the group
+	options []*Option
+
+	// All the subgroups
+	groups  []*Group
 
 	data interface{}
 }
 
-// The command interface should be implemented by any command added in the
-// options. When implemented, the Execute method will be called for the last
-// specified (sub)command providing the remaining command line arguments.
-type Command interface {
-	// Execute will be called for the last active (sub)command. The
-	// args argument contains the remaining command line arguments. The
-	// error that Execute returns will be eventually passed out of the
-	// Parse method of the Parser.
-	Execute(args []string) error
-}
+// AddGroup adds a new group to the command with the given name and data. The
+// data needs to be a pointer to a struct from which the fields indicate which
+// options are in the group.
+func (g *Group) AddGroup(shortDescription string, longDescription string, data interface{}) (*Group, error) {
+	group := newGroup(shortDescription, longDescription, data)
 
-type Usage interface {
-	Usage() string
-}
-
-// NewGroup creates a new option group with a given name and underlying data
-// container. The data container is a pointer to a struct. The fields of the
-// struct represent the command line options (using field tags) and their values
-// will be set when their corresponding options appear in the command line
-// arguments.
-func NewGroup(name string, data interface{}) *Group {
-	ret := &Group{
-		Commander: Commander{
-			Commands: make(map[string]*Group),
-		},
-
-		Name:       name,
-		Names:      make(map[string]*Option),
-		IniNames:   make(map[string]*Option),
-		LongNames:  make(map[string]*Option),
-		ShortNames: make(map[rune]*Option),
-		IsCommand:  false,
-		data:       data,
+	if err := group.scan(); err != nil {
+		return nil, err
 	}
 
-	ret.Error = ret.scan()
-	return ret
+	g.groups = append(g.groups, group)
+	return group, nil
+}
+
+// Get a list of subgroups in the group.
+func (g *Group) Groups() []*Group {
+	return g.groups
+}
+
+// Get a list of options in the group.
+func (g *Group) Options() []*Option {
+	return g.options
 }

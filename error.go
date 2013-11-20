@@ -51,10 +51,12 @@ func newError(tp ErrorType, message string) *Error {
 	}
 }
 
-func wrapError(err error) error {
-	if _, ok := err.(*Error); !ok {
+func wrapError(err error) *Error {
+	ret, ok := err.(*Error)
+
+	if !ok {
 		return newError(ErrUnknown, err.Error())
 	}
 
-	return err
+	return ret
 }

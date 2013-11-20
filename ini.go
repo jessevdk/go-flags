@@ -1,209 +1,91 @@
 package flags
 
 import (
-	"bufio"
-	"fmt"
 	"io"
 	"os"
-	"reflect"
-	"strings"
 )
 
-type IniValue struct {
-	Name  string
-	Value string
+// ParseIni is a convenience function to parse command line options with default
+// settings from an ini file. The provided data is a pointer to a struct
+// representing the default option group (named "Application Options"). For
+// more control, use flags.NewParser.
+func ParseIni(filename string, data interface{}) error {
+	return NewParser(data, Default).ParseIniFile(filename)
 }
 
-type IniSection []IniValue
-type Ini map[string]IniSection
+// ParseIniFile parses flags from an ini formatted file. See ParseIni for more
+// information on the ini file foramt. The returned errors can be of the type
+// flags.Error or flags.IniError.
+func (p *Parser) ParseIniFile(filename string) error {
+	p.storeDefaults()
 
-func readFullLine(reader *bufio.Reader) (string, error) {
-	var line []byte
-
-	for {
-		l, more, err := reader.ReadLine()
-
-		if err != nil {
-			return "", err
-		}
-
-		if line == nil && !more {
-			return string(l), nil
-		}
-
-		line = append(line, l...)
-
-		if !more {
-			break
-		}
-	}
-
-	return string(line), nil
-}
-
-type IniError struct {
-	Message    string
-	File       string
-	LineNumber uint
-}
-
-func (x *IniError) Error() string {
-	return fmt.Sprintf("%s:%d: %s",
-		x.File,
-		x.LineNumber,
-		x.Message)
-}
-
-type IniOptions uint
-
-const (
-	IniNone            IniOptions = 0
-	IniIncludeDefaults            = 1 << iota
-	IniIncludeComments
-	IniDefault = IniIncludeComments
-)
-
-func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
-	parser.EachGroup(func(i int, group *Group) {
-		if i != 0 {
-			io.WriteString(writer, "\n")
-		}
-
-		fmt.Fprintf(writer, "[%s]\n", group.Name)
-
-		for _, option := range group.Options {
-			if option.isFunc() {
-				continue
-			}
-
-			if len(option.tag.Get("no-ini")) != 0 {
-				continue
-			}
-
-			val := option.Value
-
-			if (options&IniIncludeDefaults) == IniNone &&
-				reflect.DeepEqual(val, option.defaultValue) {
-				continue
-			}
-
-			if (options & IniIncludeComments) != IniNone {
-				fmt.Fprintf(writer, "; %s\n", option.Description)
-			}
-
-			switch val.Type().Kind() {
-			case reflect.Slice:
-				for idx := 0; idx < val.Len(); idx++ {
-					v, _ := convertToString(val.Index(idx), option.tag)
-					fmt.Fprintf(writer, "%s = %s\n", option.iniName(), v)
-				}
-			case reflect.Map:
-				for _, key := range val.MapKeys() {
-					k, _ := convertToString(key, option.tag)
-					v, _ := convertToString(val.MapIndex(key), option.tag)
-
-					fmt.Fprintf(writer, "%s = %s:%s\n", option.iniName(), k, v)
-				}
-			default:
-				v, _ := convertToString(val, option.tag)
-				fmt.Fprintf(writer, "%s = %s\n", option.iniName(), v)
-			}
-		}
-	})
-}
-
-func readIniFromFile(filename string) (Ini, error) {
-	file, err := os.Open(filename)
+	ini, err := readIniFromFile(filename)
 
 	if err != nil {
-		return nil, err
+		return err
+	}
+
+	return p.parseIni(ini)
+}
+
+// ParseIni parses flags from an ini format. You can use ParseIniFile as a
+// convenience function to parse from a filename instead of a general
+// io.Reader.
+//
+// The format of the ini file is as follows:
+//
+// [Option group name]
+// option = value
+//
+// Each section in the ini file represents an option group or command in the
+// flags parser. The default flags parser option group (i.e. when using
+// flags.Parse) is named 'Application Options'. The ini option name is matched
+// in the following order:
+//
+// 1. Compared to the ini-name tag on the option struct field (if present)
+// 2. Compared to the struct field name
+// 3. Compared to the option long name (if present)
+// 4. Compared to the option short name (if present)
+//
+// Sections for nested groups and commands can be addressed using a dot `.'
+// namespacing notation (i.e [subcommand.Options]). Group section names are
+// matched case insensitive.
+//
+// The returned errors can be of the type flags.Error or
+// flags.IniError.
+func (p *Parser) ParseIni(reader io.Reader) error {
+	p.storeDefaults()
+
+	ini, err := readIni(reader, "")
+
+	if err != nil {
+		return err
+	}
+
+	return p.parseIni(ini)
+}
+
+// WriteIniToFile writes the flags as ini format into a file. See WriteIni
+// for more information. The returned error occurs when the specified file
+// could not be opened for writing.
+func (p *Parser) WriteIniToFile(filename string, options IniOptions) error {
+	file, err := os.Create(filename)
+
+	if err != nil {
+		return err
 	}
 
 	defer file.Close()
+	p.WriteIni(file, options)
 
-	return readIni(file, filename)
+	return nil
 }
 
-func readIni(contents io.Reader, filename string) (Ini, error) {
-	ret := make(Ini)
-
-	reader := bufio.NewReader(contents)
-
-	var section IniSection
-	var sectionname string
-
-	var lineno uint
-
-	for {
-		line, err := readFullLine(reader)
-
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		lineno++
-		line = strings.TrimSpace(line)
-
-		// Skip empty lines and lines starting with ; (comments)
-		if len(line) == 0 || line[0] == ';' {
-			continue
-		}
-
-		if section == nil {
-			if line[0] != '[' || line[len(line)-1] != ']' {
-				return nil, &IniError{
-					Message:    "malformed section header",
-					File:       filename,
-					LineNumber: lineno,
-				}
-			}
-
-			name := strings.TrimSpace(line[1 : len(line)-1])
-
-			if len(name) == 0 {
-				return nil, &IniError{
-					Message:    "empty section name",
-					File:       filename,
-					LineNumber: lineno,
-				}
-			}
-
-			sectionname = name
-			section = ret[name]
-
-			if section == nil {
-				section = make(IniSection, 0, 10)
-				ret[name] = section
-			}
-
-			continue
-		}
-
-		// Parse option here
-		keyval := strings.SplitN(line, "=", 2)
-
-		if len(keyval) != 2 {
-			return nil, &IniError{
-				Message:    "malformed key=value",
-				File:       filename,
-				LineNumber: lineno,
-			}
-		}
-
-		name := strings.TrimSpace(keyval[0])
-		value := strings.TrimSpace(keyval[1])
-
-		section = append(section, IniValue{
-			Name:  name,
-			Value: value,
-		})
-
-		ret[sectionname] = section
-	}
-
-	return ret, nil
+// WriteIni writes the current values of all the flags to an ini format.
+// See ParseIni for more information on the ini file format. You typically
+// call this only after settings have been parsed since the default values of each
+// option are stored just before parsing the flags (this is only relevant when
+// IniIncludeDefaults is _not_ set in options).
+func (p *Parser) WriteIni(writer io.Writer, options IniOptions) {
+	writeIni(p, writer, options)
 }

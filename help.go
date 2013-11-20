@@ -33,8 +33,8 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		ret.terminalColumns = 80
 	}
 
-	alfunc := func(index int, grp *Group) {
-		for _, info := range grp.Options {
+	p.eachActiveGroup(func(grp *Group) {
+		for _, info := range grp.options {
 			if info.ShortName != 0 {
 				ret.hasShort = true
 			}
@@ -51,15 +51,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.maxLongLen = l
 			}
 		}
-	}
-
-	if p.currentCommand != nil {
-		// Make sure to also check for toplevel arguments for the
-		// alignment since they are included in the help output also
-		p.eachTopLevelGroup(alfunc)
-	}
-
-	p.EachGroup(alfunc)
+	})
 
 	return ret
 }
@@ -122,27 +114,27 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		def := ""
 		defs := option.Default
 
-		if len(option.defaultMask) != 0 {
-			if option.defaultMask != "-" {
-				def = option.defaultMask
+		if len(option.DefaultMask) != 0 {
+			if option.DefaultMask != "-" {
+				def = option.DefaultMask
 			}
 		} else if len(defs) == 0 && !option.isBool() {
 			var showdef bool
 
-			switch option.Field.Type.Kind() {
+			switch option.field.Type.Kind() {
 			case reflect.Func, reflect.Ptr:
-				showdef = !option.Value.IsNil()
+				showdef = !option.value.IsNil()
 			case reflect.Slice, reflect.String, reflect.Array:
-				showdef = option.Value.Len() > 0
+				showdef = option.value.Len() > 0
 			case reflect.Map:
-				showdef = !option.Value.IsNil() && option.Value.Len() > 0
+				showdef = !option.value.IsNil() && option.value.Len() > 0
 			default:
-				zeroval := reflect.Zero(option.Field.Type)
-				showdef = !reflect.DeepEqual(zeroval.Interface(), option.Value.Interface())
+				zeroval := reflect.Zero(option.field.Type)
+				showdef = !reflect.DeepEqual(zeroval.Interface(), option.value.Interface())
 			}
 
 			if showdef {
-				def, _ = convertToString(option.Value, option.tag)
+				def, _ = convertToString(option.value, option.tag)
 			}
 		} else if len(defs) != 0 {
 			def = strings.Join(defs, ", ")
@@ -164,6 +156,24 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	writer.WriteString("\n")
 }
 
+func maxCommandLength(s []*Command) int {
+	if len(s) == 0 {
+		return 0
+	}
+
+	ret := len(s[0].Name)
+
+	for _, v := range s[1:] {
+		l := len(v.Name)
+
+		if l > ret {
+			ret = l
+		}
+	}
+
+	return ret
+}
+
 // WriteHelp writes a help message containing all the possible options and
 // their descriptions to the provided writer. Note that the HelpFlag parser
 // option provides a convenient way to add a -h/--help option group to the
@@ -177,34 +187,40 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	wr := bufio.NewWriter(writer)
 	aligninfo := p.getAlignmentInfo()
 
-	if p.ApplicationName != "" {
+	cmd := p.Command
+
+	for cmd.Active != nil {
+		cmd = cmd.Active
+	}
+
+	if p.Name != "" {
 		wr.WriteString("Usage:\n")
-		fmt.Fprintf(wr, "  %s", p.ApplicationName)
+		wr.WriteString(" ")
 
-		if p.Usage != "" {
-			fmt.Fprintf(wr, " %s", p.Usage)
-		}
+		allcmd := p.Command
 
-		if len(p.currentCommandString) > 0 {
-			cmdusage := fmt.Sprintf("[%s-OPTIONS]", p.currentCommandString[len(p.currentCommandString)-1])
+		for allcmd != nil {
+			var usage string
 
-			if p.currentCommand != nil {
-				if us, ok := p.currentCommand.data.(Usage); ok {
-					cmdusage = us.Usage()
-				}
+			if allcmd == p.Command {
+				usage = p.Usage
+			} else if us, ok := allcmd.data.(Usage); ok {
+				usage = us.Usage()
+			} else {
+				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
 			}
 
-			fmt.Fprintf(wr, " %s %s",
-				strings.Join(p.currentCommandString, " "),
-				cmdusage)
+			fmt.Fprintf(wr, " %s %s", allcmd.Name, usage)
+
+			allcmd = allcmd.Active
 		}
 
 		fmt.Fprintln(wr)
 
-		if p.currentCommand != nil && len(p.currentCommand.LongDescription) != 0 {
+		if len(cmd.LongDescription) != 0 {
 			fmt.Fprintln(wr)
 
-			t := wrapText(p.currentCommand.LongDescription,
+			t := wrapText(cmd.LongDescription,
 				aligninfo.terminalColumns,
 				"")
 
@@ -212,56 +228,32 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		}
 	}
 
-	seen := make(map[*Group]bool)
-
-	writeHelp := func(index int, grp *Group) {
-		if len(grp.Options) == 0 || seen[grp] {
+	p.eachActiveGroup(func (grp *Group) {
+		if len(grp.options) == 0 {
 			return
 		}
 
-		seen[grp] = true
+		fmt.Fprintf(wr, "\n%s:\n", grp.ShortDescription)
 
-		wr.WriteString("\n")
-
-		fmt.Fprintf(wr, "%s:\n", grp.Name)
-
-		for _, info := range grp.Options {
+		for _, info := range grp.options {
 			p.writeHelpOption(wr, info, aligninfo)
 		}
-	}
+	})
 
-	// If there is a command, still write all the toplevel help too
-	if p.currentCommand != nil {
-		p.eachTopLevelGroup(writeHelp)
-	}
+	scommands := cmd.sortedCommands()
 
-	p.EachGroup(writeHelp)
-
-	commander := p.currentCommander()
-	names := commander.sortedNames()
-
-	if len(names) > 0 {
-		maxnamelen := len(names[0])
-
-		for i := 1; i < len(names); i++ {
-			l := len(names[i])
-
-			if l > maxnamelen {
-				maxnamelen = l
-			}
-		}
+	if len(scommands) > 0 {
+		maxnamelen := maxCommandLength(scommands)
 
 		fmt.Fprintln(wr)
 		fmt.Fprintln(wr, "Available commands:")
 
-		for _, name := range names {
-			fmt.Fprintf(wr, "  %s", name)
+		for _, c := range scommands {
+			fmt.Fprintf(wr, "  %s", c.Name)
 
-			cmd := commander.Commands[name]
-
-			if len(cmd.Name) > 0 {
-				pad := strings.Repeat(" ", maxnamelen-len(name))
-				fmt.Fprintf(wr, "%s  %s", pad, cmd.Name)
+			if len(c.ShortDescription) > 0 {
+				pad := strings.Repeat(" ", maxnamelen-len(c.Name))
+				fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
 			}
 
 			fmt.Fprintln(wr)
