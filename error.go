@@ -29,6 +29,29 @@ const (
 	ErrRequired
 )
 
+func (e ErrorType) String() string {
+	switch e {
+	case ErrUnknown:
+		return "unknown"
+	case ErrExpectedArgument:
+		return "expected argument"
+	case ErrUnknownFlag:
+		return "unknown flag"
+	case ErrUnknownGroup:
+		return "unknown group"
+	case ErrMarshal:
+		return "marshal"
+	case ErrHelp:
+		return "help"
+	case ErrNoArgumentForBool:
+		return "no argument for bool"
+	case ErrRequired:
+		return "required"
+	}
+
+	return "unknown"
+}
+
 // Error represents a parser error. The error returned from Parse is of this
 // type. The error contains both a Type and Message.
 type Error struct {
