@@ -3,5 +3,5 @@
 package flags
 
 const (
-	TIOCGWINSZ = 0
+	tIOCGWINSZ = 0
 )

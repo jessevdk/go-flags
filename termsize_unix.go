@@ -3,5 +3,5 @@
 package flags
 
 const (
-	TIOCGWINSZ = 0x40087468
+	tIOCGWINSZ = 0x40087468
 )

@@ -15,10 +15,10 @@ type winsize struct {
 func getTerminalColumns() int {
 	ws := winsize{}
 
-	if TIOCGWINSZ != 0 {
+	if tIOCGWINSZ != 0 {
 		syscall.Syscall(syscall.SYS_IOCTL,
 			uintptr(0),
-			uintptr(TIOCGWINSZ),
+			uintptr(tIOCGWINSZ),
 			uintptr(unsafe.Pointer(&ws)))
 
 		return int(ws.ws_col)
