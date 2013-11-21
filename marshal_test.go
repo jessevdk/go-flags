@@ -42,6 +42,34 @@ func TestMarshal(t *testing.T) {
 	}
 }
 
+func TestMarshalDefault(t *testing.T) {
+	var opts = struct {
+		Value marshalled `short:"v" default:"yes"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts)
+
+	assertStringArray(t, ret, []string{})
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+}
+
+func TestMarshalOptional(t *testing.T) {
+	var opts = struct {
+		Value marshalled `short:"v" optional:"yes" optional-value:"yes"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-v")
+
+	assertStringArray(t, ret, []string{})
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+}
+
 func TestMarshalError(t *testing.T) {
 	var opts = struct {
 		Value marshalled `short:"v"`
