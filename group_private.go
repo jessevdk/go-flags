@@ -2,7 +2,6 @@ package flags
 
 import (
 	"reflect"
-	"strings"
 	"unicode/utf8"
 	"unsafe"
 )
@@ -206,24 +205,9 @@ func (g *Group) scan() error {
 }
 
 func (g *Group) groupByName(name string) *Group {
-	name = strings.ToLower(name)
-
 	if len(name) == 0 {
 		return g
 	}
 
-	for _, subg := range g.groups {
-		lname := strings.ToLower(subg.ShortDescription)
-		prefix := lname + "."
-
-		if strings.HasPrefix(name, prefix) {
-			if grp := subg.groupByName(name[len(prefix):]); grp != nil {
-				return grp
-			}
-		} else if name == lname {
-			return subg
-		}
-	}
-
-	return nil
+	return g.Find(name)
 }
