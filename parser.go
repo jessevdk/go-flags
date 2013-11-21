@@ -16,6 +16,8 @@ type Parser struct {
 
 	Usage   string
 	Options Options
+
+	internalError error
 }
 
 // Parser options
@@ -78,7 +80,7 @@ func NewParser(data interface{}, options Options) *Parser {
 	ret := NewNamedParser(path.Base(os.Args[0]), options)
 
 	if data != nil {
-		ret.AddGroup("Application Options", "", data)
+		_, ret.internalError = ret.AddGroup("Application Options", "", data)
 	}
 
 	return ret
@@ -111,6 +113,10 @@ func (p *Parser) Parse() ([]string, error) {
 // automatically printed. Furthermore, the special error type ErrHelp is returned.
 // It is up to the caller to exit the program if so desired.
 func (p *Parser) ParseArgs(args []string) ([]string, error) {
+	if p.internalError != nil {
+		return nil, p.internalError
+	}
+
 	p.eachCommand(func(c *Command) {
 		p.eachGroup(func (g *Group) {
 			g.storeDefaults()
