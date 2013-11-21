@@ -208,3 +208,15 @@ func TestShortMultiArgConcat(t *testing.T) {
 	assertStringArray(t, ret, []string{})
 	assertString(t, opts.Value, "ff")
 }
+
+func TestShortOptional(t *testing.T) {
+	var opts = struct {
+		F     []bool `short:"f"`
+		Value string `short:"v" optional:"yes" optional-value:"value"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-fv", "f")
+
+	assertStringArray(t, ret, []string{"f"})
+	assertString(t, opts.Value, "value")
+}
