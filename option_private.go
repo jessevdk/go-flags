@@ -20,6 +20,10 @@ func (option *Option) set(value *string) error {
 }
 
 func (option *Option) canArgument() bool {
+	if u := option.isUnmarshaler(); u != nil {
+		return true
+	}
+
 	return !option.isBool()
 }
 
@@ -36,6 +40,30 @@ func (option *Option) clear() {
 		zeroval := reflect.Zero(tp)
 		option.value.Set(zeroval)
 	}
+}
+
+func (option *Option) isUnmarshaler() Unmarshaler {
+	v := option.value
+
+	for {
+		if !v.CanInterface() {
+			return nil
+		}
+
+		i := v.Interface()
+
+		if u, ok := i.(Unmarshaler); ok {
+			return u
+		}
+
+		if !v.CanAddr() {
+			return nil
+		}
+
+		v = v.Addr()
+	}
+
+	return nil
 }
 
 func (option *Option) isBool() bool {
