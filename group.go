@@ -6,6 +6,7 @@ package flags
 
 import (
 	"errors"
+	"strings"
 )
 
 // The provided container is not a pointer to a struct
@@ -53,4 +54,19 @@ func (g *Group) Groups() []*Group {
 // Get a list of options in the group.
 func (g *Group) Options() []*Option {
 	return g.options
+}
+
+// Group locates the subgroup with the given short description and returns it.
+// If no such group can be found Find will return nil. Note that the description
+// is matched case insensitively.
+func (g *Group) Find(shortDescription string) *Group {
+	lshortDescription := strings.ToLower(shortDescription)
+
+	for _, gg := range g.groups {
+		if gg.ShortDescription == lshortDescription {
+			return gg
+		}
+	}
+
+	return nil
 }
