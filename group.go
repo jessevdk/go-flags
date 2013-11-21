@@ -62,11 +62,13 @@ func (g *Group) Options() []*Option {
 func (g *Group) Find(shortDescription string) *Group {
 	lshortDescription := strings.ToLower(shortDescription)
 
-	for _, gg := range g.groups {
-		if gg.ShortDescription == lshortDescription {
-			return gg
-		}
-	}
+	var ret *Group
 
-	return nil
+	g.eachGroup(func(gg *Group) {
+		if gg != g && strings.ToLower(gg.ShortDescription) == lshortDescription {
+			ret = gg
+		}
+	}, true)
+
+	return ret
 }
