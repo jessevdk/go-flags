@@ -150,7 +150,11 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) (option *Option, err error) {
 	if option := s.lookup.longNames[name]; option != nil {
-		return p.parseOption(s, name, option, true, argument)
+		// Only long options that are required can consume an argument
+		// from the argument list
+		canarg := !option.OptionalArgument
+
+		return p.parseOption(s, name, option, canarg, argument)
 	}
 
 	return nil, newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", name))
