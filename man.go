@@ -53,7 +53,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 			formatForMan(wr, opt.Description)
 			fmt.Fprintln(wr, "")
 		}
-	}, true)
+	})
 }
 
 func writeManPageSubCommands(wr io.Writer, name string, root *Command) {

@@ -60,7 +60,7 @@ func (c *Command) eachCommand(f func(*Command), recurse bool) {
 }
 
 func (c *Command) eachActiveGroup(f func(g *Group)) {
-	c.eachGroup(f, true)
+	c.eachGroup(f)
 
 	if c.Active != nil {
 		c.Active.eachActiveGroup(f)
@@ -101,7 +101,7 @@ func (c *Command) makeLookup() lookup {
 				ret.longNames[option.LongName] = option
 			}
 		}
-	}, true)
+	})
 
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand

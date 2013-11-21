@@ -68,7 +68,7 @@ func (g *Group) Find(shortDescription string) *Group {
 		if gg != g && strings.ToLower(gg.ShortDescription) == lshortDescription {
 			ret = gg
 		}
-	}, true)
+	})
 
 	return ret
 }

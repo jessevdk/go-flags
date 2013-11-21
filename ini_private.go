@@ -113,7 +113,7 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 func writeCommandIni(command *Command, namespace string, writer io.Writer, options IniOptions) {
 	command.eachGroup(func(group *Group) {
 		writeGroupIni(group, namespace, writer, options)
-	}, true)
+	})
 
 	for _, c := range command.commands {
 		var nns string

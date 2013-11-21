@@ -65,15 +65,11 @@ func (g *Group) storeDefaults() {
 	}
 }
 
-func (g *Group) eachGroup(f func(*Group), recurse bool) {
+func (g *Group) eachGroup(f func(*Group)) {
 	f(g)
 
 	for _, gg := range g.groups {
-		if recurse {
-			gg.eachGroup(f, true)
-		} else {
-			f(gg)
-		}
+		gg.eachGroup(f)
 	}
 }
 

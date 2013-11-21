@@ -114,7 +114,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	p.eachCommand(func(c *Command) {
 		p.eachGroup(func (g *Group) {
 			g.storeDefaults()
-		}, true)
+		})
 	}, true)
 
 	// Add builtin help group to all commands if necessary
