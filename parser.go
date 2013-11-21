@@ -146,13 +146,13 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		var err error
 		var option *Option
 
-		optname, argument := splitOption(arg)
-		optname, islong := stripOptionPrefix(optname)
+		prefix, optname, islong := stripOptionPrefix(arg)
+		optname, argument := splitOption(prefix, optname, islong)
 
 		if islong {
 			option, err = p.parseLong(s, optname, argument)
 		} else {
-			option, err = p.parseShorts(s, optname, argument)
+			option, err = p.parseShort(s, optname, argument)
 		}
 
 		if err != nil {
