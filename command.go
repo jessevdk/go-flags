@@ -1,13 +1,16 @@
 package flags
 
 type Command struct {
+	// Embedded, see Group for more information
 	*Group
 
-	Name   string
+	// The name by which the command can be invoked
+	Name string
+
+	// The active sub command (set by parsing) or nil
 	Active *Command
 
-	commands []*Command
-
+	commands            []*Command
 	hasBuiltinHelpGroup bool
 }
 
@@ -25,6 +28,8 @@ type Commander interface {
 // The usage interface can be implemented to show a custom usage string in
 // the help message shown for a command.
 type Usage interface {
+	// Usage is called for commands to allow customized printing of command
+	// usage in the generated help message.
 	Usage() string
 }
 
