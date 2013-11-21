@@ -111,7 +111,11 @@ func (p *Parser) Parse() ([]string, error) {
 // automatically printed. Furthermore, the special error type ErrHelp is returned.
 // It is up to the caller to exit the program if so desired.
 func (p *Parser) ParseArgs(args []string) ([]string, error) {
-	p.storeDefaults()
+	p.eachCommand(func(c *Command) {
+		p.eachGroup(func (g *Group) {
+			g.storeDefaults()
+		}, true)
+	}, true)
 
 	// Add builtin help group to all commands if necessary
 	if (p.Options & HelpFlag) != None {
