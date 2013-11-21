@@ -3,8 +3,8 @@ package flags
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -231,7 +231,7 @@ func (p *Parser) showBuiltinHelp() error {
 }
 
 func (p *Parser) printError(err error) error {
-	if err != nil && (p.Options & PrintErrors) != None {
+	if err != nil && (p.Options&PrintErrors) != None {
 		fmt.Fprintln(os.Stderr, err)
 	}
 

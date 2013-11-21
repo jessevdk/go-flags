@@ -26,7 +26,7 @@ type Group struct {
 	options []*Option
 
 	// All the subgroups
-	groups  []*Group
+	groups []*Group
 
 	data interface{}
 }

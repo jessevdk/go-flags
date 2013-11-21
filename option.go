@@ -51,7 +51,7 @@ type Option struct {
 	// A mask value to show in the help instead of the default value. This
 	// is useful for hiding sensitive information in the help, such as
 	// passwords.
-	DefaultMask  string
+	DefaultMask string
 
 	IniName string
 

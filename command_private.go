@@ -3,8 +3,8 @@ package flags
 import (
 	"reflect"
 	"sort"
-	"unsafe"
 	"strings"
+	"unsafe"
 )
 
 type lookup struct {
@@ -18,7 +18,7 @@ type lookup struct {
 func newCommand(name string, shortDescription string, longDescription string, data interface{}) *Command {
 	return &Command{
 		Group: newGroup(shortDescription, longDescription, data),
-		Name: name,
+		Name:  name,
 	}
 }
 
@@ -59,7 +59,7 @@ func (c *Command) eachCommand(f func(*Command), recurse bool) {
 	}
 }
 
-func (c *Command) eachActiveGroup(f func (g *Group)){
+func (c *Command) eachActiveGroup(f func(g *Group)) {
 	c.eachGroup(f, true)
 
 	if c.Active != nil {

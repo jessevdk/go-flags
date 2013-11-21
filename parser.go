@@ -119,10 +119,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	s := &parseState{
-		args: args,
+		args:    args,
 		retargs: make([]string, 0, len(args)),
 		command: p.Command,
-		lookup: p.makeLookup(),
+		lookup:  p.makeLookup(),
 	}
 
 	for !s.eof() {

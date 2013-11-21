@@ -104,4 +104,3 @@ func (x *multiTag) SetMany(key string, value []string) {
 	c := x.cached()
 	c[key] = value
 }
-

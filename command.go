@@ -3,8 +3,8 @@ package flags
 type Command struct {
 	*Group
 
-	Name     string
-	Active   *Command
+	Name   string
+	Active *Command
 
 	commands []*Command
 

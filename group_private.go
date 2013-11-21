@@ -2,12 +2,12 @@ package flags
 
 import (
 	"reflect"
+	"strings"
 	"unicode/utf8"
 	"unsafe"
-	"strings"
 )
 
-type scanHandler func (reflect.Value, *reflect.StructField) (bool, error)
+type scanHandler func(reflect.Value, *reflect.StructField) (bool, error)
 
 func newGroup(shortDescription string, longDescription string, data interface{}) *Group {
 	return &Group{
@@ -152,9 +152,9 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			DefaultMask:      defaultMask,
 			IniName:          ininame,
 
-			field:            field,
-			value:            realval.Field(i),
-			tag:              mtag,
+			field: field,
+			value: realval.Field(i),
+			tag:   mtag,
 		}
 
 		g.options = append(g.options, option)

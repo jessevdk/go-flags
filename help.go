@@ -228,7 +228,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		}
 	}
 
-	p.eachActiveGroup(func (grp *Group) {
+	p.eachActiveGroup(func(grp *Group) {
 		if len(grp.options) == 0 {
 			return
 		}

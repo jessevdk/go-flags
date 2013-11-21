@@ -39,7 +39,7 @@ func assertBoolArray(t *testing.T, a []bool, b []bool) {
 }
 
 func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string {
-	parser := flags.NewParser(data, flags.Default &^ flags.PrintErrors)
+	parser := flags.NewParser(data, flags.Default&^flags.PrintErrors)
 	ret, err := parser.ParseArgs(args)
 
 	if err != nil {
@@ -51,7 +51,7 @@ func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string
 }
 
 func assertParseFail(t *testing.T, typ flags.ErrorType, msg string, data interface{}, args ...string) {
-	parser := flags.NewParser(data, flags.Default &^ flags.PrintErrors)
+	parser := flags.NewParser(data, flags.Default&^flags.PrintErrors)
 	_, err := parser.ParseArgs(args)
 
 	if err == nil {
@@ -168,7 +168,7 @@ func TestShortArg(t *testing.T) {
 
 func TestShortMultiWithEqualArg(t *testing.T) {
 	var opts = struct {
-		F []bool `short:"f"`
+		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
 
@@ -177,7 +177,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 
 func TestShortMultiArg(t *testing.T) {
 	var opts = struct {
-		F []bool `short:"f"`
+		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
 
@@ -190,7 +190,7 @@ func TestShortMultiArg(t *testing.T) {
 
 func TestShortMultiArgConcatFail(t *testing.T) {
 	var opts = struct {
-		F []bool `short:"f"`
+		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
 
@@ -199,7 +199,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 
 func TestShortMultiArgConcat(t *testing.T) {
 	var opts = struct {
-		F []bool `short:"f"`
+		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
 
