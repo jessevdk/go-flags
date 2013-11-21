@@ -41,28 +41,6 @@ func readFullLine(reader *bufio.Reader) (string, error) {
 	return string(line), nil
 }
 
-type IniError struct {
-	Message    string
-	File       string
-	LineNumber uint
-}
-
-func (x *IniError) Error() string {
-	return fmt.Sprintf("%s:%d: %s",
-		x.File,
-		x.LineNumber,
-		x.Message)
-}
-
-type IniOptions uint
-
-const (
-	IniNone            IniOptions = 0
-	IniIncludeDefaults            = 1 << iota
-	IniIncludeComments
-	IniDefault = IniIncludeComments
-)
-
 func optionIniName(option *Option) string {
 	name := option.tag.Get("_read-ini-name")
 

@@ -1,14 +1,51 @@
 package flags
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
 
+// IniError contains location information on where in the ini file an error
+// occured.
+type IniError struct {
+	Message    string
+	File       string
+	LineNumber uint
+}
+
+// Error provides a "file:line: message" formatted message of the ini error.
+func (x *IniError) Error() string {
+	return fmt.Sprintf("%s:%d: %s",
+		x.File,
+		x.LineNumber,
+		x.Message)
+}
+
+// Options for writing ini files
+type IniOptions uint
+
+const (
+	// No options
+	IniNone IniOptions = 0
+
+	// Write default values
+	IniIncludeDefaults = 1 << iota
+
+	// Write comments containing the description of an option
+	IniIncludeComments
+
+	// Default options
+	IniDefault = IniIncludeComments
+)
+
+// IniParser is a utility to read and write flags options from and to ini
+// files.
 type IniParser struct {
 	parser *Parser
 }
 
+// NewIniParser creates a new ini parser for a given Parser.
 func NewIniParser(p *Parser) *IniParser {
 	return &IniParser{
 		parser: p,
@@ -45,18 +82,18 @@ func (i *IniParser) ParseFile(filename string) error {
 //
 // The format of the ini file is as follows:
 //
-// [Option group name]
-// option = value
+//     [Option group name]
+//     option = value
 //
 // Each section in the ini file represents an option group or command in the
 // flags parser. The default flags parser option group (i.e. when using
 // flags.Parse) is named 'Application Options'. The ini option name is matched
 // in the following order:
 //
-// 1. Compared to the ini-name tag on the option struct field (if present)
-// 2. Compared to the struct field name
-// 3. Compared to the option long name (if present)
-// 4. Compared to the option short name (if present)
+//     1. Compared to the ini-name tag on the option struct field (if present)
+//     2. Compared to the struct field name
+//     3. Compared to the option long name (if present)
+//     4. Compared to the option short name (if present)
 //
 // Sections for nested groups and commands can be addressed using a dot `.'
 // namespacing notation (i.e [subcommand.Options]). Group section names are
