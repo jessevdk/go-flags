@@ -77,11 +77,11 @@ func (option *Option) String() string {
 		short = string(data)
 
 		if len(option.LongName) != 0 {
-			s = fmt.Sprintf("%v%s, %s%s",
-				defaultShortOptDelimiter, short,
+			s = fmt.Sprintf("%s%s, %s%s",
+				string(defaultShortOptDelimiter), short,
 				defaultLongOptDelimiter, option.LongName)
 		} else {
-			s = fmt.Sprintf("%v%s", defaultShortOptDelimiter, short)
+			s = fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
 		}
 	} else if len(option.LongName) != 0 {
 		s = fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongName)
