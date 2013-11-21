@@ -68,6 +68,14 @@ func TestGroupAdd(t *testing.T) {
 	if p.Command.Group.Find("Grouped Options") != g {
 		t.Errorf("Expected to find group `Grouped Options'")
 	}
+
+	if p.Groups()[1] != g {
+		t.Errorf("Espected group #v,	 but got #v", g, p.Groups()[0])
+	}
+
+	if g.Options()[0].ShortName != 'g' {
+		t.Errorf("Expected short name `g' but got %v", g.Options()[0].ShortName)
+	}
 }
 
 func TestGroupNestedInline(t *testing.T) {
