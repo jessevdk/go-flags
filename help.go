@@ -96,7 +96,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		line.WriteString(option.LongName)
 	}
 
-	if !option.isBool() {
+	if option.canArgument() {
 		line.WriteRune(defaultNameArgDelimiter)
 
 		if len(option.ValueName) > 0 {
@@ -118,7 +118,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			if option.DefaultMask != "-" {
 				def = option.DefaultMask
 			}
-		} else if len(defs) == 0 && !option.isBool() {
+		} else if len(defs) == 0 && option.canArgument() {
 			var showdef bool
 
 			switch option.field.Type.Kind() {

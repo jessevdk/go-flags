@@ -259,7 +259,7 @@ func (i *IniParser) parse(ini ini) error {
 
 			pval := &inival.Value
 
-			if opt.isBool() && len(inival.Value) == 0 {
+			if !opt.canArgument() && len(inival.Value) == 0 {
 				pval = nil
 			}
 
