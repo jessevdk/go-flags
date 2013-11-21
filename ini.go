@@ -5,19 +5,30 @@ import (
 	"os"
 )
 
-// ParseIni is a convenience function to parse command line options with default
+type IniParser struct {
+	parser *Parser
+}
+
+func NewIniParser(p *Parser) *IniParser {
+	return &IniParser{
+		parser: p,
+	}
+}
+
+// IniParse is a convenience function to parse command line options with default
 // settings from an ini file. The provided data is a pointer to a struct
 // representing the default option group (named "Application Options"). For
 // more control, use flags.NewParser.
-func ParseIni(filename string, data interface{}) error {
-	return NewParser(data, Default).ParseIniFile(filename)
+func IniParse(filename string, data interface{}) error {
+	p := NewParser(data, Default)
+	return NewIniParser(p).ParseFile(filename)
 }
 
-// ParseIniFile parses flags from an ini formatted file. See ParseIni for more
+// ParseFile parses flags from an ini formatted file. See Parse for more
 // information on the ini file foramt. The returned errors can be of the type
 // flags.Error or flags.IniError.
-func (p *Parser) ParseIniFile(filename string) error {
-	p.storeDefaults()
+func (i *IniParser) ParseFile(filename string) error {
+	i.parser.storeDefaults()
 
 	ini, err := readIniFromFile(filename)
 
@@ -25,10 +36,10 @@ func (p *Parser) ParseIniFile(filename string) error {
 		return err
 	}
 
-	return p.parseIni(ini)
+	return i.parse(ini)
 }
 
-// ParseIni parses flags from an ini format. You can use ParseIniFile as a
+// Parse parses flags from an ini format. You can use ParseFile as a
 // convenience function to parse from a filename instead of a general
 // io.Reader.
 //
@@ -53,8 +64,8 @@ func (p *Parser) ParseIniFile(filename string) error {
 //
 // The returned errors can be of the type flags.Error or
 // flags.IniError.
-func (p *Parser) ParseIni(reader io.Reader) error {
-	p.storeDefaults()
+func (i *IniParser) Parse(reader io.Reader) error {
+	i.parser.storeDefaults()
 
 	ini, err := readIni(reader, "")
 
@@ -62,13 +73,13 @@ func (p *Parser) ParseIni(reader io.Reader) error {
 		return err
 	}
 
-	return p.parseIni(ini)
+	return i.parse(ini)
 }
 
-// WriteIniToFile writes the flags as ini format into a file. See WriteIni
+// WriteFile writes the flags as ini format into a file. See WriteIni
 // for more information. The returned error occurs when the specified file
 // could not be opened for writing.
-func (p *Parser) WriteIniToFile(filename string, options IniOptions) error {
+func (i *IniParser) WriteFile(filename string, options IniOptions) error {
 	file, err := os.Create(filename)
 
 	if err != nil {
@@ -76,7 +87,7 @@ func (p *Parser) WriteIniToFile(filename string, options IniOptions) error {
 	}
 
 	defer file.Close()
-	p.WriteIni(file, options)
+	i.Write(file, options)
 
 	return nil
 }
@@ -86,6 +97,6 @@ func (p *Parser) WriteIniToFile(filename string, options IniOptions) error {
 // call this only after settings have been parsed since the default values of each
 // option are stored just before parsing the flags (this is only relevant when
 // IniIncludeDefaults is _not_ set in options).
-func (p *Parser) WriteIni(writer io.Writer, options IniOptions) {
-	writeIni(p, writer, options)
+func (i *IniParser) Write(writer io.Writer, options IniOptions) {
+	writeIni(i, writer, options)
 }

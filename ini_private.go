@@ -9,13 +9,13 @@ import (
 	"strings"
 )
 
-type IniValue struct {
+type iniValue struct {
 	Name  string
 	Value string
 }
 
-type IniSection []IniValue
-type Ini map[string]IniSection
+type iniSection []iniValue
+type ini map[string]iniSection
 
 func readFullLine(reader *bufio.Reader) (string, error) {
 	var line []byte
@@ -150,11 +150,11 @@ func writeCommandIni(command *Command, namespace string, writer io.Writer, optio
 	}
 }
 
-func writeIni(parser *Parser, writer io.Writer, options IniOptions) {
-	writeCommandIni(parser.Command, "", writer, options)
+func writeIni(parser *IniParser, writer io.Writer, options IniOptions) {
+	writeCommandIni(parser.parser.Command, "", writer, options)
 }
 
-func readIniFromFile(filename string) (Ini, error) {
+func readIniFromFile(filename string) (ini, error) {
 	file, err := os.Open(filename)
 
 	if err != nil {
@@ -166,12 +166,12 @@ func readIniFromFile(filename string) (Ini, error) {
 	return readIni(file, filename)
 }
 
-func readIni(contents io.Reader, filename string) (Ini, error) {
-	ret := make(Ini)
+func readIni(contents io.Reader, filename string) (ini, error) {
+	ret := make(ini)
 
 	reader := bufio.NewReader(contents)
 
-	var section IniSection
+	var section iniSection
 	var sectionname string
 
 	var lineno uint
@@ -218,7 +218,7 @@ func readIni(contents io.Reader, filename string) (Ini, error) {
 			section = ret[name]
 
 			if section == nil {
-				section = make(IniSection, 0, 10)
+				section = make(iniSection, 0, 10)
 				ret[name] = section
 			}
 
@@ -239,7 +239,7 @@ func readIni(contents io.Reader, filename string) (Ini, error) {
 		name := strings.TrimSpace(keyval[0])
 		value := strings.TrimSpace(keyval[1])
 
-		section = append(section, IniValue{
+		section = append(section, iniValue{
 			Name:  name,
 			Value: value,
 		})
@@ -250,7 +250,9 @@ func readIni(contents io.Reader, filename string) (Ini, error) {
 	return ret, nil
 }
 
-func (p *Parser) parseIni(ini Ini) error {
+func (i *IniParser) parse(ini ini) error {
+	p := i.parser
+
 	for name, section := range ini {
 		group := p.groupByName(name)
 
