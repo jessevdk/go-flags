@@ -172,7 +172,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, flags.ErrUnknownFlag, "unknown flag `='", &opts, "-ffv=value")
+	assertParseFail(t, flags.ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffv=value")
 }
 
 func TestShortMultiArg(t *testing.T) {
@@ -194,7 +194,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, flags.ErrUnknownFlag, "unknown flag `a'", &opts, "-ffvvalue")
+	assertParseFail(t, flags.ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffvvalue")
 }
 
 func TestShortMultiArgConcat(t *testing.T) {
