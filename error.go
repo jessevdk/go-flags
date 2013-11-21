@@ -1,5 +1,9 @@
 package flags
 
+import (
+	"fmt"
+)
+
 // ErrorType represents the type of error.
 type ErrorType uint
 
@@ -27,6 +31,9 @@ const (
 
 	// A required flag was not specified
 	ErrRequired
+
+	// A short flag name is longer than one character
+	ErrShortNameTooLong
 )
 
 func (e ErrorType) String() string {
@@ -72,6 +79,10 @@ func newError(tp ErrorType, message string) *Error {
 		Type:    tp,
 		Message: message,
 	}
+}
+
+func newErrorf(tp ErrorType, format string, args ...interface{}) *Error {
+	return newError(tp, fmt.Sprintf(format, args...))
 }
 
 func wrapError(err error) *Error {

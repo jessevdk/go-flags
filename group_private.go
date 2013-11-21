@@ -120,7 +120,10 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		rc := utf8.RuneCountInString(shortname)
 
 		if rc > 1 {
-			return ErrShortNameTooLong
+			return newErrorf(ErrShortNameTooLong,
+				"short names can only be 1 character long, not `%s'",
+				shortname)
+
 		} else if rc == 1 {
 			short, _ = utf8.DecodeRuneInString(shortname)
 		}

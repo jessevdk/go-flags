@@ -12,9 +12,6 @@ import (
 // The provided container is not a pointer to a struct
 var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct")
 
-// The provided short name is longer than a single character
-var ErrShortNameTooLong = errors.New("short names can only be 1 character")
-
 // An option group. The option group has a name and a set of options.
 type Group struct {
 	// A short description of the group
