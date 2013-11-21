@@ -39,7 +39,8 @@ func assertBoolArray(t *testing.T, a []bool, b []bool) {
 }
 
 func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string {
-	ret, err := flags.ParseArgs(data, args)
+	parser := flags.NewParser(data, flags.Default &^ flags.PrintErrors)
+	ret, err := parser.ParseArgs(args)
 
 	if err != nil {
 		t.Fatalf("Unexpected parse error: %s", err)
@@ -50,7 +51,8 @@ func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string
 }
 
 func assertParseFail(t *testing.T, typ flags.ErrorType, msg string, data interface{}, args ...string) {
-	_, err := flags.ParseArgs(data, args)
+	parser := flags.NewParser(data, flags.Default &^ flags.PrintErrors)
+	_, err := parser.ParseArgs(args)
 
 	if err == nil {
 		t.Fatalf("Expected error: %s", msg)
