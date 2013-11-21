@@ -80,6 +80,6 @@ func (c *Command) addHelpGroup(showHelp func() error) *Group {
 	help.ShowHelpWindows = showHelp
 	help.ShowHelpPosix = showHelp
 
-	ret, _ := c.AddGroup"Help Options", "", &help)
+	ret, _ := c.AddGroup("Help Options", "", &help)
 	return ret
 }
