@@ -186,7 +186,9 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) (op
 			// the arguments list
 			canarg := (i+utf8.RuneLen(c) == len(optname))
 
-			p.parseOption(s, shortname, option, canarg, argument)
+			if _, err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
+				return option, err
+			}
 		} else {
 			return nil, newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", shortname))
 		}
