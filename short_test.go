@@ -19,6 +19,14 @@ func TestShort(t *testing.T) {
 	}
 }
 
+func TestShortTooLong(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"vv"`
+	}{}
+
+	assertParseFail(t, flags.ErrShortNameTooLong, "short names can only be 1 character long, not `vv'", &opts)
+}
+
 func TestShortMultiConcat(t *testing.T) {
 	var opts = struct {
 		V bool `short:"v"`
