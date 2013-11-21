@@ -172,11 +172,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-ffv=value")
-
-	assertStringArray(t, ret, []string{})
-	assertBoolArray(t, opts.F, []bool{true, true})
-	assertString(t, opts.Value, "value")
+	assertParseFail(t, flags.ErrUnknownFlag, "unknown flag `='", &opts, "-ffv=value")
 }
 
 func TestShortMultiArg(t *testing.T) {
@@ -198,7 +194,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, flags.ErrUnknownFlag, "", &opts, "-ffvvalue")
+	assertParseFail(t, flags.ErrUnknownFlag, "unknown flag `a'", &opts, "-ffvvalue")
 }
 
 func TestShortMultiArgConcat(t *testing.T) {
