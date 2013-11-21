@@ -132,15 +132,15 @@
 // the global parser.
 //
 // When parsing ends and there is an active command and that command implements
-// the Command interface, then its Execute method will be run providing the
-// remaining arguments.
+// the Commander interface, then its Execute method will be run with the
+// remaining command line arguments.
 //
 // Command structs can have options which become valid to parse after the
 // command has been specified on the command line. It is currently not valid
 // to specify options from the parent level of the command after the command
 // name has occurred. Thus, given a toplevel option "-v" and a command "add":
 //
-// Valid:   ./app -v add
-// Invalid: ./app add -v
+//     Valid:   ./app -v add
+//     Invalid: ./app add -v
 //
 package flags
