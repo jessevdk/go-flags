@@ -101,11 +101,16 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 
 		// Dive deep into structs or pointers to structs
 		kind := field.Type.Kind()
+		fld := realval.Field(i)
 
 		if kind == reflect.Struct {
-			return g.scanStruct(realval.Field(i), &field, handler)
-		} else if kind == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct && !realval.Field(i).IsNil() {
-			return g.scanStruct(reflect.Indirect(realval.Field(i)), &field, handler)
+			if err := g.scanStruct(fld, &field, handler); err != nil {
+				return err
+			}
+		} else if kind == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct && !fld.IsNil() {
+			if err := g.scanStruct(reflect.Indirect(fld), &field, handler); err != nil {
+				return err
+			}
 		}
 
 		longname := mtag.Get("long")
