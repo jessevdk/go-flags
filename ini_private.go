@@ -66,7 +66,8 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 		sname = group.ShortDescription
 	}
 
-	fmt.Fprintf(writer, "[%s]\n", sname)
+	sectionwritten := false
+	comments := (options & IniIncludeComments) != IniNone
 
 	for _, option := range group.options {
 		if option.isFunc() {
@@ -84,7 +85,12 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 			continue
 		}
 
-		if (options & IniIncludeComments) != IniNone {
+		if !sectionwritten {
+			fmt.Fprintf(writer, "[%s]\n", sname)
+			sectionwritten = true
+		}
+
+		if comments {
 			fmt.Fprintf(writer, "; %s\n", option.Description)
 		}
 
