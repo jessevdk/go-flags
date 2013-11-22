@@ -27,6 +27,14 @@ func TestShortTooLong(t *testing.T) {
 	assertParseFail(t, flags.ErrShortNameTooLong, "short names can only be 1 character long, not `vv'", &opts)
 }
 
+func TestShortRequired(t *testing.T) {
+		var opts = struct {
+		Value bool `short:"v" required:"true"`
+	}{}
+
+	assertParseFail(t, flags.ErrRequired, "the required flag `-v' was not specified", &opts)
+}
+
 func TestShortMultiConcat(t *testing.T) {
 	var opts = struct {
 		V bool `short:"v"`
