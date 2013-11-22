@@ -195,7 +195,7 @@ func readIni(contents io.Reader, filename string) (ini, error) {
 			continue
 		}
 
-		if section == nil {
+		if section == nil || line[0] == '[' {
 			if line[0] != '[' || line[len(line)-1] != ']' {
 				return nil, &IniError{
 					Message:    "malformed section header",
