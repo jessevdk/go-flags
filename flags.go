@@ -86,11 +86,6 @@
 //                     a separate group with the given name (optional).
 //     command:        when specified on a struct field, makes the struct field
 //                     a (sub)command with the given name (optional).
-//     name:           the display name of the command. This name is the name
-//                     shown in the builtin generated help and can be used
-//                     to provide a more informative title of a command. If not
-//                     specified this defaults to the name given in the command
-//                     command tag (optional).
 //
 // Either short: or long: must be specified to make the field eligible as an
 // option.
