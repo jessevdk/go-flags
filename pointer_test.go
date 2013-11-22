@@ -62,3 +62,21 @@ func TestPointerMap(t *testing.T) {
 	}
 }
 
+type PointerGroup struct {
+	Value bool `short:"v"`
+}
+
+func TestPointerGroup(t *testing.T) {
+	var opts = struct {
+		Group *PointerGroup `group:"Group Options"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-v")
+
+	assertStringArray(t, ret, []string{})
+
+	if !opts.Group.Value {
+		t.Errorf("Expected Group.Value to be true")
+	}
+}
+
