@@ -48,6 +48,20 @@ func (c *Command) AddCommand(command string, shortDescription string, longDescri
 	return cmd, nil
 }
 
+// AddGroup adds a new group to the command with the given name and data. The
+// data needs to be a pointer to a struct from which the fields indicate which
+// options are in the group.
+func (c *Command) AddGroup(shortDescription string, longDescription string, data interface{}) (*Group, error) {
+	group := newGroup(shortDescription, longDescription, data)
+
+	if err := group.scanType(c.scanSubCommandHandler(group)); err != nil {
+		return nil, err
+	}
+
+	c.groups = append(c.groups, group)
+	return group, nil
+}
+
 // Get a list of subcommands of this command.
 func (c *Command) Commands() []*Command {
 	return c.commands
