@@ -69,13 +69,19 @@ func (option *Option) isUnmarshaler() Unmarshaler {
 func (option *Option) isBool() bool {
 	tp := option.value.Type()
 
-	switch tp.Kind() {
-	case reflect.Bool:
-		return true
-	case reflect.Slice:
-		return (tp.Elem().Kind() == reflect.Bool)
-	case reflect.Func:
-		return tp.NumIn() == 0
+	for {
+		switch tp.Kind() {
+		case reflect.Bool:
+			return true
+		case reflect.Slice:
+			return (tp.Elem().Kind() == reflect.Bool)
+		case reflect.Func:
+			return tp.NumIn() == 0
+		case reflect.Ptr:
+			tp = tp.Elem()
+		default:
+			return false
+		}
 	}
 
 	return false
