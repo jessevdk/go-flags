@@ -22,29 +22,33 @@ func newCommand(name string, shortDescription string, longDescription string, da
 	}
 }
 
-func (c *Command) scanSubCommandHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
-	mtag := newMultiTag(string(sfield.Tag))
+func (c *Command) scanSubCommandHandler(parentg *Group) scanHandler {
+	f := func (realval reflect.Value, sfield *reflect.StructField) (bool, error) {
+		mtag := newMultiTag(string(sfield.Tag))
 
-	subcommand := mtag.Get("command")
+		subcommand := mtag.Get("command")
 
-	if len(subcommand) != 0 {
-		ptrval := reflect.NewAt(realval.Type(), unsafe.Pointer(realval.UnsafeAddr()))
+		if len(subcommand) != 0 {
+			ptrval := reflect.NewAt(realval.Type(), unsafe.Pointer(realval.UnsafeAddr()))
 
-		shortDescription := mtag.Get("description")
-		longDescription := mtag.Get("long-description")
+			shortDescription := mtag.Get("description")
+			longDescription := mtag.Get("long-description")
 
-		if _, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface()); err != nil {
-			return true, err
+			if _, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface()); err != nil {
+				return true, err
+			}
+
+			return true, nil
 		}
 
-		return true, nil
+		return parentg.scanSubGroupHandler(realval, sfield)
 	}
 
-	return c.scanSubGroupHandler(realval, sfield)
+	return f
 }
 
 func (c *Command) scan() error {
-	return c.scanType(c.scanSubCommandHandler)
+	return c.scanType(c.scanSubCommandHandler(c.Group))
 }
 
 func (c *Command) eachCommand(f func(*Command), recurse bool) {
