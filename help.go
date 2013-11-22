@@ -203,7 +203,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			var usage string
 
 			if allcmd == p.Command {
-				usage = p.Usage
+				if len(p.Usage) != 0 {
+					usage = p.Usage
+				} else {
+					usage = "[OPTIONS]"
+				}
 			} else if us, ok := allcmd.data.(Usage); ok {
 				usage = us.Usage()
 			} else {
