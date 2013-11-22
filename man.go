@@ -105,7 +105,14 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 	fmt.Fprintln(wr, ".SH NAME")
 	fmt.Fprintf(wr, "%s \\- %s\n", p.Name, p.ShortDescription)
 	fmt.Fprintln(wr, ".SH SYNOPSIS")
-	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", p.Name, p.Usage)
+
+	usage := p.Usage
+
+	if len(usage) == 0 {
+		usage = "[OPTIONS]"
+	}
+
+	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", p.Name, usage)
 	fmt.Fprintln(wr, ".SH DESCRIPTION")
 
 	formatForMan(wr, p.LongDescription)
