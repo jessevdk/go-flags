@@ -94,22 +94,32 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 			fmt.Fprintf(writer, "; %s\n", option.Description)
 		}
 
+		oname := optionIniName(option)
+
 		switch val.Type().Kind() {
 		case reflect.Slice:
 			for idx := 0; idx < val.Len(); idx++ {
 				v, _ := convertToString(val.Index(idx), option.tag)
-				fmt.Fprintf(writer, "%s = %s\n", optionIniName(option), v)
+				fmt.Fprintf(writer, "%s = %s\n", oname, v)
+			}
+
+			if val.Len() == 0 {
+				fmt.Fprintf(writer, "; %s =\n", oname)
 			}
 		case reflect.Map:
 			for _, key := range val.MapKeys() {
 				k, _ := convertToString(key, option.tag)
 				v, _ := convertToString(val.MapIndex(key), option.tag)
 
-				fmt.Fprintf(writer, "%s = %s:%s\n", optionIniName(option), k, v)
+				fmt.Fprintf(writer, "%s = %s:%s\n", oname, k, v)
+			}
+
+			if val.Len() == 0 {
+				fmt.Fprintf(writer, "; %s =\n", oname)
 			}
 		default:
 			v, _ := convertToString(val, option.tag)
-			fmt.Fprintf(writer, "%s = %s\n", optionIniName(option), v)
+			fmt.Fprintf(writer, "%s = %s\n", oname, v)
 		}
 	}
 
