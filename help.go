@@ -214,7 +214,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
 			}
 
-			fmt.Fprintf(wr, " %s %s", allcmd.Name, usage)
+			if len(usage) != 0 {
+				fmt.Fprintf(wr, " %s %s", allcmd.Name, usage)
+			} else {
+				fmt.Fprintf(wr, " %s", allcmd.Name)
+			}
 
 			allcmd = allcmd.Active
 		}
