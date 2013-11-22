@@ -230,7 +230,7 @@ func readIni(contents io.Reader, filename string) (ini, error) {
 
 		if len(keyval) != 2 {
 			return nil, &IniError{
-				Message:    "malformed key=value",
+				Message:    fmt.Sprintf("malformed key=value (%s)", line),
 				File:       filename,
 				LineNumber: lineno,
 			}
