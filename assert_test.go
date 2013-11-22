@@ -55,10 +55,7 @@ func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string
 	return ret
 }
 
-func assertParseFail(t *testing.T, typ flags.ErrorType, msg string, data interface{}, args ...string) {
-	parser := flags.NewParser(data, flags.Default&^flags.PrintErrors)
-	_, err := parser.ParseArgs(args)
-
+func assertError(t *testing.T, err error, typ flags.ErrorType, msg string) {
 	if err == nil {
 		t.Fatalf("Expected error: %s", msg)
 		return
@@ -76,4 +73,11 @@ func assertParseFail(t *testing.T, typ flags.ErrorType, msg string, data interfa
 			t.Errorf("Expected error message %#v, but got %#v", msg, e.Message)
 		}
 	}
+}
+
+func assertParseFail(t *testing.T, typ flags.ErrorType, msg string, data interface{}, args ...string) {
+	parser := flags.NewParser(data, flags.Default&^flags.PrintErrors)
+	_, err := parser.ParseArgs(args)
+
+	assertError(t, err, typ, msg)
 }
