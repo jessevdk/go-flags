@@ -121,9 +121,15 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 			v, _ := convertToString(val, option.tag)
 			fmt.Fprintf(writer, "%s = %s\n", oname, v)
 		}
+
+		if comments {
+			fmt.Fprintln(writer)
+		}
 	}
 
-	fmt.Fprintln(writer)
+	if sectionwritten && !comments {
+		fmt.Fprintln(writer)
+	}
 }
 
 func writeCommandIni(command *Command, namespace string, writer io.Writer, options IniOptions) {
