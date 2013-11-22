@@ -1,6 +1,7 @@
 package flags_test
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"io/ioutil"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"testing"
+	"time"
 )
 
 func helpDiff(a, b string) (string, error) {
@@ -41,17 +43,19 @@ func helpDiff(a, b string) (string, error) {
 	return string(ret), nil
 }
 
-func TestHelp(t *testing.T) {
-	var opts = struct {
-		Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
-		Call func(string) `short:"c" description:"Call phone number"`
-		PtrSlice []*string `long:"ptrslice" description:"A slice of pointers to string"`
+type helpOptions struct {
+	Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information" ini-name:"verbose"`
+	Call func(string) `short:"c" description:"Call phone number" ini-name:"call"`
+	PtrSlice []*string `long:"ptrslice" description:"A slice of pointers to string"`
 
-		Other struct{
-			StringSlice []string `short:"s" description:"A slice of strings"`
-			IntMap map[string]int `long:"intmap" description:"A map from string to int"`
-		} `group:"Other Options"`
-	}{}
+	Other struct{
+		StringSlice []string `short:"s" description:"A slice of strings"`
+		IntMap map[string]int `long:"intmap" description:"A map from string to int" ini-name:"int-map"`
+	} `group:"Other Options"`
+}
+
+func TestHelp(t *testing.T) {
+	var opts helpOptions
 
 	p := flags.NewNamedParser("TestHelp", flags.HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
@@ -94,6 +98,57 @@ Help Options:
 			} else {
 				t.Errorf("Unexpected help message:\n\n%s", ret)
 			}
+		}
+	}
+}
+
+func TestMan(t *testing.T) {
+var opts helpOptions
+
+	p := flags.NewNamedParser("TestMan", flags.HelpFlag)
+	p.ShortDescription = "Test manpage generation"
+	p.LongDescription = "This is a somewhat longer description of what this does"
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	var buf bytes.Buffer
+	p.WriteManPage(&buf)
+
+	got := buf.String()
+
+	tt := time.Now()
+
+	expected := fmt.Sprintf(`.TH TestMan 1 "%s"
+.SH NAME
+TestMan \- Test manpage generation
+.SH SYNOPSIS
+\fBTestMan\fP [OPTIONS]
+.SH DESCRIPTION
+This is a somewhat longer description of what this does
+.SH OPTIONS
+.TP
+\fB-v, --verbose\fP
+Show verbose debug information
+.TP
+\fB-c\fP
+Call phone number
+.TP
+\fB--ptrslice\fP
+A slice of pointers to string
+.TP
+\fB-s\fP
+A slice of strings
+.TP
+\fB--intmap\fP
+A map from string to int
+`, tt.Format("2 January 2006"))
+
+	if got != expected {
+		ret, err := helpDiff(got, expected)
+
+		if err != nil {
+			t.Errorf("Unexpected man page, expected:\n\n%s\n\nbut got\n\n%s", expected, got)
+		} else {
+			t.Errorf("Unexpected man page:\n\n%s", ret)
 		}
 	}
 }
