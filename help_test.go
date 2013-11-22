@@ -33,8 +33,6 @@ func helpDiff(a, b string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println(atmp.Name(), btmp.Name())
-
 	ret, err := exec.Command("diff", "-u", "-d", "--label", "got", atmp.Name(), "--label", "expected", btmp.Name()).Output()
 
 	os.Remove(atmp.Name())
