@@ -118,7 +118,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	p.eachCommand(func(c *Command) {
-		p.eachGroup(func (g *Group) {
+		p.eachGroup(func(g *Group) {
 			g.storeDefaults()
 		})
 	}, true)

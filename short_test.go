@@ -28,7 +28,7 @@ func TestShortTooLong(t *testing.T) {
 }
 
 func TestShortRequired(t *testing.T) {
-		var opts = struct {
+	var opts = struct {
 		Value bool `short:"v" required:"true"`
 	}{}
 

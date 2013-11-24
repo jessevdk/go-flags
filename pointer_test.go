@@ -79,4 +79,3 @@ func TestPointerGroup(t *testing.T) {
 		t.Errorf("Expected Group.Value to be true")
 	}
 }
-

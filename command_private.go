@@ -23,7 +23,7 @@ func newCommand(name string, shortDescription string, longDescription string, da
 }
 
 func (c *Command) scanSubCommandHandler(parentg *Group) scanHandler {
-	f := func (realval reflect.Value, sfield *reflect.StructField) (bool, error) {
+	f := func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag := newMultiTag(string(sfield.Tag))
 
 		subcommand := mtag.Get("command")

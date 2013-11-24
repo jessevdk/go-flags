@@ -107,7 +107,7 @@ func TestCommandEstimate(t *testing.T) {
 
 		Cmd2 struct {
 		} `command:"add"`
-	} {}
+	}{}
 
 	p := flags.NewParser(&opts, flags.None)
 	_, err := p.ParseArgs([]string{})
@@ -116,9 +116,9 @@ func TestCommandEstimate(t *testing.T) {
 }
 
 type Command struct {
-	G bool `short:"g"`
+	G        bool `short:"g"`
 	Executed bool
-	EArgs []string
+	EArgs    []string
 }
 
 func (c *Command) Execute(args []string) error {
@@ -133,7 +133,7 @@ func TestCommandExecute(t *testing.T) {
 		Value bool `short:"v"`
 
 		Command Command `command:"cmd"`
-	} {}
+	}{}
 
 	assertParseSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
 
@@ -161,7 +161,7 @@ func TestCommandClosest(t *testing.T) {
 
 		Cmd2 struct {
 		} `command:"add"`
-	} {}
+	}{}
 
 	assertParseFail(t, flags.ErrRequired, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
 }
@@ -169,11 +169,11 @@ func TestCommandClosest(t *testing.T) {
 func TestCommandAdd(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
-	} {}
+	}{}
 
 	var cmd = struct {
 		G bool `short:"g"`
-	} {}
+	}{}
 
 	p := flags.NewParser(&opts, flags.Default)
 	c, err := p.AddCommand("cmd", "", "", &cmd)

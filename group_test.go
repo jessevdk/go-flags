@@ -34,11 +34,11 @@ func TestGroupInline(t *testing.T) {
 func TestGroupAdd(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
-	} {}
+	}{}
 
 	var grp = struct {
 		G bool `short:"g"`
-	} {}
+	}{}
 
 	p := flags.NewParser(&opts, flags.Default)
 	g, err := p.AddGroup("Grouped Options", "", &grp)
