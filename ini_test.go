@@ -141,3 +141,27 @@ other = subgroup
 
 	assertString(t, opts.Add.Other.O, "subgroup")
 }
+
+func TestIniNoIni(t *testing.T) {
+	var opts struct {
+		Value string `short:"v" long:"value" no-ini:"yes"`
+	}
+
+	p := flags.NewNamedParser("TestIni", flags.Default)
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	inip := flags.NewIniParser(p)
+
+inic := `[Application Options]
+value = some value
+`
+
+	b := strings.NewReader(inic)
+	err := inip.Parse(b)
+
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+
+	assertError(t, err, flags.ErrUnknownFlag, "unknown option: value")
+}

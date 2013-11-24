@@ -266,16 +266,12 @@ func (i *IniParser) parse(ini ini) error {
 				return strings.ToLower(o.tag.Get("ini-name")) == strings.ToLower(n)
 			})
 
-			if opt == nil {
+			if opt == nil || opt.tag.Get("no-ini") != "" {
 				if (p.Options & IgnoreUnknown) == None {
 					return newError(ErrUnknownFlag,
 						fmt.Sprintf("unknown option: %s", inival.Name))
 				}
 
-				continue
-			}
-
-			if opt.tag.Get("no-ini") != "" {
 				continue
 			}
 
