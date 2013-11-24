@@ -97,3 +97,47 @@ int-map = b:3
 		t.Errorf("Expected Other.IntMap[\"b\"] = 3, but got %v", v)
 	}
 }
+
+func TestIniCommands(t *testing.T) {
+	var opts struct {
+		Value string `short:"v" long:"value"`
+
+		Add struct {
+			Name int `short:"n" long:"name" ini-name:"AliasName"`
+
+			Other struct {
+				O string `short:"o" long:"other"`
+			} `group:"Other Options"`
+		} `command:"add"`
+	}
+
+	p := flags.NewNamedParser("TestIni", flags.Default)
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	inip := flags.NewIniParser(p)
+
+inic := `[Application Options]
+value = some value
+
+[add]
+AliasName = 5
+
+[add.Other Options]
+other = subgroup
+`
+
+	b := strings.NewReader(inic)
+	err := inip.Parse(b)
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+
+	assertString(t, opts.Value, "some value")
+
+	if opts.Add.Name != 5 {
+		t.Errorf("Expected opts.Add.Name to be 5, but got %v", opts.Add.Name)
+	}
+
+	assertString(t, opts.Add.Other.O, "subgroup")
+}
