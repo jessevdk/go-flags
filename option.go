@@ -53,8 +53,6 @@ type Option struct {
 	// passwords.
 	DefaultMask string
 
-	IniName string
-
 	// The struct field which the option represents.
 	field reflect.StructField
 
