@@ -121,7 +121,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		shortname := mtag.Get("short")
 
 		// Need at least either a short or long name
-		if longname == "" && shortname == "" {
+		if longname == "" && shortname == "" && mtag.Get("ini-name") == "" {
 			continue
 		}
 

@@ -93,7 +93,7 @@ func (c *Command) makeLookup() lookup {
 
 	c.eachGroup(func(g *Group) {
 		for _, option := range g.options {
-			if option.Required {
+			if option.Required && option.canCli() {
 				ret.required[option] = true
 			}
 

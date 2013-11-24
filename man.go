@@ -34,6 +34,10 @@ func formatForMan(wr io.Writer, s string) {
 func writeManPageOptions(wr io.Writer, grp *Group) {
 	grp.eachGroup(func(group *Group) {
 		for _, opt := range group.options {
+			if !opt.canCli() {
+				continue
+			}
+
 			fmt.Fprintln(wr, ".TP")
 			fmt.Fprintf(wr, "\\fB")
 

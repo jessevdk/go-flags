@@ -29,6 +29,9 @@ verbose = true
 ; A slice of pointers to string
 ; PtrSlice =
 
+; Option only available in ini
+only-ini =
+
 [Other Options]
 ; A slice of strings
 ; StringSlice =

@@ -237,14 +237,17 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	}
 
 	p.eachActiveGroup(func(grp *Group) {
-		if len(grp.options) == 0 {
-			return
-		}
-
-		fmt.Fprintf(wr, "\n%s:\n", grp.ShortDescription)
+		first := true
 
 		for _, info := range grp.options {
-			p.writeHelpOption(wr, info, aligninfo)
+			if info.canCli() {
+				if first {
+					fmt.Fprintf(wr, "\n%s:\n", grp.ShortDescription)
+					first = false
+				}
+
+				p.writeHelpOption(wr, info, aligninfo)
+			}
 		}
 	})
 

@@ -46,6 +46,8 @@ type helpOptions struct {
 	Call func(string) `short:"c" description:"Call phone number" ini-name:"call"`
 	PtrSlice []*string `long:"ptrslice" description:"A slice of pointers to string"`
 
+	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
+
 	Other struct{
 		StringSlice []string `short:"s" description:"A slice of strings"`
 		IntMap map[string]int `long:"intmap" description:"A map from string to int" ini-name:"int-map"`

@@ -19,6 +19,10 @@ func (option *Option) set(value *string) error {
 	return nil
 }
 
+func (option *Option) canCli() bool {
+	return option.ShortName != 0 || len(option.LongName) != 0
+}
+
 func (option *Option) canArgument() bool {
 	if u := option.isUnmarshaler(); u != nil {
 		return true

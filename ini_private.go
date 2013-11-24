@@ -119,7 +119,12 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 			}
 		default:
 			v, _ := convertToString(val, option.tag)
-			fmt.Fprintf(writer, "%s = %s\n", oname, v)
+
+			if len(v) != 0 {
+				fmt.Fprintf(writer, "%s = %s\n", oname, v)
+			} else {
+				fmt.Fprintf(writer, "%s =\n", oname)
+			}
 		}
 
 		if comments {
