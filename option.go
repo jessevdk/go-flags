@@ -87,3 +87,8 @@ func (option *Option) String() string {
 
 	return s
 }
+
+// Get the option value as an interface{}
+func (option *Option) Value() interface{} {
+	return option.value.Interface()
+}
