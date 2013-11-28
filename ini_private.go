@@ -176,8 +176,11 @@ func readIni(contents io.Reader, filename string) (ini, error) {
 
 	reader := bufio.NewReader(contents)
 
-	var section iniSection
-	var sectionname string
+	// Empty global section
+	section := make(iniSection, 0, 10)
+	sectionname := ""
+
+	ret[sectionname] = section
 
 	var lineno uint
 
@@ -200,7 +203,7 @@ func readIni(contents io.Reader, filename string) (ini, error) {
 			continue
 		}
 
-		if section == nil || line[0] == '[' {
+		if line[0] == '[' {
 			if line[0] != '[' || line[len(line)-1] != ']' {
 				return nil, &IniError{
 					Message:    "malformed section header",
@@ -255,23 +258,55 @@ func readIni(contents io.Reader, filename string) (ini, error) {
 	return ret, nil
 }
 
+func (i *IniParser) matchingGroups(name string) []*Group {
+	if len(name) == 0 {
+		var ret []*Group
+
+		i.parser.eachGroup(func(g *Group) {
+			ret = append(ret, g)
+		})
+
+		return ret
+	} else {
+		g := i.parser.groupByName(name)
+
+		if g != nil {
+			return []*Group{g}
+		} else {
+			return nil
+		}
+	}
+}
+
 func (i *IniParser) parse(ini ini) error {
 	p := i.parser
 
 	for name, section := range ini {
-		group := p.groupByName(name)
+		groups := i.matchingGroups(name)
 
-		if group == nil {
+		if len(groups) == 0 {
 			return newError(ErrUnknownGroup,
 				fmt.Sprintf("could not find option group `%s'", name))
 		}
 
 		for _, inival := range section {
-			opt := group.optionByName(inival.Name, func(o *Option, n string) bool {
-				return strings.ToLower(o.tag.Get("ini-name")) == strings.ToLower(n)
-			})
+			var opt *Option
 
-			if opt == nil || opt.tag.Get("no-ini") != "" {
+			for _, group := range groups {
+				opt = group.optionByName(inival.Name, func(o *Option, n string) bool {
+					return strings.ToLower(o.tag.Get("ini-name")) == strings.ToLower(n)
+				})
+
+				if opt != nil && len(opt.tag.Get("no-ini")) != 0 {
+					opt = nil
+				}
+
+				if opt != nil {
+					break
+				}
+			}
+
+			if opt == nil {
 				if (p.Options & IgnoreUnknown) == None {
 					return newError(ErrUnknownFlag,
 						fmt.Sprintf("unknown option: %s", inival.Name))

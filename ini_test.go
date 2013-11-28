@@ -61,11 +61,12 @@ func TestReadIni(t *testing.T) {
 
 	inip := flags.NewIniParser(p)
 
-	inic := `[Application Options]
+	inic := `
 ; Show verbose debug information
 verbose = true
 verbose = true
 
+[Application Options]
 ; A slice of pointers to string
 ; PtrSlice =
 
