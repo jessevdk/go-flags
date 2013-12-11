@@ -1,7 +1,8 @@
-package flags
+package flags_test
 
 import (
 	"bytes"
+	"github.com/jessevdk/go-flags"
 	"strings"
 	"testing"
 )
@@ -9,15 +10,15 @@ import (
 func TestWriteIni(t *testing.T) {
 	var opts helpOptions
 
-	p := NewNamedParser("TestIni", Default)
+	p := flags.NewNamedParser("TestIni", flags.Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
 	p.ParseArgs([]string{"-vv", "--intmap=a:2", "--intmap", "b:3"})
 
-	inip := NewIniParser(p)
+	inip := flags.NewIniParser(p)
 
 	var b bytes.Buffer
-	inip.Write(&b, IniDefault|IniIncludeDefaults)
+	inip.Write(&b, flags.IniDefault|flags.IniIncludeDefaults)
 
 	got := b.String()
 	expected := `[Application Options]
@@ -30,9 +31,6 @@ verbose = true
 
 ; Option only available in ini
 only-ini =
-
-; Newline in a description.
-Newline =
 
 [Other Options]
 ; A slice of strings
@@ -58,10 +56,10 @@ int-map = b:3
 func TestReadIni(t *testing.T) {
 	var opts helpOptions
 
-	p := NewNamedParser("TestIni", Default)
+	p := flags.NewNamedParser("TestIni", flags.Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	inip := NewIniParser(p)
+	inip := flags.NewIniParser(p)
 
 	inic := `
 ; Show verbose debug information
@@ -117,10 +115,10 @@ func TestIniCommands(t *testing.T) {
 		} `command:"add"`
 	}
 
-	p := NewNamedParser("TestIni", Default)
+	p := flags.NewNamedParser("TestIni", flags.Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	inip := NewIniParser(p)
+	inip := flags.NewIniParser(p)
 
 	inic := `[Application Options]
 value = some value
@@ -153,10 +151,10 @@ func TestIniNoIni(t *testing.T) {
 		Value string `short:"v" long:"value" no-ini:"yes"`
 	}
 
-	p := NewNamedParser("TestIni", Default)
+	p := flags.NewNamedParser("TestIni", flags.Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	inip := NewIniParser(p)
+	inip := flags.NewIniParser(p)
 
 	inic := `[Application Options]
 value = some value
@@ -169,5 +167,5 @@ value = some value
 		t.Fatalf("Expected error")
 	}
 
-	assertError(t, err, ErrUnknownFlag, "unknown option: value")
+	assertError(t, err, flags.ErrUnknownFlag, "unknown option: value")
 }

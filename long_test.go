@@ -1,4 +1,4 @@
-package flags
+package flags_test
 
 import (
 	"testing"

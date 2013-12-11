@@ -1,6 +1,7 @@
-package flags
+package flags_test
 
 import (
+	"github.com/jessevdk/go-flags"
 	"testing"
 )
 
@@ -23,7 +24,7 @@ func TestShortTooLong(t *testing.T) {
 		Value bool `short:"vv"`
 	}{}
 
-	assertParseFail(t, ErrShortNameTooLong, "short names can only be 1 character long, not `vv'", &opts)
+	assertParseFail(t, flags.ErrShortNameTooLong, "short names can only be 1 character long, not `vv'", &opts)
 }
 
 func TestShortRequired(t *testing.T) {
@@ -31,7 +32,7 @@ func TestShortRequired(t *testing.T) {
 		Value bool `short:"v" required:"true"`
 	}{}
 
-	assertParseFail(t, ErrRequired, "the required flag `-v' was not specified", &opts)
+	assertParseFail(t, flags.ErrRequired, "the required flag `-v' was not specified", &opts)
 }
 
 func TestShortMultiConcat(t *testing.T) {
@@ -119,7 +120,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffv=value")
+	assertParseFail(t, flags.ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffv=value")
 }
 
 func TestShortMultiArg(t *testing.T) {
@@ -141,7 +142,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffvvalue")
+	assertParseFail(t, flags.ErrExpectedArgument, "expected argument for flag `-v'", &opts, "-ffvvalue")
 }
 
 func TestShortMultiArgConcat(t *testing.T) {

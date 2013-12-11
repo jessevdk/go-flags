@@ -1,8 +1,9 @@
-package flags
+package flags_test
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"io"
 	"io/ioutil"
 	"os"
@@ -46,8 +47,6 @@ type helpOptions struct {
 	PtrSlice []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
-	Newline string `short:"n" long:"newline" description:"Newline in
- a description."`
 
 	Other struct {
 		StringSlice []string       `short:"s" description:"A slice of strings"`
@@ -58,7 +57,7 @@ type helpOptions struct {
 func TestHelp(t *testing.T) {
 	var opts helpOptions
 
-	p := NewNamedParser("TestHelp", HelpFlag)
+	p := flags.NewNamedParser("TestHelp", flags.HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 
 	_, err := p.ParseArgs([]string{"--help"})
@@ -67,10 +66,10 @@ func TestHelp(t *testing.T) {
 		t.Fatalf("Expected help error")
 	}
 
-	if e, ok := err.(*Error); !ok {
+	if e, ok := err.(*flags.Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %#T", err)
 	} else {
-		if e.Type != ErrHelp {
+		if e.Type != flags.ErrHelp {
 			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
 		}
 
@@ -81,7 +80,6 @@ Application Options:
   -v, --verbose   Show verbose debug information
   -c=             Call phone number
       --ptrslice= A slice of pointers to string
-  -n, --newline=  Newline in a description.
 
 Other Options:
   -s=             A slice of strings
@@ -107,7 +105,7 @@ Help Options:
 func TestMan(t *testing.T) {
 	var opts helpOptions
 
-	p := NewNamedParser("TestMan", HelpFlag)
+	p := flags.NewNamedParser("TestMan", flags.HelpFlag)
 	p.ShortDescription = "Test manpage generation"
 	p.LongDescription = "This is a somewhat longer description of what this does"
 	p.AddGroup("Application Options", "The application options", &opts)
@@ -136,9 +134,6 @@ Call phone number
 .TP
 \fB--ptrslice\fP
 A slice of pointers to string
-.TP
-\fB-n, --newline\fP
-Newline in a description.
 .TP
 \fB-s\fP
 A slice of strings

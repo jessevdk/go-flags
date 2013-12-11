@@ -1,6 +1,7 @@
-package flags
+package flags_test
 
 import (
+	"github.com/jessevdk/go-flags"
 	"testing"
 )
 
@@ -39,7 +40,7 @@ func TestGroupAdd(t *testing.T) {
 		G bool `short:"g"`
 	}{}
 
-	p := NewParser(&opts, Default)
+	p := flags.NewParser(&opts, flags.Default)
 	g, err := p.AddGroup("Grouped Options", "", &grp)
 
 	if err != nil {
