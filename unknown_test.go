@@ -1,7 +1,6 @@
-package flags_test
+package flags
 
 import (
-	"github.com/jessevdk/go-flags"
 	"testing"
 )
 
@@ -14,7 +13,7 @@ func TestUnknownFlags(t *testing.T) {
 		"-f",
 	}
 
-	p := flags.NewParser(&opts, 0)
+	p := NewParser(&opts, 0)
 	args, err := p.ParseArgs(args)
 
 	if err == nil {
@@ -36,7 +35,7 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 		"-f",
 	}
 
-	p := flags.NewParser(&opts, flags.IgnoreUnknown)
+	p := NewParser(&opts, IgnoreUnknown)
 	args, err := p.ParseArgs(args)
 
 	if err != nil {

@@ -1,8 +1,7 @@
-package flags_test
+package flags
 
 import (
 	"bytes"
-	"github.com/jessevdk/go-flags"
 	"strings"
 	"testing"
 )
@@ -10,15 +9,15 @@ import (
 func TestWriteIni(t *testing.T) {
 	var opts helpOptions
 
-	p := flags.NewNamedParser("TestIni", flags.Default)
+	p := NewNamedParser("TestIni", Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
 	p.ParseArgs([]string{"-vv", "--intmap=a:2", "--intmap", "b:3"})
 
-	inip := flags.NewIniParser(p)
+	inip := NewIniParser(p)
 
 	var b bytes.Buffer
-	inip.Write(&b, flags.IniDefault|flags.IniIncludeDefaults)
+	inip.Write(&b, IniDefault|IniIncludeDefaults)
 
 	got := b.String()
 	expected := `[Application Options]
@@ -56,10 +55,10 @@ int-map = b:3
 func TestReadIni(t *testing.T) {
 	var opts helpOptions
 
-	p := flags.NewNamedParser("TestIni", flags.Default)
+	p := NewNamedParser("TestIni", Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	inip := flags.NewIniParser(p)
+	inip := NewIniParser(p)
 
 	inic := `
 ; Show verbose debug information
@@ -115,10 +114,10 @@ func TestIniCommands(t *testing.T) {
 		} `command:"add"`
 	}
 
-	p := flags.NewNamedParser("TestIni", flags.Default)
+	p := NewNamedParser("TestIni", Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	inip := flags.NewIniParser(p)
+	inip := NewIniParser(p)
 
 	inic := `[Application Options]
 value = some value
@@ -151,10 +150,10 @@ func TestIniNoIni(t *testing.T) {
 		Value string `short:"v" long:"value" no-ini:"yes"`
 	}
 
-	p := flags.NewNamedParser("TestIni", flags.Default)
+	p := NewNamedParser("TestIni", Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	inip := flags.NewIniParser(p)
+	inip := NewIniParser(p)
 
 	inic := `[Application Options]
 value = some value
@@ -167,5 +166,5 @@ value = some value
 		t.Fatalf("Expected error")
 	}
 
-	assertError(t, err, flags.ErrUnknownFlag, "unknown option: value")
+	assertError(t, err, ErrUnknownFlag, "unknown option: value")
 }

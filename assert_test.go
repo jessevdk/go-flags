@@ -1,7 +1,6 @@
-package flags_test
+package flags
 
 import (
-	"github.com/jessevdk/go-flags"
 	"testing"
 )
 
@@ -38,8 +37,8 @@ func assertBoolArray(t *testing.T, a []bool, b []bool) {
 	}
 }
 
-func assertParserSuccess(t *testing.T, data interface{}, args ...string) (*flags.Parser, []string) {
-	parser := flags.NewParser(data, flags.Default&^flags.PrintErrors)
+func assertParserSuccess(t *testing.T, data interface{}, args ...string) (*Parser, []string) {
+	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args)
 
 	if err != nil {
@@ -55,13 +54,13 @@ func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string
 	return ret
 }
 
-func assertError(t *testing.T, err error, typ flags.ErrorType, msg string) {
+func assertError(t *testing.T, err error, typ ErrorType, msg string) {
 	if err == nil {
 		t.Fatalf("Expected error: %s", msg)
 		return
 	}
 
-	if e, ok := err.(*flags.Error); !ok {
+	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected Error type, but got %#v", err)
 		return
 	} else {
@@ -75,8 +74,8 @@ func assertError(t *testing.T, err error, typ flags.ErrorType, msg string) {
 	}
 }
 
-func assertParseFail(t *testing.T, typ flags.ErrorType, msg string, data interface{}, args ...string) {
-	parser := flags.NewParser(data, flags.Default&^flags.PrintErrors)
+func assertParseFail(t *testing.T, typ ErrorType, msg string, data interface{}, args ...string) {
+	parser := NewParser(data, Default&^PrintErrors)
 	_, err := parser.ParseArgs(args)
 
 	assertError(t, err, typ, msg)
