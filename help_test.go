@@ -46,6 +46,8 @@ type helpOptions struct {
 	PtrSlice []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
+	Newline  string       `short:"n" long:"newline" description:"Newline in a
+ description"`
 
 	Other struct {
 		StringSlice []string       `short:"s" description:"A slice of strings"`
@@ -79,6 +81,7 @@ Application Options:
   -v, --verbose   Show verbose debug information
   -c=             Call phone number
       --ptrslice= A slice of pointers to string
+  -n, --newline=  Newline in a description
 
 Other Options:
   -s=             A slice of strings
@@ -133,6 +136,9 @@ Call phone number
 .TP
 \fB--ptrslice\fP
 A slice of pointers to string
+.TP
+\fB-n, --newline\fP
+Newline in a description
 .TP
 \fB-s\fP
 A slice of strings
