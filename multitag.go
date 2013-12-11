@@ -2,6 +2,7 @@ package flags
 
 import (
 	"strconv"
+	"strings"
 )
 
 type multiTag struct {
@@ -63,7 +64,8 @@ func (x *multiTag) scan() map[string][]string {
 			break
 		}
 
-		val, _ := strconv.Unquote(v[:i+1])
+		fixed := strings.Replace(v[:i+1], "\n", "", -1)
+		val, _ := strconv.Unquote(fixed)
 		v = v[i+1:]
 
 		ret[name] = append(ret[name], val)
