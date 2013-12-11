@@ -1,7 +1,6 @@
-package flags_test
+package flags
 
 import (
-	"github.com/jessevdk/go-flags"
 	"testing"
 )
 
@@ -83,7 +82,7 @@ func TestCommandFlagOrder1(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, flags.ErrUnknownFlag, "unknown flag `g'", &opts, "-v", "-g", "cmd")
+	assertParseFail(t, ErrUnknownFlag, "unknown flag `g'", &opts, "-v", "-g", "cmd")
 }
 
 func TestCommandFlagOrder2(t *testing.T) {
@@ -95,7 +94,7 @@ func TestCommandFlagOrder2(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, flags.ErrUnknownFlag, "unknown flag `v'", &opts, "cmd", "-v", "-g")
+	assertParseFail(t, ErrUnknownFlag, "unknown flag `v'", &opts, "cmd", "-v", "-g")
 }
 
 func TestCommandEstimate(t *testing.T) {
@@ -109,19 +108,19 @@ func TestCommandEstimate(t *testing.T) {
 		} `command:"add"`
 	}{}
 
-	p := flags.NewParser(&opts, flags.None)
+	p := NewParser(&opts, None)
 	_, err := p.ParseArgs([]string{})
 
-	assertError(t, err, flags.ErrRequired, "Please specify one command of: add or remove")
+	assertError(t, err, ErrRequired, "Please specify one command of: add or remove")
 }
 
-type Command struct {
+type testCommand struct {
 	G        bool `short:"g"`
 	Executed bool
 	EArgs    []string
 }
 
-func (c *Command) Execute(args []string) error {
+func (c *testCommand) Execute(args []string) error {
 	c.Executed = true
 	c.EArgs = args
 
@@ -132,7 +131,7 @@ func TestCommandExecute(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
 
-		Command Command `command:"cmd"`
+		Command testCommand `command:"cmd"`
 	}{}
 
 	assertParseSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
@@ -163,7 +162,7 @@ func TestCommandClosest(t *testing.T) {
 		} `command:"add"`
 	}{}
 
-	assertParseFail(t, flags.ErrRequired, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
+	assertParseFail(t, ErrRequired, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
 }
 
 func TestCommandAdd(t *testing.T) {
@@ -175,7 +174,7 @@ func TestCommandAdd(t *testing.T) {
 		G bool `short:"g"`
 	}{}
 
-	p := flags.NewParser(&opts, flags.Default)
+	p := NewParser(&opts, Default)
 	c, err := p.AddCommand("cmd", "", "", &cmd)
 
 	if err != nil {

@@ -1,7 +1,6 @@
-package flags_test
+package flags
 
 import (
-	"github.com/jessevdk/go-flags"
 	"testing"
 )
 
@@ -10,7 +9,7 @@ func TestPassDoubleDash(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	p := flags.NewParser(&opts, flags.PassDoubleDash)
+	p := NewParser(&opts, PassDoubleDash)
 	ret, err := p.ParseArgs([]string{"-v", "--", "-v", "-g"})
 
 	if err != nil {
@@ -30,7 +29,7 @@ func TestPassAfterNonOption(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	p := flags.NewParser(&opts, flags.PassAfterNonOption)
+	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs([]string{"-v", "arg", "-v", "-g"})
 
 	if err != nil {

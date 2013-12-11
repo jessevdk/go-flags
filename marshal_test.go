@@ -1,8 +1,7 @@
-package flags_test
+package flags
 
 import (
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"testing"
 )
 
@@ -75,5 +74,5 @@ func TestMarshalError(t *testing.T) {
 		Value marshalled `short:"v"`
 	}{}
 
-	assertParseFail(t, flags.ErrMarshal, "invalid argument for flag `-v' (expected flags_test.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", &opts, "-vinvalid")
+	assertParseFail(t, ErrMarshal, "invalid argument for flag `-v' (expected flags.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", &opts, "-vinvalid")
 }
