@@ -161,32 +161,42 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			value: realval.Field(i),
 			tag:   mtag,
 		}
-		
-		var existingOption *Option
-		if longname != "" {
-			existingOption = g.optionByName(longname, nil)
-			if existingOption != nil {
-				return newErrorf(ErrDuplicatedFlag,
-					"option `%s' uses the same long name as option `%s'",
-					option,
-					existingOption)
-			}
-		}
-
-		if short != 0 {
-			existingOption = g.optionByName(string(short), nil)
-			if existingOption != nil {
-				return newErrorf(ErrDuplicatedFlag,
-					"option `%s' uses the same short name as option `%s'",
-					option,
-					existingOption)
-			}
-		}
 
 		g.options = append(g.options, option)
 	}
 
+	if duplicateFlagErr := g.checkForDuplicateFlags(); duplicateFlagErr != nil {
+		return duplicateFlagErr
+	}
+	
 	return nil
+}
+
+func (g *Group) checkForDuplicateFlags() error {
+	shortNames := make(map[rune]*Option)
+	longNames := make(map[string]*Option)
+	
+	var duplicateError *Error
+	g.eachGroup(func(g *Group) {
+		for _, option := range g.options {	
+			if option.LongName != "" {
+				if otherOption, ok := longNames[option.LongName]; ok {
+					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same long name as option `%s'", option, otherOption)
+					return
+				}
+				longNames[option.LongName] = option
+			}
+			if option.ShortName != 0 {
+				if otherOption, ok := shortNames[option.ShortName]; ok {
+					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same short name as option `%s'", option, otherOption)
+					return
+				}
+				shortNames[option.ShortName] = option
+			}
+		}
+	})
+	
+	return duplicateError
 }
 
 func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
