@@ -161,6 +161,27 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			value: realval.Field(i),
 			tag:   mtag,
 		}
+		
+		var existingOption *Option
+		if longname != "" {
+			existingOption = g.optionByName(longname, nil)
+			if existingOption != nil {
+				return newErrorf(ErrDuplicatedFlag,
+					"option `%s' uses the same long name as option `%s'",
+					option,
+					existingOption)
+			}
+		}
+
+		if short != 0 {
+			existingOption = g.optionByName(string(short), nil)
+			if existingOption != nil {
+				return newErrorf(ErrDuplicatedFlag,
+					"option `%s' uses the same short name as option `%s'",
+					option,
+					existingOption)
+			}
+		}
 
 		g.options = append(g.options, option)
 	}
