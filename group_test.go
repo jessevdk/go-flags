@@ -113,3 +113,49 @@ func TestGroupNestedInline(t *testing.T) {
 		t.Errorf("Expected to find group `Nested Options'")
 	}
 }
+
+func TestDuplicateShortFlags(t *testing.T) {
+	var opts struct {
+		Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
+		Variables []string `short:"v" long:"variable" description:"Set a variable value."`
+	}
+
+	args := []string{
+		"--verbose",
+		"-v", "123",
+		"-v", "456",
+	}
+	
+	_, err := flags.ParseArgs(&opts, args)
+	
+	if err == nil {
+		t.Errorf("Expected an error with type ErrDuplicatedFlag")
+	} else {
+		err2 := err.(*flags.Error)
+		if err2.Type != flags.ErrDuplicatedFlag {
+			t.Errorf("Expected an error with type ErrDuplicatedFlag")			
+		}
+	}
+}
+
+func TestDuplicateLongFlags(t *testing.T) {
+	var opts struct {
+		Test1 []bool `short:"a" long:"testing" description:"Test 1"`
+		Test2 []string `short:"b" long:"testing" description:"Test 2."`
+	}
+
+	args := []string{
+		"--testing",
+	}
+	
+	_, err := flags.ParseArgs(&opts, args)
+	
+	if err == nil {
+		t.Errorf("Expected an error with type ErrDuplicatedFlag")
+	} else {
+		err2 := err.(*flags.Error)
+		if err2.Type != flags.ErrDuplicatedFlag {
+			t.Errorf("Expected an error with type ErrDuplicatedFlag")			
+		}
+	}
+}
