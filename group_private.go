@@ -164,19 +164,16 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 
 		g.options = append(g.options, option)
 	}
-
-	if duplicateFlagErr := g.checkForDuplicateFlags(); duplicateFlagErr != nil {
-		return duplicateFlagErr
-	}
 	
 	return nil
 }
 
-func (g *Group) checkForDuplicateFlags() error {
+func (g *Group) checkForDuplicateFlags() *Error {
 	shortNames := make(map[rune]*Option)
 	longNames := make(map[string]*Option)
 	
-	var duplicateError *Error
+	var duplicateError *Error = nil
+	
 	g.eachGroup(func(g *Group) {
 		for _, option := range g.options {	
 			if option.LongName != "" {
@@ -234,7 +231,15 @@ func (g *Group) scanType(handler scanHandler) error {
 
 	realval := reflect.Indirect(ptrval)
 
-	return g.scanStruct(realval, nil, handler)
+	if err := g.scanStruct(realval, nil, handler); err != nil {
+		return err
+	}
+	
+	if err := g.checkForDuplicateFlags(); err != nil {
+		return err
+	}
+	
+	return nil
 }
 
 func (g *Group) scan() error {
