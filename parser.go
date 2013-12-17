@@ -20,35 +20,41 @@ type Parser struct {
 	internalError error
 }
 
-// Parser options
+// Options provides parser options that change the behavior of the option
+// parser.
 type Options uint
 
 const (
-	// No options
+	// None indicates no options.
 	None Options = 0
 
-	// Add a default Help Options group to the parser containing -h and
-	// --help options. When either -h or --help is specified on the command
-	// line, a pretty formatted help message will be printed to os.Stderr.
-	// The parser will return ErrHelp.
+	// HelpFlag adds a default Help Options group to the parser containing
+	// -h and --help options. When either -h or --help is specified on the
+	// command line, the parser will return the special error of type
+	// ErrHelp. When PrintErrors is also specified, then the help message
+	// will also be automatically printed to os.Stderr.
 	HelpFlag = 1 << iota
 
-	// Pass all arguments after a double dash, --, as remaining command line
-	// arguments (i.e. they will not be parsed for flags)
+	// PassDoubleDash passes all arguments after a double dash, --, as
+	// remaining command line arguments (i.e. they will not be parsed for
+	// flags).
 	PassDoubleDash
 
-	// Ignore any unknown options and pass them as remaining command line
-	// arguments
+	// IgnoreUnknown ignores any unknown options and passes them as
+	// remaining command line arguments instead of generating an error.
 	IgnoreUnknown
 
-	// Print any errors which occured during parsing to os.Stderr
+	// PrintErrors prints any errors which occurred during parsing to
+	// os.Stderr.
 	PrintErrors
 
-	// Pass all arguments after the first non option. This is equivalent
-	// to strict POSIX processing
+	// PassAfterNonOption passes all arguments after the first non option
+	// as remaining command line arguments. This is equivalent to strict
+	// POSIX processing.
 	PassAfterNonOption
 
-	// A convenient default set of options
+	// Default is a convenient default set of options which should cover
+	// most of the uses of the flags package.
 	Default = HelpFlag | PrintErrors | PassDoubleDash
 )
 

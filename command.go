@@ -14,8 +14,8 @@ type Command struct {
 	hasBuiltinHelpGroup bool
 }
 
-// The command interface should be implemented by any command added in the
-// options. When implemented, the Execute method will be called for the last
+// Commander is an interface which can be implemented by any command added in
+// the options. When implemented, the Execute method will be called for the last
 // specified (sub)command providing the remaining command line arguments.
 type Commander interface {
 	// Execute will be called for the last active (sub)command. The
@@ -25,8 +25,8 @@ type Commander interface {
 	Execute(args []string) error
 }
 
-// The usage interface can be implemented to show a custom usage string in
-// the help message shown for a command.
+// Usage is an interface which can be implemented to show a custom usage string
+// in the help message shown for a command.
 type Usage interface {
 	// Usage is called for commands to allow customized printing of command
 	// usage in the generated help message.
@@ -62,7 +62,7 @@ func (c *Command) AddGroup(shortDescription string, longDescription string, data
 	return group, nil
 }
 
-// Get a list of subcommands of this command.
+// Commands returns a list of subcommands of this command.
 func (c *Command) Commands() []*Command {
 	return c.commands
 }

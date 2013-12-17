@@ -22,20 +22,22 @@ func (x *IniError) Error() string {
 		x.Message)
 }
 
-// Options for writing ini files
+// IniOptions for writing ini files
 type IniOptions uint
 
 const (
-	// No options
+	// IniNone indicates no options.
 	IniNone IniOptions = 0
 
-	// Write default values
+	// IniIncludeDefaults indicates that default values should be written
+	// when writing options to an ini file.
 	IniIncludeDefaults = 1 << iota
 
-	// Write comments containing the description of an option
+	// IniIncludeComments indicates that comments containing the description
+	// of an option should be written when writing options to an ini file.
 	IniIncludeComments
 
-	// Default options
+	// IniDefault provides a default set of options.
 	IniDefault = IniIncludeComments
 )
 
@@ -129,8 +131,8 @@ func (i *IniParser) WriteFile(filename string, options IniOptions) error {
 	return nil
 }
 
-// WriteIni writes the current values of all the flags to an ini format.
-// See ParseIni for more information on the ini file format. You typically
+// Write writes the current values of all the flags to an ini format.
+// See Parse for more information on the ini file format. You typically
 // call this only after settings have been parsed since the default values of each
 // option are stored just before parsing the flags (this is only relevant when
 // IniIncludeDefaults is _not_ set in options).

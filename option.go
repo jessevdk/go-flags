@@ -64,7 +64,8 @@ type Option struct {
 	tag          multiTag
 }
 
-// Convert an option to a human friendly readable string describing the option.
+// String converts an option to a human friendly readable string describing the
+// option.
 func (option *Option) String() string {
 	var s string
 	var short string
@@ -88,7 +89,7 @@ func (option *Option) String() string {
 	return s
 }
 
-// Get the option value as an interface{}
+// Value returns the option value as an interface{}.
 func (option *Option) Value() interface{} {
 	return option.value.Interface()
 }
