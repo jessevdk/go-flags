@@ -8,8 +8,8 @@ import (
 )
 
 type winsize struct {
-	ws_row, ws_col       uint16
-	ws_xpixel, ws_ypixel uint16
+	row, col       uint16
+	xpixel, ypixel uint16
 }
 
 func getTerminalColumns() int {
@@ -21,7 +21,7 @@ func getTerminalColumns() int {
 			uintptr(tIOCGWINSZ),
 			uintptr(unsafe.Pointer(&ws)))
 
-		return int(ws.ws_col)
+		return int(ws.col)
 	}
 
 	return 80
