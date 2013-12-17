@@ -50,7 +50,7 @@ func (p *parseState) checkRequired() error {
 
 	names := make([]string, 0, len(required))
 
-	for k, _ := range required {
+	for k := range required {
 		names = append(names, "`"+k.String()+"'")
 	}
 
