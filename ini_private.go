@@ -267,15 +267,15 @@ func (i *IniParser) matchingGroups(name string) []*Group {
 		})
 
 		return ret
-	} else {
-		g := i.parser.groupByName(name)
-
-		if g != nil {
-			return []*Group{g}
-		} else {
-			return nil
-		}
 	}
+
+	g := i.parser.groupByName(name)
+
+	if g != nil {
+		return []*Group{g}
+	}
+
+	return nil
 }
 
 func (i *IniParser) parse(ini ini) error {

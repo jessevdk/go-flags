@@ -70,9 +70,9 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	case reflect.Bool:
 		if val.Bool() {
 			return "true", nil
-		} else {
-			return "false", nil
 		}
+
+		return "false", nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, _ := getBase(options, 10)
 		return strconv.FormatInt(val.Int(), base), nil
