@@ -42,6 +42,10 @@ func (x *multiTag) scan() (map[string][]string, error) {
 			i++
 		}
 
+		if i >= len(v) {
+			return nil, newErrorf(ErrTag, "Expected `:' after key name, but got end of tag (in `%v`)", v)
+		}
+
 		if v[i] != ':' {
 			return nil, newErrorf(ErrTag, "Expected `:' after key name, but got %v (in %v column %v)", v[i], v, i)
 		}
