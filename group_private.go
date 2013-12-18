@@ -176,7 +176,7 @@ func (g *Group) checkForDuplicateFlags() *Error {
 	shortNames := make(map[rune]*Option)
 	longNames := make(map[string]*Option)
 
-	var duplicateError *Error = nil
+	var duplicateError *Error
 
 	g.eachGroup(func(g *Group) {
 		for _, option := range g.options {
