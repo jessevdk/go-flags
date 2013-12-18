@@ -40,6 +40,9 @@ const (
 	
 	// A short or long flag has been defined more than once
 	ErrDuplicatedFlag
+
+	// ErrTag indicates an error while parsing flag tags.
+	ErrTag
 )
 
 // String returns a string representation of the error type.

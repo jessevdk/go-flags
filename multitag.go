@@ -15,12 +15,12 @@ func newMultiTag(v string) multiTag {
 	}
 }
 
-func (x *multiTag) scan() map[string][]string {
+func (x *multiTag) scan() (map[string][]string, error) {
 	v := x.value
 
 	ret := make(map[string][]string)
 
-	// This is mostly copied from reflect.StructTAg.Get
+	// This is mostly copied from reflect.StructTag.Get
 	for v != "" {
 		i := 0
 
@@ -42,8 +42,16 @@ func (x *multiTag) scan() map[string][]string {
 			i++
 		}
 
-		if i+1 >= len(v) || v[i] != ':' || v[i+1] != '"' {
-			break
+		if v[i] != ':' {
+			return nil, newErrorf(ErrTag, "Expected `:' after key name, but got %v (in %v column %v)", v[i], v, i)
+		}
+
+		if i+1 >= len(v) {
+			return nil, newErrorf(ErrTag, "Expected `\"' to start tag value at end of tag (in %v)", v)
+		}
+
+		if v[i+1] != '"' {
+			return nil, newErrorf(ErrTag, "Expected `\"' to start tag value, but got %v (in %v column %v)", v[i + 1], v, i + 1)
 		}
 
 		name := v[:i]
@@ -60,7 +68,7 @@ func (x *multiTag) scan() map[string][]string {
 		}
 
 		if i >= len(v) {
-			break
+			return nil, newErrorf(ErrTag, "Expected end of tag value `\"' at end of tag (in %v)", v)
 		}
 
 		val, _ := strconv.Unquote(v[:i+1])
@@ -69,12 +77,25 @@ func (x *multiTag) scan() map[string][]string {
 		ret[name] = append(ret[name], val)
 	}
 
-	return ret
+	return ret, nil
+}
+
+func (x *multiTag) Parse() error {
+	vals, err := x.scan()
+	x.cache = vals
+
+	return err
 }
 
 func (x *multiTag) cached() map[string][]string {
 	if x.cache == nil {
-		x.cache = x.scan()
+		cache, _ := x.scan()
+
+		if cache == nil {
+			cache = make(map[string][]string)
+		}
+
+		x.cache = cache
 	}
 
 	return x.cache

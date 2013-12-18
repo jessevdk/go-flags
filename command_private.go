@@ -26,6 +26,10 @@ func (c *Command) scanSubCommandHandler(parentg *Group) scanHandler {
 	f := func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag := newMultiTag(string(sfield.Tag))
 
+		if err := mtag.Parse(); err != nil {
+			return true, err
+		}
+
 		subcommand := mtag.Get("command")
 
 		if len(subcommand) != 0 {
