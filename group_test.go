@@ -125,13 +125,13 @@ func TestDuplicateShortFlags(t *testing.T) {
 		"-v", "456",
 	}
 	
-	_, err := flags.ParseArgs(&opts, args)
+	_, err := ParseArgs(&opts, args)
 	
 	if err == nil {
 		t.Errorf("Expected an error with type ErrDuplicatedFlag")
 	} else {
-		err2 := err.(*flags.Error)
-		if err2.Type != flags.ErrDuplicatedFlag {
+		err2 := err.(*Error)
+		if err2.Type != ErrDuplicatedFlag {
 			t.Errorf("Expected an error with type ErrDuplicatedFlag")			
 		}
 	}
@@ -147,13 +147,13 @@ func TestDuplicateLongFlags(t *testing.T) {
 		"--testing",
 	}
 	
-	_, err := flags.ParseArgs(&opts, args)
+	_, err := ParseArgs(&opts, args)
 	
 	if err == nil {
 		t.Errorf("Expected an error with type ErrDuplicatedFlag")
 	} else {
-		err2 := err.(*flags.Error)
-		if err2.Type != flags.ErrDuplicatedFlag {
+		err2 := err.(*Error)
+		if err2.Type != ErrDuplicatedFlag {
 			t.Errorf("Expected an error with type ErrDuplicatedFlag")			
 		}
 	}
