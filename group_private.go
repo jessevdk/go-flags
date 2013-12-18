@@ -168,18 +168,18 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 
 		g.options = append(g.options, option)
 	}
-	
+
 	return nil
 }
 
 func (g *Group) checkForDuplicateFlags() *Error {
 	shortNames := make(map[rune]*Option)
 	longNames := make(map[string]*Option)
-	
+
 	var duplicateError *Error = nil
-	
+
 	g.eachGroup(func(g *Group) {
-		for _, option := range g.options {	
+		for _, option := range g.options {
 			if option.LongName != "" {
 				if otherOption, ok := longNames[option.LongName]; ok {
 					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same long name as option `%s'", option, otherOption)
@@ -196,7 +196,7 @@ func (g *Group) checkForDuplicateFlags() *Error {
 			}
 		}
 	})
-	
+
 	return duplicateError
 }
 
@@ -242,11 +242,11 @@ func (g *Group) scanType(handler scanHandler) error {
 	if err := g.scanStruct(realval, nil, handler); err != nil {
 		return err
 	}
-	
+
 	if err := g.checkForDuplicateFlags(); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 

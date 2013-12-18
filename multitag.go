@@ -51,7 +51,7 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		}
 
 		if v[i+1] != '"' {
-			return nil, newErrorf(ErrTag, "Expected `\"' to start tag value, but got %v (in %v column %v)", v[i + 1], v, i + 1)
+			return nil, newErrorf(ErrTag, "Expected `\"' to start tag value, but got %v (in %v column %v)", v[i+1], v, i+1)
 		}
 
 		name := v[:i]
