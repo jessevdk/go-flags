@@ -1,9 +1,8 @@
 // Example of use of the flags package.
-package flags_test
+package flags
 
 import (
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"os"
 	"os/exec"
 	"strings"
@@ -69,7 +68,7 @@ func Example() {
 	// Parse flags from `args'. Note that here we use flags.ParseArgs for
 	// the sake of making a working example. Normally, you would simply use
 	// flags.Parse(&opts) which uses os.Args
-	args, err := flags.ParseArgs(&opts, args)
+	args, err := ParseArgs(&opts, args)
 
 	if err != nil {
 		panic(err)
