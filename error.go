@@ -37,8 +37,9 @@ const (
 	// ErrShortNameTooLong indicates that a short flag name was specified,
 	// longer than one character.
 	ErrShortNameTooLong
-	
-	// A short or long flag has been defined more than once
+
+	// ErrDuplicatedFlag indicates that a short or long flag has been
+	// defined more than once
 	ErrDuplicatedFlag
 
 	// ErrTag indicates an error while parsing flag tags.
