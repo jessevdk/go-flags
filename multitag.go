@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"strings"
 	"strconv"
 )
 
@@ -71,7 +72,8 @@ func (x *multiTag) scan() (map[string][]string, error) {
 			return nil, newErrorf(ErrTag, "Expected end of tag value `\"' at end of tag (in %v)", v)
 		}
 
-		val, _ := strconv.Unquote(v[:i+1])
+		fixed := strings.Replace(v[:i+1], "\n", "", -1)
+		val, _ := strconv.Unquote(fixed)
 		v = v[i+1:]
 
 		ret[name] = append(ret[name], val)
