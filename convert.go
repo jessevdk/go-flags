@@ -15,6 +15,7 @@ import (
 // Marshaler is the interface implemented by types that can marshal themselves
 // to a string representation of the flag.
 type Marshaler interface {
+	// MarshalFlag marshals a flag value to its string representation.
 	MarshalFlag() (string, error)
 }
 
@@ -22,6 +23,8 @@ type Marshaler interface {
 // argument to themselves. The provided value is directly passed from the
 // command line.
 type Unmarshaler interface {
+	// UnmarshalFlag unmarshals a string value representation to the flag
+	// value (which therefore needs to be a pointer receiver).
 	UnmarshalFlag(value string) error
 }
 

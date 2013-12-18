@@ -1,5 +1,9 @@
 package flags
 
+// Command represents an application command. Commands can be added to the
+// parser (which itself is a command) and are selected/executed when its name
+// is specified on the command line. The Command type embeds a Group and
+// therefore also carries a set of command specific options.
 type Command struct {
 	// Embedded, see Group for more information
 	*Group

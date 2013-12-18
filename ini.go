@@ -9,8 +9,13 @@ import (
 // IniError contains location information on where in the ini file an error
 // occured.
 type IniError struct {
+	// The error message.
 	Message    string
+
+	// The filename of the file in which the error occurred.
 	File       string
+
+	// The line number at which the error occurred.
 	LineNumber uint
 }
 

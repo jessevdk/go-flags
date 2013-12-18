@@ -12,9 +12,13 @@ import (
 // A Parser provides command line option parsing. It can contain several
 // option groups each with their own set of options.
 type Parser struct {
+	// Embedded, see Command for more information
 	*Command
 
+	// A usage string to be displayed in the help message.
 	Usage   string
+
+	// Option flags changing the behavior of the parser.
 	Options Options
 
 	internalError error
