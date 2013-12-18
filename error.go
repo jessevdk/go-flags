@@ -67,6 +67,8 @@ func (e ErrorType) String() string {
 		return "required"
 	case ErrDuplicatedFlag:
 		return "duplicated flag"
+	case ErrTag:
+		return "tag"
 	}
 
 	return "unknown"
