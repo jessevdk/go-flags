@@ -65,6 +65,10 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		i = 1
 
 		for i < len(v) && v[i] != '"' {
+			if v[i] == '\n' {
+				return nil, newErrorf(ErrTag, "unexpected newline in tag value `%v' (in `%v`)", name, x.value)
+			}
+
 			if v[i] == '\\' {
 				i++
 			}
