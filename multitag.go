@@ -75,7 +75,12 @@ func (x *multiTag) scan() (map[string][]string, error) {
 			return nil, newErrorf(ErrTag, "expected end of tag value `\"' at end of tag (in `%v`)", x.value)
 		}
 
-		val, _ := strconv.Unquote(v[:i+1])
+		val, err := strconv.Unquote(v[:i+1])
+
+		if err != nil {
+			return nil, newErrorf(ErrTag, "Malformed value of tag `%v:%v` => %v (in `%v`)", name, v[:i+1], err, x.value)
+		}
+
 		v = v[i+1:]
 
 		ret[name] = append(ret[name], val)
