@@ -65,6 +65,8 @@ func (e ErrorType) String() string {
 		return "no argument for bool"
 	case ErrRequired:
 		return "required"
+	case ErrShortNameTooLong:
+		return "short name too long"
 	case ErrDuplicatedFlag:
 		return "duplicated flag"
 	case ErrTag:
