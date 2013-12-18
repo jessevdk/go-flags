@@ -37,6 +37,9 @@ const (
 	// ErrShortNameTooLong indicates that a short flag name was specified,
 	// longer than one character.
 	ErrShortNameTooLong
+	
+	// A short or long flag has been defined more than once
+	ErrDuplicatedFlag
 )
 
 // String returns a string representation of the error type.
@@ -58,6 +61,8 @@ func (e ErrorType) String() string {
 		return "no argument for bool"
 	case ErrRequired:
 		return "required"
+	case ErrDuplicatedFlag:
+		return "duplicated flag"
 	}
 
 	return "unknown"
