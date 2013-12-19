@@ -124,13 +124,19 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				ret += ", "
 			}
 
+			keyitem, err := convertToString(key, options)
+
+			if err != nil {
+				return "", err
+			}
+
 			item, err := convertToString(val.MapIndex(key), options)
 
 			if err != nil {
 				return "", err
 			}
 
-			ret += item
+			ret += keyitem + ":" + item
 		}
 
 		return ret + "}", nil
