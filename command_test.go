@@ -204,7 +204,7 @@ func TestCommandAdd(t *testing.T) {
 	}
 
 	if p.Commands()[0] != c {
-		t.Errorf("Espected command #v, but got #v", c, p.Commands()[0])
+		t.Errorf("Expected command #v, but got #v", c, p.Commands()[0])
 	}
 
 	if c.Options()[0].ShortName != 'g' {
