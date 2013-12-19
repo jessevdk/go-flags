@@ -66,7 +66,7 @@ func TestHelp(t *testing.T) {
 	}
 
 	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected flags.Error, but got %#T", err)
+		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
 		if e.Type != ErrHelp {
 			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
