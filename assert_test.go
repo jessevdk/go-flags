@@ -62,7 +62,6 @@ func assertError(t *testing.T, err error, typ ErrorType, msg string) {
 
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected Error type, but got %#v", err)
-		return
 	} else {
 		if e.Type != typ {
 			t.Errorf("Expected error type {%s}, but got {%s}", typ, e.Type)
