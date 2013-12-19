@@ -72,7 +72,6 @@ func Example() {
 
 	if err != nil {
 		panic(err)
-		os.Exit(1)
 	}
 
 	fmt.Printf("Verbosity: %v\n", opts.Verbose)

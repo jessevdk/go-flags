@@ -12,11 +12,9 @@ func (option *Option) set(value *string) error {
 		return option.call(value)
 	} else if value != nil {
 		return convert(*value, option.value, option.tag)
-	} else {
-		return convert("", option.value, option.tag)
 	}
 
-	return nil
+	return convert("", option.value, option.tag)
 }
 
 func (option *Option) canCli() bool {
@@ -51,7 +49,7 @@ func (option *Option) isUnmarshaler() Unmarshaler {
 
 	for {
 		if !v.CanInterface() {
-			return nil
+			break
 		}
 
 		i := v.Interface()
@@ -61,7 +59,7 @@ func (option *Option) isUnmarshaler() Unmarshaler {
 		}
 
 		if !v.CanAddr() {
-			return nil
+			break
 		}
 
 		v = v.Addr()
@@ -87,8 +85,6 @@ func (option *Option) isBool() bool {
 			return false
 		}
 	}
-
-	return false
 }
 
 func (option *Option) isFunc() bool {
