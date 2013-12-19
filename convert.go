@@ -77,10 +77,20 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 		return "false", nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, _ := getBase(options, 10)
+		base, err := getBase(options, 10)
+
+		if err != nil {
+			return "", err
+		}
+
 		return strconv.FormatInt(val.Int(), base), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, _ := getBase(options, 10)
+		base, err := getBase(options, 10)
+
+		if err != nil {
+			return "", err
+		}
+
 		return strconv.FormatUint(val.Uint(), base), nil
 	case reflect.Float32, reflect.Float64:
 		return strconv.FormatFloat(val.Float(), 'g', -1, tp.Bits()), nil
