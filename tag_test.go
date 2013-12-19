@@ -36,4 +36,3 @@ something"`
 
 	assertParseFail(t, ErrTag, "unexpected newline in tag value `description' (in `long:\"verbose\" description:\"verbose\nsomething\"`)", &opts, "")
 }
-

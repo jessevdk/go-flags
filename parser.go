@@ -16,7 +16,7 @@ type Parser struct {
 	*Command
 
 	// A usage string to be displayed in the help message.
-	Usage   string
+	Usage string
 
 	// Option flags changing the behavior of the parser.
 	Options Options
