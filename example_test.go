@@ -3,7 +3,6 @@ package flags
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 )
