@@ -69,7 +69,7 @@ func TestGroupAdd(t *testing.T) {
 	}
 
 	if p.Groups()[1] != g {
-		t.Errorf("Espected group %#v, but got %#v", g, p.Groups()[0])
+		t.Errorf("Expected group %#v, but got %#v", g, p.Groups()[0])
 	}
 
 	if g.Options()[0].ShortName != 'g' {
