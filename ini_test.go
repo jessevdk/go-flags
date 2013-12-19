@@ -12,7 +12,11 @@ func TestWriteIni(t *testing.T) {
 	p := NewNamedParser("TestIni", Default)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	p.ParseArgs([]string{"-vv", "--intmap=a:2", "--intmap", "b:3"})
+	_, err := p.ParseArgs([]string{"-vv", "--intmap=a:2", "--intmap", "b:3", "command"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 
 	inip := NewIniParser(p)
 
@@ -38,6 +42,10 @@ only-ini =
 ; A map from string to int
 int-map = a:2
 int-map = b:3
+
+[command.A command]
+; Use for extra verbosity
+; ExtraVerbose =
 
 `
 

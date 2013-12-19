@@ -19,15 +19,21 @@ func (m *marshalled) UnmarshalFlag(value string) error {
 	return nil
 }
 
-func (m marshalled) MarshalFlag() string {
+func (m marshalled) MarshalFlag() (string, error) {
 	if m {
-		return "yes"
+		return "yes", nil
 	}
 
-	return "no"
+	return "no", nil
 }
 
-func TestMarshal(t *testing.T) {
+type marshalledError bool
+
+func (m marshalledError) MarshalFlag() (string, error) {
+	return "", newErrorf(ErrMarshal, "Failed to marshal")
+}
+
+func TestUnmarshal(t *testing.T) {
 	var opts = struct {
 		Value marshalled `short:"v"`
 	}{}
@@ -41,7 +47,7 @@ func TestMarshal(t *testing.T) {
 	}
 }
 
-func TestMarshalDefault(t *testing.T) {
+func TestUnmarshalDefault(t *testing.T) {
 	var opts = struct {
 		Value marshalled `short:"v" default:"yes"`
 	}{}
@@ -55,7 +61,7 @@ func TestMarshalDefault(t *testing.T) {
 	}
 }
 
-func TestMarshalOptional(t *testing.T) {
+func TestUnmarshalOptional(t *testing.T) {
 	var opts = struct {
 		Value marshalled `short:"v" optional:"yes" optional-value:"yes"`
 	}{}
@@ -69,10 +75,23 @@ func TestMarshalOptional(t *testing.T) {
 	}
 }
 
-func TestMarshalError(t *testing.T) {
+func TestUnmarshalError(t *testing.T) {
 	var opts = struct {
 		Value marshalled `short:"v"`
 	}{}
 
 	assertParseFail(t, ErrMarshal, "invalid argument for flag `-v' (expected flags.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", &opts, "-vinvalid")
+}
+
+func TestMarshalError(t *testing.T) {
+	var opts = struct {
+		Value marshalledError `short:"v"`
+	}{}
+
+	p := NewParser(&opts, Default)
+	o := p.Command.Groups()[0].Options()[0]
+
+	_, err := convertToString(o.value, o.tag)
+
+	assertError(t, err, ErrMarshal, "Failed to marshal")
 }

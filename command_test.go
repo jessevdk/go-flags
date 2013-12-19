@@ -253,3 +253,28 @@ func TestCommandNestedInline(t *testing.T) {
 		}
 	}
 }
+
+func TestRequiredOnCommand(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v" required:"true"`
+
+		Command struct {
+			G bool `short:"g"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseFail(t, ErrRequired, "the required flag `-v' was not specified", &opts, "cmd")
+}
+
+func TestRequiredAllOnCommand(t *testing.T) {
+	var opts = struct {
+		Value   bool `short:"v" required:"true"`
+		Missing bool `long:"missing" required:"true"`
+
+		Command struct {
+			G bool `short:"g"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseFail(t, ErrRequired, "the required flags `-v' and `--missing' were not specified", &opts, "cmd")
+}

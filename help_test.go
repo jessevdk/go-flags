@@ -51,6 +51,10 @@ type helpOptions struct {
 		StringSlice []string       `short:"s" description:"A slice of strings"`
 		IntMap      map[string]int `long:"intmap" description:"A map from string to int" ini-name:"int-map"`
 	} `group:"Other Options"`
+
+	Command struct {
+		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
+	} `command:"command" description:"A command"`
 }
 
 func TestHelp(t *testing.T) {
@@ -86,6 +90,9 @@ Other Options:
 
 Help Options:
   -h, --help      Show this help message
+
+Available commands:
+  command  A command
 `
 
 		if e.Message != expected {
@@ -106,8 +113,10 @@ func TestMan(t *testing.T) {
 
 	p := NewNamedParser("TestMan", HelpFlag)
 	p.ShortDescription = "Test manpage generation"
-	p.LongDescription = "This is a somewhat longer description of what this does"
+	p.LongDescription = "This is a somewhat `longer' description of what this does"
 	p.AddGroup("Application Options", "The application options", &opts)
+
+	p.Commands()[0].LongDescription = "Longer `command' description"
 
 	var buf bytes.Buffer
 	p.WriteManPage(&buf)
@@ -122,7 +131,7 @@ TestMan \- Test manpage generation
 .SH SYNOPSIS
 \fBTestMan\fP [OPTIONS]
 .SH DESCRIPTION
-This is a somewhat longer description of what this does
+This is a somewhat \fBlonger\fP description of what this does
 .SH OPTIONS
 .TP
 \fB-v, --verbose\fP
@@ -139,6 +148,14 @@ A slice of strings
 .TP
 \fB--intmap\fP
 A map from string to int
+.SH COMMANDS
+.SS command
+A command
+
+Longer \fBcommand\fP description
+.TP
+\fB--extra-verbose\fP
+Use for extra verbosity
 `, tt.Format("2 January 2006"))
 
 	if got != expected {
