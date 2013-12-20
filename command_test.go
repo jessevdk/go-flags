@@ -278,3 +278,18 @@ func TestRequiredAllOnCommand(t *testing.T) {
 
 	assertParseFail(t, ErrRequired, "the required flags `-v' and `--missing' were not specified", &opts, "cmd")
 }
+
+func TestDefaultOnCommand(t *testing.T) {
+	var opts = struct {
+		Command struct {
+			G bool `short:"g" default:"true"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd")
+
+	if !opts.Command.G {
+		t.Errorf("Expected G to be true")
+	}
+}
+
