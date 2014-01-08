@@ -1,3 +1,5 @@
+// +build windows plan9
+
 package flags
 
 func getTerminalColumns() int {
