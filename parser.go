@@ -57,6 +57,12 @@ const (
 	// POSIX processing.
 	PassAfterNonOption
 
+	// IgnoreDefaults will skip assigning default values. This may be useful
+	// in cases that require knowledge of options that were actually passed in
+	// -- for example, when merging options from the command line with options
+	// from a config file.
+	IgnoreDefaults
+
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
 	Default = HelpFlag | PrintErrors | PassDoubleDash
@@ -127,11 +133,13 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		return nil, p.internalError
 	}
 
-	p.eachCommand(func(c *Command) {
-		c.eachGroup(func(g *Group) {
-			g.storeDefaults()
-		})
-	}, true)
+	if (p.Options & IgnoreDefaults) == None {
+		p.eachCommand(func(c *Command) {
+			c.eachGroup(func(g *Group) {
+				g.storeDefaults()
+			})
+		}, true)
+	}
 
 	// Add builtin help group to all commands if necessary
 	if (p.Options & HelpFlag) != None {
