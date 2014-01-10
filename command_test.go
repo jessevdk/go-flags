@@ -162,7 +162,7 @@ func TestCommandClosest(t *testing.T) {
 		} `command:"add"`
 	}{}
 
-	assertParseFail(t, ErrCommandRequired, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
+	assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
 }
 
 func TestCommandAdd(t *testing.T) {

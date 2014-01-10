@@ -48,6 +48,9 @@ const (
 	// ErrCommandRequired indicates that a command was required but not
 	// specified
 	ErrCommandRequired
+
+	// ErrUnknownCommand indicates that an unknown command was specified.
+	ErrUnknownCommand
 )
 
 // Error represents a parser error. The error returned from Parse is of this

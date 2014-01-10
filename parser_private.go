@@ -76,10 +76,12 @@ func (p *parseState) estimateCommand() error {
 	}
 
 	var msg string
+	var errtype ErrorType
 
 	if len(p.retargs) != 0 {
 		c, l := closestChoice(p.retargs[0], cmdnames)
 		msg = fmt.Sprintf("Unknown command `%s'", p.retargs[0])
+		errtype = ErrUnknownCommand
 
 		if float32(l)/float32(len(c)) < 0.5 {
 			msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
@@ -94,6 +96,8 @@ func (p *parseState) estimateCommand() error {
 				cmdnames[len(cmdnames)-1])
 		}
 	} else {
+		errtype = ErrCommandRequired
+
 		if len(cmdnames) == 1 {
 			msg = fmt.Sprintf("Please specify the %s command", cmdnames[0])
 		} else {
@@ -103,7 +107,7 @@ func (p *parseState) estimateCommand() error {
 		}
 	}
 
-	return newError(ErrCommandRequired, msg)
+	return newError(errtype, msg)
 }
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (retoption *Option, err error) {
