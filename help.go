@@ -237,8 +237,16 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 
 			if allcmd.Active == nil && len(allcmd.commands) > 0 {
+				var co, cc string
+
+				if allcmd.SubcommandsOptional {
+					co, cc = "[", "]"
+				} else {
+					co, cc = "<", ">"
+				}
+
 				if len(allcmd.commands) > 3 {
-					fmt.Fprintf(wr, " <command>")
+					fmt.Fprintf(wr, " %scommand%s", co, cc)
 				} else {
 					subcommands := allcmd.sortedCommands()
 					names := make([]string, len(subcommands))
@@ -247,7 +255,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 						names[i] = subc.Name
 					}
 
-					fmt.Fprintf(wr, " <%s>", strings.Join(names, " | "))
+					fmt.Fprintf(wr, " %s%s%s", co, strings.Join(names, " | "), cc)
 				}
 			}
 

@@ -37,9 +37,16 @@ func (c *Command) scanSubCommandHandler(parentg *Group) scanHandler {
 
 			shortDescription := mtag.Get("description")
 			longDescription := mtag.Get("long-description")
+			subcommandsOptional := mtag.Get("subcommands-optional")
 
-			if _, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface()); err != nil {
+			subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
+
+			if err != nil {
 				return true, err
+			}
+
+			if len(subcommandsOptional) > 0 {
+				subc.SubcommandsOptional = true
 			}
 
 			return true, nil

@@ -293,3 +293,28 @@ func TestDefaultOnCommand(t *testing.T) {
 	}
 }
 
+func TestSubcommandsOptional(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Cmd1 struct {
+		} `command:"remove"`
+
+		Cmd2 struct {
+		} `command:"add"`
+	}{}
+
+	p := NewParser(&opts, None)
+	p.SubcommandsOptional = true
+
+	_, err := p.ParseArgs([]string{"-v"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+		return
+	}
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+}

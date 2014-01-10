@@ -14,6 +14,9 @@ type Command struct {
 	// The active sub command (set by parsing) or nil
 	Active *Command
 
+	// Whether subcommands are optional
+	SubcommandsOptional bool
+
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 }
