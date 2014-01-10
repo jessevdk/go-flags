@@ -111,7 +111,7 @@ func TestCommandEstimate(t *testing.T) {
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs([]string{})
 
-	assertError(t, err, ErrRequired, "Please specify one command of: add or remove")
+	assertError(t, err, ErrCommandRequired, "Please specify one command of: add or remove")
 }
 
 type testCommand struct {
@@ -162,7 +162,7 @@ func TestCommandClosest(t *testing.T) {
 		} `command:"add"`
 	}{}
 
-	assertParseFail(t, ErrRequired, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
+	assertParseFail(t, ErrCommandRequired, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
 }
 
 func TestCommandAdd(t *testing.T) {

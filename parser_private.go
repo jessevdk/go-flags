@@ -103,7 +103,7 @@ func (p *parseState) estimateCommand() error {
 		}
 	}
 
-	return newError(ErrRequired, msg)
+	return newError(ErrCommandRequired, msg)
 }
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (retoption *Option, err error) {

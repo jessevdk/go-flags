@@ -44,6 +44,10 @@ const (
 
 	// ErrTag indicates an error while parsing flag tags.
 	ErrTag
+
+	// ErrCommandRequired indicates that a command was required but not
+	// specified
+	ErrCommandRequired
 )
 
 // Error represents a parser error. The error returned from Parse is of this
