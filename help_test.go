@@ -77,7 +77,7 @@ func TestHelp(t *testing.T) {
 		}
 
 		expected := `Usage:
-  TestHelp [OPTIONS]
+  TestHelp [OPTIONS] <command>
 
 Application Options:
   -v, --verbose   Show verbose debug information
