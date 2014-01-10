@@ -33,7 +33,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		ret.terminalColumns = 80
 	}
 
-	p.eachActiveGroup(func(grp *Group) {
+	p.eachActiveGroup(func(c *Command, grp *Group) {
 		for _, info := range grp.options {
 			if info.ShortName != 0 {
 				ret.hasShort = true
@@ -236,8 +236,14 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		}
 	}
 
-	p.eachActiveGroup(func(grp *Group) {
+	p.eachActiveGroup(func(c *Command, grp *Group) {
 		first := true
+
+		// Skip builtin help group for all commands except the toplevel
+		// parser
+		if grp.isBuiltinHelp && c != p.Command {
+			return
+		}
 
 		for _, info := range grp.options {
 			if info.canCli() {

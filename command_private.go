@@ -67,8 +67,10 @@ func (c *Command) eachCommand(f func(*Command), recurse bool) {
 	}
 }
 
-func (c *Command) eachActiveGroup(f func(g *Group)) {
-	c.eachGroup(f)
+func (c *Command) eachActiveGroup(f func(cc *Command, g *Group)) {
+	c.eachGroup(func(g *Group) {
+		f(c, g)
+	})
 
 	if c.Active != nil {
 		c.Active.eachActiveGroup(f)

@@ -35,6 +35,9 @@ type Group struct {
 	// All the subgroups
 	groups []*Group
 
+	// Whether the group represents the builtin help group
+	isBuiltinHelp bool
+
 	data interface{}
 }
 
