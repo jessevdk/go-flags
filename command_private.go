@@ -172,7 +172,7 @@ func (c *Command) sortedCommands() []*Command {
 func (c *Command) hasCliOptions() bool {
 	ret := false
 
-	c.eachGroup(func (g *Group) {
+	c.eachGroup(func(g *Group) {
 		for _, opt := range g.options {
 			if opt.canCli() {
 				ret = true
