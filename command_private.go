@@ -161,3 +161,17 @@ func (c *Command) sortedCommands() []*Command {
 	sort.Sort(ret)
 	return []*Command(ret)
 }
+
+func (c *Command) hasCliOptions() bool {
+	ret := false
+
+	c.eachGroup(func (g *Group) {
+		for _, opt := range g.options {
+			if opt.canCli() {
+				ret = true
+			}
+		}
+	})
+
+	return ret
+}

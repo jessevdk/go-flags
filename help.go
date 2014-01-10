@@ -221,12 +221,12 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			if allcmd == p.Command {
 				if len(p.Usage) != 0 {
 					usage = p.Usage
-				} else {
+				} else if p.hasCliOptions() {
 					usage = "[OPTIONS]"
 				}
 			} else if us, ok := allcmd.data.(Usage); ok {
 				usage = us.Usage()
-			} else {
+			} else if allcmd.hasCliOptions() {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
 			}
 
