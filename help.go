@@ -19,6 +19,7 @@ type alignmentInfo struct {
 	hasShort        bool
 	hasValueName    bool
 	terminalColumns int
+	indent          bool
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
@@ -47,6 +48,11 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 
 			l := utf8.RuneCountInString(info.LongName) + lv
 
+			if c != p.Command {
+				// for indenting
+				l = l + 4
+			}
+
 			if l > ret.maxLongLen {
 				ret.maxLongLen = l
 			}
@@ -62,7 +68,13 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	distanceBetweenOptionAndDescription := 2
 	paddingBeforeOption := 2
 
-	line.WriteString(strings.Repeat(" ", paddingBeforeOption))
+	prefix := paddingBeforeOption
+
+	if info.indent {
+		prefix += 4
+	}
+
+	line.WriteString(strings.Repeat(" ", prefix))
 
 	if option.ShortName != 0 {
 		line.WriteRune(defaultShortOptDelimiter)
@@ -236,6 +248,8 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		}
 	}
 
+	prevcmd := p.Command
+
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		first := true
 
@@ -247,8 +261,20 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 		for _, info := range grp.options {
 			if info.canCli() {
-				if first {
-					fmt.Fprintf(wr, "\n%s:\n", grp.ShortDescription)
+				if prevcmd != c {
+					fmt.Fprintf(wr, "\n[%s command options]\n", c.Name)
+					prevcmd = c
+					aligninfo.indent = true
+				}
+
+				if first && prevcmd.Group != grp {
+					fmt.Fprintln(wr)
+
+					if aligninfo.indent {
+						wr.WriteString("    ")
+					}
+
+					fmt.Fprintf(wr, "%s:\n", grp.ShortDescription)
 					first = false
 				}
 
