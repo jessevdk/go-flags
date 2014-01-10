@@ -73,9 +73,10 @@ func assertError(t *testing.T, err error, typ ErrorType, msg string) {
 	}
 }
 
-func assertParseFail(t *testing.T, typ ErrorType, msg string, data interface{}, args ...string) {
+func assertParseFail(t *testing.T, typ ErrorType, msg string, data interface{}, args ...string) []string {
 	parser := NewParser(data, Default&^PrintErrors)
-	_, err := parser.ParseArgs(args)
+	ret, err := parser.ParseArgs(args)
 
 	assertError(t, err, typ, msg)
+	return ret
 }

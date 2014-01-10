@@ -198,14 +198,18 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		s.checkRequired()
 	}
 
+	var reterr error
+
 	if s.err != nil {
-		return s.retargs, p.printError(s.err)
+		reterr = p.printError(s.err)
+	} else if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
+		reterr = p.printError(s.estimateCommand())
+	} else if cmd, ok := s.command.data.(Commander); ok {
+		reterr = p.printError(cmd.Execute(s.retargs))
 	}
 
-	if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
-		return s.retargs, p.printError(s.estimateCommand())
-	} else if cmd, ok := s.command.data.(Commander); ok {
-		return s.retargs, p.printError(cmd.Execute(s.retargs))
+	if reterr != nil {
+		return append([]string{s.arg}, s.args...), reterr
 	}
 
 	return s.retargs, nil

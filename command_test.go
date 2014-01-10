@@ -162,7 +162,9 @@ func TestCommandClosest(t *testing.T) {
 		} `command:"add"`
 	}{}
 
-	assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
+	args := assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
+
+	assertStringArray(t, args, []string{"addd"})
 }
 
 func TestCommandAdd(t *testing.T) {
