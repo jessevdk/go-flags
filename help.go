@@ -36,6 +36,10 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		for _, info := range grp.options {
+			if !info.canCli() {
+				continue
+			}
+
 			if info.ShortName != 0 {
 				ret.hasShort = true
 			}
