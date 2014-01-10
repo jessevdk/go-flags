@@ -199,13 +199,13 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	if s.err != nil {
-		return nil, p.printError(s.err)
+		return s.retargs, p.printError(s.err)
 	}
 
 	if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
-		return nil, p.printError(s.estimateCommand())
+		return s.retargs, p.printError(s.estimateCommand())
 	} else if cmd, ok := s.command.data.(Commander); ok {
-		return nil, p.printError(cmd.Execute(s.retargs))
+		return s.retargs, p.printError(cmd.Execute(s.retargs))
 	}
 
 	return s.retargs, nil
