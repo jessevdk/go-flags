@@ -221,7 +221,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			if allcmd == p.Command {
 				if len(p.Usage) != 0 {
 					usage = p.Usage
-				} else if p.hasCliOptions() {
+				} else if p.Options&HelpFlag != 0 {
 					usage = "[OPTIONS]"
 				}
 			} else if us, ok := allcmd.data.(Usage); ok {

@@ -173,6 +173,10 @@ func (c *Command) hasCliOptions() bool {
 	ret := false
 
 	c.eachGroup(func(g *Group) {
+		if g.isBuiltinHelp {
+			return
+		}
+
 		for _, opt := range g.options {
 			if opt.canCli() {
 				ret = true
