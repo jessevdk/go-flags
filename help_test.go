@@ -168,3 +168,47 @@ Use for extra verbosity
 		}
 	}
 }
+
+type helpCommandNoOptions struct {
+	Command struct {
+	} `command:"command" description:"A command"`
+}
+
+func TestHelpCommand(t *testing.T) {
+	var opts helpCommandNoOptions
+
+	p := NewNamedParser("TestHelpCommand", HelpFlag)
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	_, err := p.ParseArgs([]string{"command", "--help"})
+
+	if err == nil {
+		t.Fatalf("Expected help error")
+	}
+
+	if e, ok := err.(*Error); !ok {
+		t.Fatalf("Expected flags.Error, but got %T", err)
+	} else {
+		if e.Type != ErrHelp {
+			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
+		}
+
+		expected := `Usage:
+  TestHelpCommand [OPTIONS] command
+
+Help Options:
+  -h, --help      Show this help message
+`
+
+		if e.Message != expected {
+			ret, err := helpDiff(e.Message, expected)
+
+			if err != nil {
+				t.Errorf("Unexpected diff error: %s", err)
+				t.Errorf("Unexpected help message, expected:\n\n%s\n\nbut got\n\n%s", expected, e.Message)
+			} else {
+				t.Errorf("Unexpected help message:\n\n%s", ret)
+			}
+		}
+	}
+}
