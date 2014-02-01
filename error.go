@@ -51,6 +51,9 @@ const (
 
 	// ErrUnknownCommand indicates that an unknown command was specified.
 	ErrUnknownCommand
+
+	// ErrArgumentsNoParsed indicates that the command line arguments have not been parsed.	
+	ErrArgumentsNoParsed
 )
 
 // Error represents a parser error. The error returned from Parse is of this

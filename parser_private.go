@@ -8,6 +8,8 @@ import (
 	"unicode/utf8"
 )
 
+var defaultParser *Parser = nil
+
 type parseState struct {
 	arg     string
 	args    []string

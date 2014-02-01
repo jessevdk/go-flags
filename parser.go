@@ -67,7 +67,8 @@ const (
 // default option group (named "Application Options"). For more control, use
 // flags.NewParser.
 func Parse(data interface{}) ([]string, error) {
-	return NewParser(data, Default).Parse()
+	defaultParser = NewParser(data, Default)
+	return defaultParser.Parse()
 }
 
 // ParseArgs is a convenience function to parse command line options with default
@@ -77,7 +78,8 @@ func Parse(data interface{}) ([]string, error) {
 // default program command line arguments (i.e. os.Args), then use flags.Parse
 // instead. For more control, use flags.NewParser.
 func ParseArgs(data interface{}, args []string) ([]string, error) {
-	return NewParser(data, Default).ParseArgs(args)
+	defaultParser = NewParser(data, Default)
+	return defaultParser.ParseArgs(args)
 }
 
 // NewParser creates a new parser. It uses os.Args[0] as the application

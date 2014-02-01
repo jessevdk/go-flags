@@ -212,3 +212,31 @@ Help Options:
 		}
 	}
 }
+
+func TestPrintHelp(t *testing.T) {	
+	var opts struct {
+		Testing bool `short:"t" long:"testing" description:"Testing."`
+	}
+
+	defaultParser = nil
+
+	_, err := Help()
+	if err == nil {
+		t.Errorf("Expected an error, got nil")
+	} else {
+		if err.(*Error).Type != ErrArgumentsNoParsed {
+			t.Errorf("Expected ErrArgumentsNoParsed, got %s", err.(*Error).Type)
+		}
+	}
+
+	Parse(&opts)
+	s, err := Help()
+
+	if err != nil {
+		t.Errorf("Expected no error, got %s", err)		
+	}
+	
+	if s == "" {
+		t.Errorf("Expected help string, got empty string")
+	}
+}
