@@ -198,8 +198,8 @@ func readIni(contents io.Reader, filename string) (ini, error) {
 		lineno++
 		line = strings.TrimSpace(line)
 
-		// Skip empty lines and lines starting with ; (comments)
-		if len(line) == 0 || line[0] == ';' {
+		// Skip empty lines and lines starting with ; or # (comments)
+		if len(line) == 0 || line[0] == ';' || line[0] == '#' {
 			continue
 		}
 
