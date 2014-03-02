@@ -78,8 +78,8 @@ verbose = true
 ; PtrSlice =
 
 [Other Options]
-; A slice of strings
-; StringSlice =
+# A slice of strings
+# StringSlice =
 
 ; A map from string to int
 int-map = a:2
