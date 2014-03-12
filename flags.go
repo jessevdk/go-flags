@@ -60,15 +60,15 @@
 // and Unmarshaler interfaces.
 //
 // Available field tags:
-//     short:       the short name of the option (single character)
-//     long:        the long name of the option
-//     required:    whether an option is required to appear on the command line.
-//                  If a required option is not present, the parser will return
-//                  ErrRequired (optional)
-//     description: the description of the option (optional)
+//     short:            the short name of the option (single character)
+//     long:             the long name of the option
+//     required:         whether an option is required to appear on the command
+//                       line. If a required option is not present, the parser will
+//                       return ErrRequired (optional)
+//     description:      the description of the option (optional)
 //     long-description: the long description of the option. Currently only
 //                       displayed in generated man pages (optional)
-//     no-flag:     if non-empty this field is ignored as an option (optional)
+//     no-flag:          if non-empty this field is ignored as an option (optional)
 //
 //     optional:       whether an argument of the option is optional (optional)
 //     optional-value: the value of an optional option when the option occurs
