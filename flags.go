@@ -64,7 +64,7 @@
 //     long:        the long name of the option
 //     required:    whether an option is required to appear on the command line.
 //                  If a required option is not present, the parser will return
-//                  ErrRequired. (optional)
+//                  ErrRequired (optional)
 //     description: the description of the option (optional)
 //     long-description: the long description of the option. currently only
 //                       displayed in generated man pages (optional)
@@ -75,7 +75,7 @@
 //                     without an argument. This tag can be specified multiple
 //                     times in the case of maps or slices (optional)
 //     default:        the default value of an option. This tag can be specified
-//                     multiple times in the case of slices or maps (optional).
+//                     multiple times in the case of slices or maps (optional)
 //     default-mask:   when specified, this value will be displayed in the help
 //                     instead of the actual default value. This is useful
 //                     mostly for hiding otherwise sensitive information from
@@ -93,11 +93,11 @@
 //                     (optional)
 //
 //     group:                when specified on a struct field, makes the struct
-//                           field a separate group with the given name (optional).
+//                           field a separate group with the given name (optional)
 //     command:              when specified on a struct field, makes the struct
-//                           field a (sub)command with the given name (optional).
+//                           field a (sub)command with the given name (optional)
 //     subcommands-optional: when specified on a command struct field, makes
-//                           any subcommands of that command optional.
+//                           any subcommands of that command optional
 //
 // Either short: or long: must be specified to make the field eligible as an
 // option.
