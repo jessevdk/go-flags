@@ -22,7 +22,7 @@ func newCommand(name string, shortDescription string, longDescription string, da
 	}
 }
 
-func (c *Command) scanSubCommandHandler(parentg *Group) scanHandler {
+func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 	f := func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag := newMultiTag(string(sfield.Tag))
 
@@ -59,7 +59,7 @@ func (c *Command) scanSubCommandHandler(parentg *Group) scanHandler {
 }
 
 func (c *Command) scan() error {
-	return c.scanType(c.scanSubCommandHandler(c.Group))
+	return c.scanType(c.scanSubcommandHandler(c.Group))
 }
 
 func (c *Command) eachCommand(f func(*Command), recurse bool) {
