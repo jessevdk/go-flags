@@ -66,7 +66,7 @@
 //                  If a required option is not present, the parser will return
 //                  ErrRequired (optional)
 //     description: the description of the option (optional)
-//     long-description: the long description of the option. currently only
+//     long-description: the long description of the option. Currently only
 //                       displayed in generated man pages (optional)
 //     no-flag:     if non-empty this field is ignored as an option (optional)
 //
