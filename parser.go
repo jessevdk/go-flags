@@ -97,7 +97,7 @@ func NewParser(data interface{}, options Options) *Parser {
 }
 
 // NewNamedParser creates a new parser. The appname is used to display the
-// executable name in the builtin help message. Option groups and commands can
+// executable name in the built-in help message. Option groups and commands can
 // be added to this parser by using AddGroup and AddCommand.
 func NewNamedParser(appname string, options Options) *Parser {
 	return &Parser{
@@ -133,7 +133,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		})
 	}, true)
 
-	// Add builtin help group to all commands if necessary
+	// Add built-in help group to all commands if necessary
 	if (p.Options & HelpFlag) != None {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
