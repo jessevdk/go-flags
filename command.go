@@ -61,7 +61,7 @@ func (c *Command) AddCommand(command string, shortDescription string, longDescri
 func (c *Command) AddGroup(shortDescription string, longDescription string, data interface{}) (*Group, error) {
 	group := newGroup(shortDescription, longDescription, data)
 
-	if err := group.scanType(c.scanSubCommandHandler(group)); err != nil {
+	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
 		return nil, err
 	}
 

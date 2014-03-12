@@ -23,7 +23,7 @@ const (
 	// ErrMarshal indicates a marshalling error while converting values.
 	ErrMarshal
 
-	// ErrHelp indicates that the builtin help was shown (the error
+	// ErrHelp indicates that the built-in help was shown (the error
 	// contains the help message).
 	ErrHelp
 

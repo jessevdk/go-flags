@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package flags provides an extensive command line option parser.
-// The flags package is similar in functionality to the go builtin flag package
+// The flags package is similar in functionality to the go built-in flag package
 // but provides more options and uses reflection to provide a convenient and
 // succinct way of specifying command line options.
 //
@@ -31,7 +31,7 @@
 //
 // The flags package uses structs, reflection and struct field tags
 // to allow users to specify command line options. This results in very simple
-// and consise specification of your application options. For example:
+// and concise specification of your application options. For example:
 //
 //     type Options struct {
 //         Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
@@ -60,9 +60,16 @@
 // and Unmarshaler interfaces.
 //
 // Available field tags:
-//     short:          the short name of the option (single character)
-//     long:           the long name of the option
-//     description:    the description of the option (optional)
+//     short:       the short name of the option (single character)
+//     long:        the long name of the option
+//     required:    whether an option is required to appear on the command line.
+//                  If a required option is not present, the parser will return
+//                  ErrRequired. (optional)
+//     description: the description of the option (optional)
+//     long-description: the long description of the option. currently only
+//                       displayed in generated man pages (optional)
+//     no-flag:     if non-empty this field is ignored as an option (optional)
+//
 //     optional:       whether an argument of the option is optional (optional)
 //     optional-value: the value of an optional option when the option occurs
 //                     without an argument. This tag can be specified multiple
@@ -75,18 +82,20 @@
 //                     showing up in the help. If default-mask takes the special
 //                     value "-", then no default value will be shown at all
 //                     (optional)
-//     required:       whether an option is required to appear on the command
-//                     line. If a required option is not present, the parser
-//                     will return ErrRequired.
-//     base:           a base (radix) used to convert strings to integer values,
-//                     the default base is 10 (i.e. decimal) (optional)
 //     value-name:     the name of the argument value (to be shown in the help,
 //                     (optional)
-//     group:          when specified on a struct field, makes the struct field
-//                     a separate group with the given name (optional).
-//     command:        when specified on a struct field, makes the struct field
-//                     a (sub)command with the given name (optional).
 //
+//     base: a base (radix) used to convert strings to integer values, the
+//           default base is 10 (i.e. decimal) (optional)
+//
+//     ini-name:       the explicit ini option name (optional)
+//     no-ini:         if non-empty this field is ignored as an ini option
+//                     (optional)
+//
+//     group:                when specified on a struct field, makes the struct
+//                           field a separate group with the given name (optional).
+//     command:              when specified on a struct field, makes the struct
+//                           field a (sub)command with the given name (optional).
 //     subcommands-optional: when specified on a command struct field, makes
 //                           any subcommands of that command optional.
 //
@@ -97,7 +106,7 @@
 // Option groups:
 //
 // Option groups are a simple way to semantically separate your options. The
-// only real difference is in how your options will appear in the builtin
+// only real difference is in how your options will appear in the built-in
 // generated help. All options in a particular group are shown together in the
 // help under the name of the group.
 //
@@ -105,7 +114,7 @@
 //
 //     1. Use NewNamedParser specifying the various option groups.
 //     2. Use AddGroup to add a group to an existing parser.
-//     3. Add a struct field to the toplevel options annotated with the
+//     3. Add a struct field to the top-level options annotated with the
 //        group:"group-name" tag.
 //
 //
@@ -118,7 +127,7 @@
 // commands. Using commands you can easily separate multiple functions of your
 // application.
 //
-// There are currently two ways to specifiy a command.
+// There are currently two ways to specify a command.
 //
 //     1. Use AddCommand on an existing parser.
 //     2. Add a struct field to your options struct annotated with the
@@ -136,7 +145,7 @@
 // Command structs can have options which become valid to parse after the
 // command has been specified on the command line. It is currently not valid
 // to specify options from the parent level of the command after the command
-// name has occurred. Thus, given a toplevel option "-v" and a command "add":
+// name has occurred. Thus, given a top-level option "-v" and a command "add":
 //
 //     Valid:   ./app -v add
 //     Invalid: ./app add -v
