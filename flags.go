@@ -66,6 +66,9 @@
 //                  If a required option is not present, the parser will return
 //                  ErrRequired. (optional)
 //     description: the description of the option (optional)
+//     long-description: the long description of the option. currently only
+//                       displayed in generated man pages (optional)
+//     no-flag:     if non-empty this field is ignored as an option (optional)
 //
 //     optional:       whether an argument of the option is optional (optional)
 //     optional-value: the value of an optional option when the option occurs
@@ -82,8 +85,12 @@
 //     value-name:     the name of the argument value (to be shown in the help,
 //                     (optional)
 //
-//     base: a base (radix) used to convert strings to integer values, the default
-//           base is 10 (i.e. decimal) (optional)
+//     base: a base (radix) used to convert strings to integer values, the
+//           default base is 10 (i.e. decimal) (optional)
+//
+//     ini-name:       the explicit ini option name (optional)
+//     no-ini:         if non-empty this field is ignored as an ini option
+//                     (optional)
 //
 //     group:                when specified on a struct field, makes the struct
 //                           field a separate group with the given name (optional).
