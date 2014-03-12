@@ -60,9 +60,13 @@
 // and Unmarshaler interfaces.
 //
 // Available field tags:
-//     short:          the short name of the option (single character)
-//     long:           the long name of the option
-//     description:    the description of the option (optional)
+//     short:       the short name of the option (single character)
+//     long:        the long name of the option
+//     required:    whether an option is required to appear on the command line.
+//                  If a required option is not present, the parser will return
+//                  ErrRequired.
+//     description: the description of the option (optional)
+//
 //     optional:       whether an argument of the option is optional (optional)
 //     optional-value: the value of an optional option when the option occurs
 //                     without an argument. This tag can be specified multiple
@@ -75,18 +79,16 @@
 //                     showing up in the help. If default-mask takes the special
 //                     value "-", then no default value will be shown at all
 //                     (optional)
-//     required:       whether an option is required to appear on the command
-//                     line. If a required option is not present, the parser
-//                     will return ErrRequired.
-//     base:           a base (radix) used to convert strings to integer values,
-//                     the default base is 10 (i.e. decimal) (optional)
 //     value-name:     the name of the argument value (to be shown in the help,
 //                     (optional)
-//     group:          when specified on a struct field, makes the struct field
-//                     a separate group with the given name (optional).
-//     command:        when specified on a struct field, makes the struct field
-//                     a (sub)command with the given name (optional).
 //
+//     base: a base (radix) used to convert strings to integer values, the default
+//           base is 10 (i.e. decimal) (optional)
+//
+//     group:                when specified on a struct field, makes the struct
+//                           field a separate group with the given name (optional).
+//     command:              when specified on a struct field, makes the struct
+//                           field a (sub)command with the given name (optional).
 //     subcommands-optional: when specified on a command struct field, makes
 //                           any subcommands of that command optional.
 //
