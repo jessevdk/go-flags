@@ -69,7 +69,7 @@ func IniParse(filename string, data interface{}) error {
 }
 
 // ParseFile parses flags from an ini formatted file. See Parse for more
-// information on the ini file foramt. The returned errors can be of the type
+// information on the ini file format. The returned errors can be of the type
 // flags.Error or flags.IniError.
 func (i *IniParser) ParseFile(filename string) error {
 	i.parser.storeDefaults()

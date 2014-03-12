@@ -28,7 +28,7 @@ Supported features:
 
 The flags package uses structs, reflection and struct field tags
 to allow users to specify command line options. This results in very simple
-and consise specification of your application options. For example:
+and concise specification of your application options. For example:
 
     type Options struct {
         Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`

@@ -280,7 +280,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		first := true
 
-		// Skip builtin help group for all commands except the toplevel
+		// Skip built-in help group for all commands except the top-level
 		// parser
 		if grp.isBuiltinHelp && c != p.Command {
 			return
