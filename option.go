@@ -11,7 +11,7 @@ import (
 // flag is optional.
 type Option struct {
 	// The description of the option flag. This description is shown
-	// automatically in the builtin help.
+	// automatically in the built-in help.
 	Description string
 
 	// The short name of the option (a single character). If not 0, the

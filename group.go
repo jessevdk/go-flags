@@ -20,13 +20,13 @@ var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct
 // and for you, since groups can be nested.
 type Group struct {
 	// A short description of the group. The
-	// short description is primarily used in the builtin generated help
+	// short description is primarily used in the built-in generated help
 	// message
 	ShortDescription string
 
 	// A long description of the group. The long
 	// description is primarily used to present information on commands
-	// (Command embeds Group) in the builtin generated help and man pages.
+	// (Command embeds Group) in the built-in generated help and man pages.
 	LongDescription string
 
 	// All the options in the group
@@ -35,7 +35,7 @@ type Group struct {
 	// All the subgroups
 	groups []*Group
 
-	// Whether the group represents the builtin help group
+	// Whether the group represents the built-in help group
 	isBuiltinHelp bool
 
 	data interface{}

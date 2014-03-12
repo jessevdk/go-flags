@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package flags provides an extensive command line option parser.
-// The flags package is similar in functionality to the go builtin flag package
+// The flags package is similar in functionality to the go built-in flag package
 // but provides more options and uses reflection to provide a convenient and
 // succinct way of specifying command line options.
 //
@@ -31,7 +31,7 @@
 //
 // The flags package uses structs, reflection and struct field tags
 // to allow users to specify command line options. This results in very simple
-// and consise specification of your application options. For example:
+// and concise specification of your application options. For example:
 //
 //     type Options struct {
 //         Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
@@ -106,7 +106,7 @@
 // Option groups:
 //
 // Option groups are a simple way to semantically separate your options. The
-// only real difference is in how your options will appear in the builtin
+// only real difference is in how your options will appear in the built-in
 // generated help. All options in a particular group are shown together in the
 // help under the name of the group.
 //
@@ -114,7 +114,7 @@
 //
 //     1. Use NewNamedParser specifying the various option groups.
 //     2. Use AddGroup to add a group to an existing parser.
-//     3. Add a struct field to the toplevel options annotated with the
+//     3. Add a struct field to the top-level options annotated with the
 //        group:"group-name" tag.
 //
 //
@@ -127,7 +127,7 @@
 // commands. Using commands you can easily separate multiple functions of your
 // application.
 //
-// There are currently two ways to specifiy a command.
+// There are currently two ways to specify a command.
 //
 //     1. Use AddCommand on an existing parser.
 //     2. Add a struct field to your options struct annotated with the
@@ -145,7 +145,7 @@
 // Command structs can have options which become valid to parse after the
 // command has been specified on the command line. It is currently not valid
 // to specify options from the parent level of the command after the command
-// name has occurred. Thus, given a toplevel option "-v" and a command "add":
+// name has occurred. Thus, given a top-level option "-v" and a command "add":
 //
 //     Valid:   ./app -v add
 //     Invalid: ./app add -v
