@@ -32,6 +32,9 @@ verbose = true
 ; A slice of pointers to string
 ; PtrSlice =
 
+; Test default value
+Default = Some value
+
 EmptyDescription = false
 
 ; Option only available in ini
@@ -39,7 +42,8 @@ only-ini =
 
 [Other Options]
 ; A slice of strings
-; StringSlice =
+StringSlice = some
+StringSlice = value
 
 ; A map from string to int
 int-map = a:2
@@ -78,6 +82,9 @@ verbose = true
 [Application Options]
 ; A slice of pointers to string
 ; PtrSlice =
+
+; Test default value
+Default = Some value
 
 [Other Options]
 # A slice of strings
