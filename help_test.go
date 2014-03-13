@@ -41,9 +41,10 @@ func helpDiff(a, b string) (string, error) {
 }
 
 type helpOptions struct {
-	Verbose  []bool       `short:"v" long:"verbose" description:"Show verbose debug information" ini-name:"verbose"`
-	Call     func(string) `short:"c" description:"Call phone number" ini-name:"call"`
-	PtrSlice []*string    `long:"ptrslice" description:"A slice of pointers to string"`
+	Verbose          []bool       `short:"v" long:"verbose" description:"Show verbose debug information" ini-name:"verbose"`
+	Call             func(string) `short:"c" description:"Call phone number" ini-name:"call"`
+	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
+	EmptyDescription bool         `long:"empty-description"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
 
@@ -80,16 +81,17 @@ func TestHelp(t *testing.T) {
   TestHelp [OPTIONS] <command>
 
 Application Options:
-  -v, --verbose   Show verbose debug information
-  -c=             Call phone number
-      --ptrslice= A slice of pointers to string
+  -v, --verbose            Show verbose debug information
+  -c=                      Call phone number
+      --ptrslice=          A slice of pointers to string
+      --empty-description
 
 Other Options:
-  -s=             A slice of strings
-      --intmap=   A map from string to int
+  -s=                      A slice of strings
+      --intmap=            A map from string to int
 
 Help Options:
-  -h, --help      Show this help message
+  -h, --help               Show this help message
 
 Available commands:
   command  A command
@@ -142,6 +144,8 @@ Call phone number
 .TP
 \fB--ptrslice\fP
 A slice of pointers to string
+.TP
+\fB--empty-description\fP
 .TP
 \fB-s\fP
 A slice of strings

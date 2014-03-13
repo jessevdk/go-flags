@@ -32,6 +32,8 @@ verbose = true
 ; A slice of pointers to string
 ; PtrSlice =
 
+EmptyDescription = false
+
 ; Option only available in ini
 only-ini =
 
