@@ -90,7 +90,7 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 			sectionwritten = true
 		}
 
-		if comments {
+		if comments && len(option.Description) != 0 {
 			fmt.Fprintf(writer, "; %s\n", option.Description)
 		}
 

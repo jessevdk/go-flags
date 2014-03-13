@@ -54,8 +54,10 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 			}
 
 			fmt.Fprintln(wr, "\\fP")
-			formatForMan(wr, opt.Description)
-			fmt.Fprintln(wr, "")
+			if len(opt.Description) != 0 {
+				formatForMan(wr, opt.Description)
+				fmt.Fprintln(wr, "")
+			}
 		}
 	})
 }
