@@ -32,6 +32,9 @@ verbose = true
 ; A slice of pointers to string
 ; PtrSlice =
 
+; Test default value
+Default = Some value
+
 EmptyDescription = false
 
 ; Option only available in ini
@@ -39,11 +42,70 @@ only-ini =
 
 [Other Options]
 ; A slice of strings
-; StringSlice =
+StringSlice = some
+StringSlice = value
 
 ; A map from string to int
 int-map = a:2
 int-map = b:3
+
+[command.A command]
+; Use for extra verbosity
+; ExtraVerbose =
+
+`
+
+	if got != expected {
+		ret, err := helpDiff(got, expected)
+
+		if err != nil {
+			t.Errorf("Unexpected ini, expected:\n\n%s\n\nbut got\n\n%s", expected, got)
+		} else {
+			t.Errorf("Unexpected ini:\n\n%s", ret)
+		}
+	}
+}
+
+func TestWriteIniCommentDefaults(t *testing.T) {
+	var opts helpOptions
+
+	p := NewNamedParser("TestIni", Default)
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	_, err := p.ParseArgs([]string{"command"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	inip := NewIniParser(p)
+
+	var b bytes.Buffer
+	inip.Write(&b, IniDefault|IniIncludeDefaults|IniCommentDefaults)
+
+	got := b.String()
+	expected := `[Application Options]
+; Show verbose debug information
+; verbose =
+
+; A slice of pointers to string
+; PtrSlice =
+
+; Test default value
+; Default = Some value
+
+; EmptyDescription = false
+
+; Option only available in ini
+; only-ini =
+
+[Other Options]
+; A slice of strings
+; StringSlice = some
+; StringSlice = value
+
+; A map from string to int
+; int-map = a:1
 
 [command.A command]
 ; Use for extra verbosity
@@ -78,6 +140,9 @@ verbose = true
 [Application Options]
 ; A slice of pointers to string
 ; PtrSlice =
+
+; Test default value
+Default = Some value
 
 [Other Options]
 # A slice of strings

@@ -38,6 +38,10 @@ const (
 	// when writing options to an ini file.
 	IniIncludeDefaults = 1 << iota
 
+	// IniCommentDefaults indicates that if IniIncludeDefaults is used
+	// options with default values are written but commented out.
+	IniCommentDefaults
+
 	// IniIncludeComments indicates that comments containing the description
 	// of an option should be written when writing options to an ini file.
 	IniIncludeComments
