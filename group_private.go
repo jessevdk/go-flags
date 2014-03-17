@@ -61,7 +61,15 @@ func (g *Group) storeDefaults() {
 			continue
 		}
 
-		option.defaultValue = reflect.ValueOf(option.value.Interface())
+		if option.value.Kind() == reflect.Map {
+			option.defaultValue = reflect.MakeMap(option.value.Type())
+
+			for _, k := range option.value.MapKeys() {
+				option.defaultValue.SetMapIndex(k, option.value.MapIndex(k))
+			}
+		} else {
+			option.defaultValue = reflect.ValueOf(option.value.Interface())
+		}
 	}
 }
 
