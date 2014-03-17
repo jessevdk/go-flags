@@ -119,9 +119,9 @@ int-map = b:3
 			ret, err := helpDiff(got, expected)
 
 			if err != nil {
-				t.Errorf("Unexpected ini, expected:\n\n%s\n\nbut got\n\n%s", expected, got)
+				t.Errorf("Unexpected ini with arguments %+v and ini options %b, expected:\n\n%s\n\nbut got\n\n%s", test.args, test.options, expected, got)
 			} else {
-				t.Errorf("Unexpected ini:\n\n%s", ret)
+				t.Errorf("Unexpected ini with arguments %+v and ini options %b:\n\n%s", test.args, test.options, ret)
 			}
 		}
 	}
