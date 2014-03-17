@@ -80,8 +80,7 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 
 		val := option.value
 
-		if (options&IniIncludeDefaults) == IniNone &&
-			reflect.DeepEqual(val, option.defaultValue) {
+		if (options&IniIncludeDefaults) == IniNone && reflect.DeepEqual(val.Interface(), option.defaultValue.Interface()) {
 			continue
 		}
 
