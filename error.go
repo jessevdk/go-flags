@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+	"reflect"
 )
 
 // ErrorType represents the type of error.
@@ -52,6 +53,10 @@ const (
 	// ErrUnknownCommand indicates that an unknown command was specified.
 	ErrUnknownCommand
 )
+
+func (e ErrorType) String() string {
+	return reflect.TypeOf(e).Name()
+}
 
 // Error represents a parser error. The error returned from Parse is of this
 // type. The error contains both a Type and Message.

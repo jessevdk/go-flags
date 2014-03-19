@@ -26,7 +26,7 @@ func levenshtein(s string, t string) int {
 	l3 = levenshtein(s[1:len(s)], t[1:len(t)])
 
 	if s[0] != t[0] {
-		l3 += 1
+		l3++
 	}
 
 	if l2 < l1 {
