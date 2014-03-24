@@ -44,8 +44,11 @@ type helpOptions struct {
 	Verbose          []bool       `short:"v" long:"verbose" description:"Show verbose debug information" ini-name:"verbose"`
 	Call             func(string) `short:"c" description:"Call phone number" ini-name:"call"`
 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
-	Default          string       `long:"default" default:"Some value" description:"Test default value"`
 	EmptyDescription bool         `long:"empty-description"`
+
+	Default      string            `long:"default" default:"Some value" description:"Test default value"`
+	DefaultArray []string          `long:"default-array" default:"Some value" default:"Another value" description:"Test default array value"`
+	DefaultMap   map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
 
@@ -85,8 +88,10 @@ Application Options:
   -v, --verbose            Show verbose debug information
   -c=                      Call phone number
       --ptrslice=          A slice of pointers to string
-      --default=           Test default value (Some value)
       --empty-description
+      --default=           Test default value (Some value)
+      --default-array=     Test default array value (Some value, Another value)
+      --default-map=       Testdefault map value (some:value, another:value)
 
 Other Options:
   -s=                      A slice of strings (some, value)
@@ -147,10 +152,16 @@ Call phone number
 \fB--ptrslice\fP
 A slice of pointers to string
 .TP
+\fB--empty-description\fP
+.TP
 \fB--default\fP
 Test default value
 .TP
-\fB--empty-description\fP
+\fB--default-array\fP
+Test default array value
+.TP
+\fB--default-map\fP
+Testdefault map value
 .TP
 \fB-s\fP
 A slice of strings
