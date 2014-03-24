@@ -7,6 +7,7 @@ package flags
 import (
 	"os"
 	"path"
+	"reflect"
 )
 
 // A Parser provides command line option parsing. It can contain several
@@ -130,6 +131,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	p.eachCommand(func(c *Command) {
 		c.eachGroup(func(g *Group) {
 			g.storeDefaults()
+			g.clear()
 		})
 	}, true)
 
@@ -195,6 +197,29 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	if s.err == nil {
+		p.eachCommand(func(c *Command) {
+			c.eachGroup(func(g *Group) {
+				for _, option := range g.options {
+					tp := option.value.Type()
+
+					switch tp.Kind() {
+					case reflect.Func:
+						// Skip
+					case reflect.Map:
+						if option.value.Len() == 0 {
+							for _, k := range option.defaultValue.MapKeys() {
+								option.value.SetMapIndex(k, option.defaultValue.MapIndex(k))
+							}
+						}
+					default:
+						if reflect.DeepEqual(option.value.Interface(), reflect.Zero(tp).Interface()) {
+							option.value.Set(option.defaultValue)
+						}
+					}
+				}
+			})
+		}, true)
+
 		s.checkRequired()
 	}
 
