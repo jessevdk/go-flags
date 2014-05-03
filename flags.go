@@ -98,6 +98,10 @@
 //                           field a (sub)command with the given name (optional)
 //     subcommands-optional: when specified on a command struct field, makes
 //                           any subcommands of that command optional (optional)
+//     alias:                when specified on a command struct field, adds the
+//                           specified name as an alias for the command. Can be
+//                           be specified multiple times to add more than one
+//                           alias (optional)
 //
 // Either short: or long: must be specified to make the field eligible as an
 // option.
