@@ -38,10 +38,18 @@ verbose = true
 ; A slice of pointers to string
 ; PtrSlice =
 
+EmptyDescription = false
+
 ; Test default value
 Default = Some value
 
-EmptyDescription = false
+; Test default array value
+DefaultArray = Some value
+DefaultArray = Another value
+
+; Testdefault map value
+DefaultMap = some:value
+DefaultMap = another:value
 
 ; Option only available in ini
 only-ini =
@@ -71,10 +79,56 @@ int-map = b:3
 ; A slice of pointers to string
 ; PtrSlice =
 
+; EmptyDescription = false
+
 ; Test default value
 ; Default = Some value
 
+; Test default array value
+; DefaultArray = Some value
+; DefaultArray = Another value
+
+; Testdefault map value
+; DefaultMap = some:value
+; DefaultMap = another:value
+
+; Option only available in ini
+; only-ini =
+
+[Other Options]
+; A slice of strings
+; StringSlice = some
+; StringSlice = value
+
+; A map from string to int
+; int-map = a:1
+
+[command.A command]
+; Use for extra verbosity
+; ExtraVerbose =
+
+`,
+		},
+		{
+			[]string{"--default=New value", "--default-array=New value", "--default-map=new:value", "command"},
+			IniDefault | IniIncludeDefaults | IniCommentDefaults,
+			`[Application Options]
+; Show verbose debug information
+; verbose =
+
+; A slice of pointers to string
+; PtrSlice =
+
 ; EmptyDescription = false
+
+; Test default value
+Default = New value
+
+; Test default array value
+DefaultArray = New value
+
+; Testdefault map value
+DefaultMap = new:value
 
 ; Option only available in ini
 ; only-ini =
