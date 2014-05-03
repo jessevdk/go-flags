@@ -38,6 +38,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			shortDescription := mtag.Get("description")
 			longDescription := mtag.Get("long-description")
 			subcommandsOptional := mtag.Get("subcommands-optional")
+			aliases := mtag.GetMany("alias")
 
 			subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
 
@@ -47,6 +48,10 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 			if len(subcommandsOptional) > 0 {
 				subc.SubcommandsOptional = true
+			}
+
+			if len(aliases) > 0 {
+				subc.Aliases = aliases
 			}
 
 			return true, nil
@@ -122,6 +127,10 @@ func (c *Command) makeLookup() lookup {
 
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand
+
+		for _, a := range subcommand.Aliases {
+			ret.commands[a] = subcommand
+		}
 	}
 
 	return ret
@@ -167,6 +176,20 @@ func (c *Command) sortedCommands() []*Command {
 
 	sort.Sort(ret)
 	return []*Command(ret)
+}
+
+func (c *Command) match(name string) bool {
+	if c.Name == name {
+		return true
+	}
+
+	for _, v := range c.Aliases {
+		if v == name {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (c *Command) hasCliOptions() bool {

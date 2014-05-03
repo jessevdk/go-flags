@@ -59,7 +59,7 @@ type helpOptions struct {
 
 	Command struct {
 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
-	} `command:"command" description:"A command"`
+	} `command:"command" alias:"cm" alias:"cmd" description:"A command"`
 }
 
 func TestHelp(t *testing.T) {
@@ -101,7 +101,7 @@ Help Options:
   -h, --help               Show this help message
 
 Available commands:
-  command  A command
+  command  A command (aliases: cm, cmd)
 `
 
 		if e.Message != expected {
@@ -173,6 +173,9 @@ A map from string to int
 A command
 
 Longer \fBcommand\fP description
+
+\fBAliases\fP: cm, cmd
+
 .TP
 \fB--extra-verbose\fP
 Use for extra verbosity

@@ -98,6 +98,10 @@ func writeManPageCommand(wr io.Writer, name string, command *Command) {
 		}
 	}
 
+	if len(command.Aliases) > 0 {
+		fmt.Fprintf(wr, "\n\\fBAliases\\fP: %s\n\n", strings.Join(command.Aliases, ", "))
+	}
+
 	writeManPageOptions(wr, command.Group)
 	writeManPageSubcommands(wr, name, command)
 }

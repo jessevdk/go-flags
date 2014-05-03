@@ -320,3 +320,17 @@ func TestSubcommandsOptional(t *testing.T) {
 		t.Errorf("Expected Value to be true")
 	}
 }
+
+func TestCommandAlias(t *testing.T) {
+	var opts = struct {
+		Command struct {
+			G bool `short:"g" default:"true"`
+		} `command:"cmd" alias:"cm"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cm")
+
+	if !opts.Command.G {
+		t.Errorf("Expected G to be true")
+	}
+}

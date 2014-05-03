@@ -324,6 +324,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			if len(c.ShortDescription) > 0 {
 				pad := strings.Repeat(" ", maxnamelen-len(c.Name))
 				fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
+
+				if len(c.Aliases) > 0 {
+					fmt.Fprintf(wr, " (aliases: %s)", strings.Join(c.Aliases, ", "))
+				}
+
 			}
 
 			fmt.Fprintln(wr)

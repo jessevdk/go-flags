@@ -17,6 +17,9 @@ type Command struct {
 	// Whether subcommands are optional
 	SubcommandsOptional bool
 
+	// Aliases for the command
+	Aliases []string
+
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 }
@@ -78,7 +81,7 @@ func (c *Command) Commands() []*Command {
 // command can be found Find will return nil.
 func (c *Command) Find(name string) *Command {
 	for _, cc := range c.commands {
-		if cc.Name == name {
+		if cc.match(name) {
 			return cc
 		}
 	}
