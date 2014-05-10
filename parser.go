@@ -131,7 +131,13 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	p.eachCommand(func(c *Command) {
 		c.eachGroup(func(g *Group) {
 			g.storeDefaults()
-			g.clear()
+
+			for _, option := range g.options {
+				switch option.value.Type().Kind() {
+				case reflect.Func, reflect.Map, reflect.Slice:
+					option.clear()
+				}
+			}
 		})
 	}, true)
 
@@ -203,15 +209,13 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 					tp := option.value.Type()
 
 					switch tp.Kind() {
-					case reflect.Func:
-						// Skip
 					case reflect.Map:
 						if option.value.Len() == 0 {
 							for _, k := range option.defaultValue.MapKeys() {
 								option.value.SetMapIndex(k, option.defaultValue.MapIndex(k))
 							}
 						}
-					default:
+					case reflect.Slice:
 						if reflect.DeepEqual(option.value.Interface(), reflect.Zero(tp).Interface()) {
 							option.value.Set(option.defaultValue)
 						}

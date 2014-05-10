@@ -17,12 +17,6 @@ func newGroup(shortDescription string, longDescription string, data interface{})
 	}
 }
 
-func (g *Group) clear() {
-	for _, option := range g.options {
-		option.clear()
-	}
-}
-
 func (g *Group) optionByName(name string, namematch func(*Option, string) bool) *Option {
 	prio := 0
 	var retopt *Option
