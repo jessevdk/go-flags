@@ -152,13 +152,17 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 	return option, err
 }
 
-func (p *Parser) parseLong(s *parseState, name string, argument *string) (option *Option, err error) {
+func (p *Parser) parseLong(s *parseState, name string, argument *string) (options []*Option, err error) {
 	if option := s.lookup.longNames[name]; option != nil {
+		options = append(options, option)
+
 		// Only long options that are required can consume an argument
 		// from the argument list
 		canarg := !option.OptionalArgument
 
-		return p.parseOption(s, name, option, canarg, argument)
+		_, err := p.parseOption(s, name, option, canarg, argument)
+
+		return options, err
 	}
 
 	return nil, newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", name))
@@ -181,7 +185,7 @@ func (p *Parser) splitShortConcatArg(s *parseState, optname string) (string, *st
 	return optname, nil
 }
 
-func (p *Parser) parseShort(s *parseState, optname string, argument *string) (option *Option, err error) {
+func (p *Parser) parseShort(s *parseState, optname string, argument *string) (options []*Option, err error) {
 	if argument == nil {
 		optname, argument = p.splitShortConcatArg(s, optname)
 	}
@@ -189,13 +193,15 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) (op
 	for i, c := range optname {
 		shortname := string(c)
 
-		if option = s.lookup.shortNames[shortname]; option != nil {
+		if option := s.lookup.shortNames[shortname]; option != nil {
+			options = append(options, option)
+
 			// Only the last short argument can consume an argument from
 			// the arguments list, and only if it's non optional
 			canarg := (i+utf8.RuneLen(c) == len(optname)) && !option.OptionalArgument
 
 			if _, err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
-				return option, err
+				return options, err
 			}
 		} else {
 			return nil, newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", shortname))
@@ -206,7 +212,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) (op
 		argument = nil
 	}
 
-	return option, nil
+	return options, nil
 }
 
 func (p *Parser) parseNonOption(s *parseState) error {

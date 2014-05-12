@@ -58,6 +58,30 @@ func TestShortMultiConcat(t *testing.T) {
 	}
 }
 
+func TestShortMultiRequiredConcat(t *testing.T) {
+	var opts = struct {
+		V bool `short:"v" required:"true"`
+		O bool `short:"o" required:"true"`
+		F bool `short:"f" required:"true"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-vo", "-f")
+
+	assertStringArray(t, ret, []string{})
+
+	if !opts.V {
+		t.Errorf("Expected V to be true")
+	}
+
+	if !opts.O {
+		t.Errorf("Expected O to be true")
+	}
+
+	if !opts.F {
+		t.Errorf("Expected F to be true")
+	}
+}
+
 func TestShortMultiSlice(t *testing.T) {
 	var opts = struct {
 		Values []bool `short:"v"`
