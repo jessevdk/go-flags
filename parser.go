@@ -128,13 +128,19 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		return nil, p.internalError
 	}
 
+	s := &parseState{
+		args:         args,
+		retargs:      make([]string, 0, len(args)),
+		command:      p.Command,
+		storedValues: make(map[*Option]interface{}),
+	}
+
 	p.eachCommand(func(c *Command) {
 		c.eachGroup(func(g *Group) {
-			g.storeDefaults()
-
 			for _, option := range g.options {
 				switch option.value.Type().Kind() {
-				case reflect.Func, reflect.Map, reflect.Slice:
+				case reflect.Map, reflect.Slice:
+					s.storedValues[option] = option.value.Interface()
 					option.clear()
 				}
 			}
@@ -146,12 +152,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
 
-	s := &parseState{
-		args:    args,
-		retargs: make([]string, 0, len(args)),
-		command: p.Command,
-		lookup:  p.makeLookup(),
-	}
+	s.lookup = p.makeLookup()
 
 	for !s.eof() {
 		arg := s.pop()
@@ -200,31 +201,15 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		} else {
 			for _, option := range options {
 				delete(s.lookup.required, option)
+				delete(s.storedValues, option)
 			}
 		}
 	}
 
 	if s.err == nil {
-		p.eachCommand(func(c *Command) {
-			c.eachGroup(func(g *Group) {
-				for _, option := range g.options {
-					tp := option.value.Type()
-
-					switch tp.Kind() {
-					case reflect.Map:
-						if option.value.Len() == 0 {
-							for _, k := range option.defaultValue.MapKeys() {
-								option.value.SetMapIndex(k, option.defaultValue.MapIndex(k))
-							}
-						}
-					case reflect.Slice:
-						if reflect.DeepEqual(option.value.Interface(), reflect.Zero(tp).Interface()) {
-							option.value.Set(option.defaultValue)
-						}
-					}
-				}
-			})
-		}, true)
+		for option, storedValue := range s.storedValues {
+			option.value.Set(reflect.ValueOf(storedValue))
+		}
 
 		s.checkRequired()
 	}

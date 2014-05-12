@@ -174,6 +174,26 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			tag:   mtag,
 		}
 
+		// Set the default value if there is one defined
+		if len(option.Default) > 0 {
+			option.clear()
+
+			for _, d := range option.Default {
+				option.set(&d)
+			}
+		}
+
+		// Save the current value as the default value
+		if option.value.Kind() == reflect.Map {
+			option.defaultValue = reflect.MakeMap(option.value.Type())
+
+			for _, k := range option.value.MapKeys() {
+				option.defaultValue.SetMapIndex(k, option.value.MapIndex(k))
+			}
+		} else {
+			option.defaultValue = reflect.ValueOf(option.value.Interface())
+		}
+
 		g.options = append(g.options, option)
 	}
 
