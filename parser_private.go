@@ -110,11 +110,11 @@ func (p *parseState) estimateCommand() error {
 	return newError(errtype, msg)
 }
 
-func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (retoption *Option, err error) {
+func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
 	if !option.canArgument() {
 		if argument != nil {
 			msg := fmt.Sprintf("bool flag `%s' cannot have an argument", option)
-			return option, newError(ErrNoArgumentForBool, msg)
+			return newError(ErrNoArgumentForBool, msg)
 		}
 
 		err = option.set(nil)
@@ -149,7 +149,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		}
 	}
 
-	return option, err
+	return err
 }
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) (options []*Option, err error) {
@@ -160,7 +160,7 @@ func (p *Parser) parseLong(s *parseState, name string, argument *string) (option
 		// from the argument list
 		canarg := !option.OptionalArgument
 
-		_, err := p.parseOption(s, name, option, canarg, argument)
+		err := p.parseOption(s, name, option, canarg, argument)
 
 		return options, err
 	}
@@ -200,7 +200,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) (op
 			// the arguments list, and only if it's non optional
 			canarg := (i+utf8.RuneLen(c) == len(optname)) && !option.OptionalArgument
 
-			if _, err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
+			if err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
 				return options, err
 			}
 		} else {
