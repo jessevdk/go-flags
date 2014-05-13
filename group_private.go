@@ -169,6 +169,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			ValueName:        valueName,
 			DefaultMask:      defaultMask,
 
+			group: g,
+
 			field: field,
 			value: realval.Field(i),
 			tag:   mtag,

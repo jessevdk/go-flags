@@ -53,6 +53,9 @@ type Option struct {
 	// passwords.
 	DefaultMask string
 
+	// The group which the option belongs to
+	group *Group
+
 	// The struct field which the option represents.
 	field reflect.StructField
 
