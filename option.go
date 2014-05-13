@@ -67,6 +67,29 @@ type Option struct {
 	tag          multiTag
 }
 
+// LongNameWithNamespace returns the option's long name with the group namespaces
+// prepended by walking up the option's group tree. Namespaces and the long name
+// itself are separated by the global namespace delimiter. If the long name is
+// empty an empty string is returned.
+func (option *Option) LongNameWithNamespace() string {
+	if len(option.LongName) == 0 {
+		return ""
+	}
+
+	longName := option.LongName
+	g := option.group
+
+	for g != nil {
+		if g.Namespace != "" {
+			longName = g.Namespace + NamespaceDelimiter + longName
+		}
+
+		g = g.parent
+	}
+
+	return longName
+}
+
 // String converts an option to a human friendly readable string describing the
 // option.
 func (option *Option) String() string {
@@ -81,12 +104,12 @@ func (option *Option) String() string {
 		if len(option.LongName) != 0 {
 			s = fmt.Sprintf("%s%s, %s%s",
 				string(defaultShortOptDelimiter), short,
-				defaultLongOptDelimiter, option.LongName)
+				defaultLongOptDelimiter, option.LongNameWithNamespace())
 		} else {
 			s = fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
 		}
 	} else if len(option.LongName) != 0 {
-		s = fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongName)
+		s = fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongNameWithNamespace())
 	}
 
 	return s

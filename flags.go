@@ -22,6 +22,7 @@
 //     Supports same option multiple times (can store in slice or last option counts)
 //     Supports maps
 //     Supports function callbacks
+//     Supports namespaces for (nested) option groups
 //
 // Additional features specific to Windows:
 //     Options with short names (/v)
@@ -94,6 +95,10 @@
 //
 //     group:                when specified on a struct field, makes the struct
 //                           field a separate group with the given name (optional)
+//     namespace:            when specified on a group struct field, the namespace
+//                           gets prepended to every option's long name and
+//                           subgroup's namespace of this group, separated by
+//                           the global namespace delimiter (optional)
 //     command:              when specified on a struct field, makes the struct
 //                           field a (sub)command with the given name (optional)
 //     subcommands-optional: when specified on a command struct field, makes
@@ -109,10 +114,10 @@
 //
 // Option groups:
 //
-// Option groups are a simple way to semantically separate your options. The
-// only real difference is in how your options will appear in the built-in
-// generated help. All options in a particular group are shown together in the
-// help under the name of the group.
+// Option groups are a simple way to semantically separate your options. All
+// options in a particular group are shown together in the help under the name
+// of the group. Namespaces can be used to specify option long names more
+// precisely and emphasize the options affiliation to their group.
 //
 // There are currently three ways to specify option groups.
 //

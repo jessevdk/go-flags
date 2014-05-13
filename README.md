@@ -25,6 +25,7 @@ Supported features:
 * Supports same option multiple times (can store in slice or last option counts)
 * Supports maps
 * Supports function callbacks
+* Supports namespaces for (nested) option groups
 
 The flags package uses structs, reflection and struct field tags
 to allow users to specify command line options. This results in very simple

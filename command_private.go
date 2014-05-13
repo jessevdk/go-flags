@@ -120,7 +120,7 @@ func (c *Command) makeLookup() lookup {
 			}
 
 			if len(option.LongName) > 0 {
-				ret.longNames[option.LongName] = option
+				ret.longNames[option.LongNameWithNamespace()] = option
 			}
 		}
 	})

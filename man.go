@@ -50,7 +50,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 					fmt.Fprintf(wr, ", ")
 				}
 
-				fmt.Fprintf(wr, "--%s", opt.LongName)
+				fmt.Fprintf(wr, "--%s", opt.LongNameWithNamespace())
 			}
 
 			fmt.Fprintln(wr, "\\fP")

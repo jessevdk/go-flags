@@ -63,6 +63,14 @@ StringSlice = value
 int-map = a:2
 int-map = b:3
 
+[Subgroup]
+; This is a subgroup option
+Opt =
+
+[Subsubgroup]
+; This is a subsubgroup option
+Opt =
+
 [command.A command]
 ; Use for extra verbosity
 ; ExtraVerbose =
@@ -103,6 +111,14 @@ int-map = b:3
 ; A map from string to int
 ; int-map = a:1
 
+[Subgroup]
+; This is a subgroup option
+; Opt =
+
+[Subsubgroup]
+; This is a subsubgroup option
+; Opt =
+
 [command.A command]
 ; Use for extra verbosity
 ; ExtraVerbose =
@@ -140,6 +156,14 @@ DefaultMap = new:value
 
 ; A map from string to int
 ; int-map = a:1
+
+[Subgroup]
+; This is a subgroup option
+; Opt =
+
+[Subsubgroup]
+; This is a subsubgroup option
+; Opt =
 
 [command.A command]
 ; Use for extra verbosity

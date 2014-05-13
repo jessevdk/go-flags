@@ -29,6 +29,9 @@ type Group struct {
 	// (Command embeds Group) in the built-in generated help and man pages.
 	LongDescription string
 
+	// The namespace of the group
+	Namespace string
+
 	// The parent of the group or nil if it has no parent
 	parent *Group
 

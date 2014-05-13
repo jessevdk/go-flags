@@ -32,7 +32,7 @@ func (g *Group) optionByName(name string, namematch func(*Option, string) bool) 
 			prio = 3
 		}
 
-		if name == opt.LongName && prio < 2 {
+		if name == opt.LongNameWithNamespace() && prio < 2 {
 			retopt = opt
 			prio = 2
 		}
@@ -191,11 +191,13 @@ func (g *Group) checkForDuplicateFlags() *Error {
 	g.eachGroup(func(g *Group) {
 		for _, option := range g.options {
 			if option.LongName != "" {
-				if otherOption, ok := longNames[option.LongName]; ok {
+				longName := option.LongNameWithNamespace()
+
+				if otherOption, ok := longNames[longName]; ok {
 					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same long name as option `%s'", option, otherOption)
 					return
 				}
-				longNames[option.LongName] = option
+				longNames[longName] = option
 			}
 			if option.ShortName != 0 {
 				if otherOption, ok := shortNames[option.ShortName]; ok {
@@ -223,9 +225,12 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		ptrval := reflect.NewAt(realval.Type(), unsafe.Pointer(realval.UnsafeAddr()))
 		description := mtag.Get("description")
 
-		if _, err := g.AddGroup(subgroup, description, ptrval.Interface()); err != nil {
+		group, err := g.AddGroup(subgroup, description, ptrval.Interface())
+		if err != nil {
 			return true, err
 		}
+
+		group.Namespace = mtag.Get("namespace")
 
 		return true, nil
 	}
