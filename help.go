@@ -190,6 +190,31 @@ func maxCommandLength(s []*Command) int {
 	return ret
 }
 
+// Help returns the help message as a string. You must call one of the flags.Parse
+// method before calling this method. An error ErrArgumentsNoParsed is
+// returned if the arguments have not been parsed yet.
+func Help() (string, error) {
+	if defaultParser == nil {
+		return "", newError(ErrArgumentsNoParsed, "arguments have not been parsed")
+	}
+	
+	var b bytes.Buffer
+	defaultParser.WriteHelp(&b)
+	return b.String(), nil
+}
+
+// PrintHelp is a helper function that prints the help message to stdout. You
+// must call one of the flags.Parse methods before calling this function.
+func PrintHelp() error {
+	help, err := Help()
+	if err != nil {
+		return err
+	}
+	
+	fmt.Println(help)
+	return nil
+}
+
 // WriteHelp writes a help message containing all the possible options and
 // their descriptions to the provided writer. Note that the HelpFlag parser
 // option provides a convenient way to add a -h/--help option group to the
