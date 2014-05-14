@@ -98,7 +98,7 @@
 //     namespace:            when specified on a group struct field, the namespace
 //                           gets prepended to every option's long name and
 //                           subgroup's namespace of this group, separated by
-//                           the global namespace delimiter (optional)
+//                           the parser's namespace delimiter (optional)
 //     command:              when specified on a struct field, makes the struct
 //                           field a (sub)command with the given name (optional)
 //     subcommands-optional: when specified on a command struct field, makes

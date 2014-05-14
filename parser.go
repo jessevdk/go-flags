@@ -22,6 +22,9 @@ type Parser struct {
 	// Option flags changing the behavior of the parser.
 	Options Options
 
+	// NamespaceDelimiter separates group namespaces and option long names
+	NamespaceDelimiter string
+
 	internalError error
 }
 
@@ -108,6 +111,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
 		Command:            newCommand(appname, "", "", nil),
 		Options:            options,
+		NamespaceDelimiter: ".",
 	}
 
 	p.Command.parent = p

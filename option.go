@@ -69,19 +69,40 @@ type Option struct {
 
 // LongNameWithNamespace returns the option's long name with the group namespaces
 // prepended by walking up the option's group tree. Namespaces and the long name
-// itself are separated by the global namespace delimiter. If the long name is
+// itself are separated by the parser's namespace delimiter. If the long name is
 // empty an empty string is returned.
 func (option *Option) LongNameWithNamespace() string {
 	if len(option.LongName) == 0 {
 		return ""
 	}
 
-	longName := option.LongName
+	// fetch the namespace delimiter from the parser which is always at the
+	// end of the group hierarchy
+	namespaceDelimiter := ""
 	g := option.group
+
+	for {
+		if p, ok := g.parent.(*Parser); ok {
+			namespaceDelimiter = p.NamespaceDelimiter
+
+			break
+		}
+
+		switch i := g.parent.(type) {
+		case *Command:
+			g = i.Group
+		case *Group:
+			g = i
+		}
+	}
+
+	// concatenate long name with namespace
+	longName := option.LongName
+	g = option.group
 
 	for g != nil {
 		if g.Namespace != "" {
-			longName = g.Namespace + NamespaceDelimiter + longName
+			longName = g.Namespace + namespaceDelimiter + longName
 		}
 
 		switch i := g.parent.(type) {
