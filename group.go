@@ -33,7 +33,7 @@ type Group struct {
 	Namespace string
 
 	// The parent of the group or nil if it has no parent
-	parent *Group
+	parent interface{}
 
 	// All the options in the group
 	options []*Option

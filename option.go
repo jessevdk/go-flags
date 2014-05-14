@@ -84,7 +84,14 @@ func (option *Option) LongNameWithNamespace() string {
 			longName = g.Namespace + NamespaceDelimiter + longName
 		}
 
-		g = g.parent
+		switch i := g.parent.(type) {
+		case *Command:
+			g = i.Group
+		case *Group:
+			g = i
+		case *Parser:
+			g = nil
+		}
 	}
 
 	return longName
