@@ -6,8 +6,7 @@ import (
 	"os"
 )
 
-// IniError contains location information on where in the ini file an error
-// occured.
+// IniError contains location information on where an error occured.
 type IniError struct {
 	// The error message.
 	Message string
@@ -29,15 +28,14 @@ func (x *IniError) Error() string {
 	)
 }
 
-// IniOptions for writing ini files
+// IniOptions for writing
 type IniOptions uint
 
 const (
 	// IniNone indicates no options.
 	IniNone IniOptions = 0
 
-	// IniIncludeDefaults indicates that default values should be written
-	// when writing options to an ini file.
+	// IniIncludeDefaults indicates that default values should be written.
 	IniIncludeDefaults = 1 << iota
 
 	// IniCommentDefaults indicates that if IniIncludeDefaults is used
@@ -45,7 +43,7 @@ const (
 	IniCommentDefaults
 
 	// IniIncludeComments indicates that comments containing the description
-	// of an option should be written when writing options to an ini file.
+	// of an option should be written.
 	IniIncludeComments
 
 	// IniDefault provides a default set of options.
@@ -53,7 +51,7 @@ const (
 )
 
 // IniParser is a utility to read and write flags options from and to ini
-// files.
+// formatted strings.
 type IniParser struct {
 	parser *Parser
 }
@@ -66,7 +64,7 @@ func NewIniParser(p *Parser) *IniParser {
 }
 
 // IniParse is a convenience function to parse command line options with default
-// settings from an ini file. The provided data is a pointer to a struct
+// settings from an ini formatted file. The provided data is a pointer to a struct
 // representing the default option group (named "Application Options"). For
 // more control, use flags.NewParser.
 func IniParse(filename string, data interface{}) error {
@@ -113,8 +111,7 @@ func (i *IniParser) ParseFile(filename string) error {
 // namespacing notation (i.e [subcommand.Options]). Group section names are
 // matched case insensitive.
 //
-// The returned errors can be of the type flags.Error or
-// flags.IniError.
+// The returned errors can be of the type flags.Error or flags.IniError.
 func (i *IniParser) Parse(reader io.Reader) error {
 	i.parser.storeDefaults()
 
