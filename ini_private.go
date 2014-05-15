@@ -193,9 +193,7 @@ func readIni(contents io.Reader, filename string) (ini, error) {
 
 		if err == io.EOF {
 			break
-		}
-
-		if err != nil {
+		} else if err != nil {
 			return nil, err
 		}
 
@@ -289,8 +287,10 @@ func (i *IniParser) parse(ini ini) error {
 		groups := i.matchingGroups(name)
 
 		if len(groups) == 0 {
-			return newError(ErrUnknownGroup,
-				fmt.Sprintf("could not find option group `%s'", name))
+			return newError(
+				ErrUnknownGroup,
+				fmt.Sprintf("could not find option group `%s'", name),
+			)
 		}
 
 		for _, inival := range section {
@@ -312,8 +312,10 @@ func (i *IniParser) parse(ini ini) error {
 
 			if opt == nil {
 				if (p.Options & IgnoreUnknown) == None {
-					return newError(ErrUnknownFlag,
-						fmt.Sprintf("unknown option: %s", inival.Name))
+					return newError(
+						ErrUnknownFlag,
+						fmt.Sprintf("unknown option: %s", inival.Name),
+					)
 				}
 
 				continue

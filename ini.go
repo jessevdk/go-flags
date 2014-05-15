@@ -21,10 +21,12 @@ type IniError struct {
 
 // Error provides a "file:line: message" formatted message of the ini error.
 func (x *IniError) Error() string {
-	return fmt.Sprintf("%s:%d: %s",
+	return fmt.Sprintf(
+		"%s:%d: %s",
 		x.File,
 		x.LineNumber,
-		x.Message)
+		x.Message,
+	)
 }
 
 // IniOptions for writing ini files
@@ -69,6 +71,7 @@ func NewIniParser(p *Parser) *IniParser {
 // more control, use flags.NewParser.
 func IniParse(filename string, data interface{}) error {
 	p := NewParser(data, Default)
+
 	return NewIniParser(p).ParseFile(filename)
 }
 
@@ -135,6 +138,7 @@ func (i *IniParser) WriteFile(filename string, options IniOptions) error {
 	}
 
 	defer file.Close()
+
 	i.Write(file, options)
 
 	return nil
