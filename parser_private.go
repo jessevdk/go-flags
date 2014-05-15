@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"unicode/utf8"
 )
@@ -39,32 +40,6 @@ func (p *parseState) peek() string {
 	}
 
 	return p.args[0]
-}
-
-func (p *parseState) checkRequired() error {
-	required := p.lookup.required
-
-	if len(required) == 0 {
-		return nil
-	}
-
-	names := make([]string, 0, len(required))
-
-	for k := range required {
-		names = append(names, "`"+k.String()+"'")
-	}
-
-	var msg string
-
-	if len(names) == 1 {
-		msg = fmt.Sprintf("the required flag %s was not specified", names[0])
-	} else {
-		msg = fmt.Sprintf("the required flags %s and %s were not specified",
-			strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
-	}
-
-	p.err = newError(ErrRequired, msg)
-	return p.err
 }
 
 func (p *parseState) estimateCommand() error {
@@ -108,6 +83,34 @@ func (p *parseState) estimateCommand() error {
 	}
 
 	return newError(errtype, msg)
+}
+
+func (p *Parser) checkRequired() error {
+	var names []string
+
+	p.eachCommand(func(c *Command) {
+		c.eachGroup(func(g *Group) {
+			for _, option := range g.options {
+				if option.Required && option.canCli() && len(option.Default) == 0 && reflect.DeepEqual(option.value.Interface(), option.defaultValue.Interface()) {
+					names = append(names, "`"+option.String()+"'")
+				}
+			}
+		})
+	}, true)
+
+	if len(names) == 0 {
+		return nil
+	}
+
+	var msg string
+
+	if len(names) == 1 {
+		msg = fmt.Sprintf("the required flag %s was not specified", names[0])
+	} else {
+		msg = fmt.Sprintf("the required flags %s and %s were not specified", strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
+	}
+
+	return newError(ErrRequired, msg)
 }
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
@@ -217,7 +220,9 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) (op
 
 func (p *Parser) parseNonOption(s *parseState) error {
 	if cmd := s.lookup.commands[s.arg]; cmd != nil {
-		if err := s.checkRequired(); err != nil {
+		if err := p.checkRequired(); err != nil {
+			s.err = err
+
 			return err
 		}
 
