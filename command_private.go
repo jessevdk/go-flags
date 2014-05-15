@@ -11,7 +11,6 @@ type lookup struct {
 	shortNames map[string]*Option
 	longNames  map[string]*Option
 
-	required map[*Option]bool
 	commands map[string]*Command
 }
 
@@ -105,16 +104,11 @@ func (c *Command) makeLookup() lookup {
 		shortNames: make(map[string]*Option),
 		longNames:  make(map[string]*Option),
 
-		required: make(map[*Option]bool),
 		commands: make(map[string]*Command),
 	}
 
 	c.eachGroup(func(g *Group) {
 		for _, option := range g.options {
-			if option.Required && option.canCli() {
-				ret.required[option] = true
-			}
-
 			if option.ShortName != 0 {
 				ret.shortNames[string(option.ShortName)] = option
 			}
