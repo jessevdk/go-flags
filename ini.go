@@ -3,7 +3,6 @@ package flags
 import (
 	"fmt"
 	"io"
-	"os"
 )
 
 // IniError contains location information on where an error occured.
@@ -128,17 +127,7 @@ func (i *IniParser) Parse(reader io.Reader) error {
 // for more information. The returned error occurs when the specified file
 // could not be opened for writing.
 func (i *IniParser) WriteFile(filename string, options IniOptions) error {
-	file, err := os.Create(filename)
-
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-
-	i.Write(file, options)
-
-	return nil
+	return writeIniToFile(i, filename, options)
 }
 
 // Write writes the current values of all the flags to an ini format.

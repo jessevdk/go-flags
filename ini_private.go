@@ -163,6 +163,20 @@ func writeIni(parser *IniParser, writer io.Writer, options IniOptions) {
 	writeCommandIni(parser.parser.Command, "", writer, options)
 }
 
+func writeIniToFile(parser *IniParser, filename string, options IniOptions) error {
+	file, err := os.Create(filename)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	writeIni(parser, file, options)
+
+	return nil
+}
+
 func readIniFromFile(filename string) (ini, error) {
 	file, err := os.Open(filename)
 
