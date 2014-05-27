@@ -2,6 +2,8 @@ package flags
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 )
@@ -299,4 +301,65 @@ value = some value
 	}
 
 	assertError(t, err, ErrUnknownFlag, "unknown option: value")
+}
+
+func TestIniParse(t *testing.T) {
+	file, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Cannot create temporary file: %s", err)
+	}
+	defer os.Remove(file.Name())
+
+	_, err = file.WriteString("value = 123")
+	if err != nil {
+		t.Fatalf("Cannot write to temporary file: %s", err)
+	}
+
+	file.Close()
+
+	var opts struct {
+		Value int `long:"value"`
+	}
+
+	err = IniParse(file.Name(), &opts)
+	if err != nil {
+		t.Fatalf("Could not parse ini: %s", err)
+	}
+
+	if opts.Value != 123 {
+		t.Fatalf("Expected Value to be \"123\" but was \"%d\"", opts.Value)
+	}
+}
+
+func TestWriteFile(t *testing.T) {
+	file, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Cannot create temporary file: %s", err)
+	}
+	defer os.Remove(file.Name())
+
+	var opts struct {
+		Value int `long:"value"`
+	}
+
+	opts.Value = 123
+
+	p := NewParser(&opts, Default)
+	ini := NewIniParser(p)
+
+	err = ini.WriteFile(file.Name(), IniIncludeDefaults)
+	if err != nil {
+		t.Fatalf("Could not write ini file: %s", err)
+	}
+
+	found, err := ioutil.ReadFile(file.Name())
+	if err != nil {
+		t.Fatalf("Could not read written ini file: %s", err)
+	}
+
+	expected := "[Application Options]\nValue = 123\n\n"
+
+	if string(found) != expected {
+		t.Fatalf("Expected file content to be \"%s\" but was \"%s\"", expected, found)
+	}
 }
