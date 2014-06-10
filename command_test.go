@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -265,7 +266,7 @@ func TestRequiredOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrRequired, "the required flag `-v' was not specified", &opts, "cmd")
+	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts, "cmd")
 }
 
 func TestRequiredAllOnCommand(t *testing.T) {
@@ -278,7 +279,7 @@ func TestRequiredAllOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrRequired, "the required flags `-v' and `--missing' were not specified", &opts, "cmd")
+	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flags `%cv' and `%smissing' were not specified", defaultShortOptDelimiter, defaultLongOptDelimiter), &opts, "cmd")
 }
 
 func TestDefaultOnCommand(t *testing.T) {

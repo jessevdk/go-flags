@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -81,7 +82,33 @@ func TestHelp(t *testing.T) {
 			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
 		}
 
-		expected := `Usage:
+		var expected string
+
+		if runtime.GOOS == "windows" {
+			expected = `Usage:
+  TestHelp [OPTIONS] <command>
+
+Application Options:
+  /v, /verbose             Show verbose debug information
+  /c:                      Call phone number
+      /ptrslice:           A slice of pointers to string
+      /empty-description
+      /default:            Test default value (Some value)
+      /default-array:      Test default array value (Some value, Another value)
+      /default-map:        Testdefault map value (some:value, another:value)
+
+Other Options:
+  /s:                      A slice of strings (some, value)
+      /intmap:             A map from string to int (a:1)
+
+Help Options:
+  /h, /help                Show this help message
+
+Available commands:
+  command  A command (aliases: cm, cmd)
+`
+		} else {
+			expected = `Usage:
   TestHelp [OPTIONS] <command>
 
 Application Options:
@@ -103,6 +130,7 @@ Help Options:
 Available commands:
   command  A command (aliases: cm, cmd)
 `
+		}
 
 		if e.Message != expected {
 			ret, err := helpDiff(e.Message, expected)
@@ -216,12 +244,23 @@ func TestHelpCommand(t *testing.T) {
 			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
 		}
 
-		expected := `Usage:
+		var expected string
+
+		if runtime.GOOS == "windows" {
+			expected = `Usage:
+  TestHelpCommand [OPTIONS] command
+
+Help Options:
+  /h, /help       Show this help message
+`
+		} else {
+			expected = `Usage:
   TestHelpCommand [OPTIONS] command
 
 Help Options:
   -h, --help      Show this help message
 `
+		}
 
 		if e.Message != expected {
 			ret, err := helpDiff(e.Message, expected)
