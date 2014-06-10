@@ -102,6 +102,7 @@ Other Options:
       /intmap:             A map from string to int (a:1)
 
 Help Options:
+  /?                       Show this help message
   /h, /help                Show this help message
 
 Available commands:
@@ -251,6 +252,7 @@ func TestHelpCommand(t *testing.T) {
   TestHelpCommand [OPTIONS] command
 
 Help Options:
+  /?              Show this help message
   /h, /help       Show this help message
 `
 		} else {
