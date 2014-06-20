@@ -52,9 +52,6 @@ func (option *Option) clearDefault() {
 		for _, d := range option.Default {
 			option.set(&d)
 		}
-
-		// Mark option as not set
-		option.isSet = false
 	} else {
 		tp := option.value.Type()
 
