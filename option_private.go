@@ -31,31 +31,63 @@ func (option *Option) canArgument() bool {
 	return !option.isBool()
 }
 
-func (option *Option) empty() {
+func (option *Option) emptyValue() reflect.Value {
 	tp := option.value.Type()
 
-	switch tp.Kind() {
-	case reflect.Func:
-		// Skip
-	case reflect.Map:
-		// Empty the map
-		option.value.Set(reflect.MakeMap(tp))
-	default:
-		zeroval := reflect.Zero(tp)
-		option.value.Set(zeroval)
+	if tp.Kind() == reflect.Map {
+		return reflect.MakeMap(tp)
 	}
+
+	return reflect.Zero(tp)
+}
+
+func (option *Option) empty() {
+	option.value.Set(option.emptyValue())
 }
 
 func (option *Option) clearDefault() {
-	option.empty()
-
 	if len(option.Default) > 0 {
+		option.empty()
+
 		for _, d := range option.Default {
 			option.set(&d)
 		}
 
+		// Mark option as not set
 		option.isSet = false
+	} else {
+		tp := option.value.Type()
+
+		switch tp.Kind() {
+		case reflect.Map:
+			if option.value.IsNil() {
+				option.empty()
+			}
+		case reflect.Slice:
+			if option.value.IsNil() {
+				option.empty()
+			}
+		}
 	}
+}
+
+func (option *Option) valueIsDefault() bool {
+	// Check if the value of the option corresponds to its
+	// default value
+	emptyval := option.emptyValue()
+
+	checkvalptr := reflect.New(emptyval.Type())
+	checkval := reflect.Indirect(checkvalptr)
+
+	checkval.Set(emptyval)
+
+	if len(option.Default) != 0 {
+		for _, v := range option.Default {
+			convert(v, checkval, option.tag)
+		}
+	}
+
+	return reflect.DeepEqual(option.value.Interface(), checkval.Interface())
 }
 
 func (option *Option) isUnmarshaler() Unmarshaler {
