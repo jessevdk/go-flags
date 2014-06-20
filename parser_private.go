@@ -48,7 +48,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 	required := make([]*Option, 0)
 
 	for c != nil {
-		c.eachGroup(func (g *Group) {
+		c.eachGroup(func(g *Group) {
 			for _, option := range g.options {
 				if !option.isSet && option.Required {
 					required = append(required, option)

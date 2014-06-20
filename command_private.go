@@ -103,7 +103,7 @@ func (c *Command) makeLookup() lookup {
 	ret := lookup{
 		shortNames: make(map[string]*Option),
 		longNames:  make(map[string]*Option),
-		commands: make(map[string]*Command),
+		commands:   make(map[string]*Command),
 	}
 
 	c.eachGroup(func(g *Group) {
