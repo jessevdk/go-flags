@@ -58,6 +58,14 @@ type helpOptions struct {
 		IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int" ini-name:"int-map"`
 	} `group:"Other Options"`
 
+	Group struct {
+		Opt string `long:"opt" description:"This is a subgroup option"`
+
+		Group struct {
+			Opt string `long:"opt" description:"This is a subsubgroup option"`
+		} `group:"Subsubgroup" namespace:"sap"`
+	} `group:"Subgroup" namespace:"sip"`
+
 	Command struct {
 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
 	} `command:"command" alias:"cm" alias:"cmd" description:"A command"`
@@ -124,6 +132,12 @@ Application Options:
 Other Options:
   -s=                      A slice of strings (some, value)
       --intmap=            A map from string to int (a:1)
+
+Subgroup:
+      --sip.opt=           This is a subgroup option
+
+Subsubgroup:
+      --sip.sap.opt=       This is a subsubgroup option
 
 Help Options:
   -h, --help               Show this help message
@@ -197,6 +211,12 @@ A slice of strings
 .TP
 \fB--intmap\fP
 A map from string to int
+.TP
+\fB--sip.opt\fP
+This is a subgroup option
+.TP
+\fB--sip.sap.opt\fP
+This is a subsubgroup option
 .SH COMMANDS
 .SS command
 A command

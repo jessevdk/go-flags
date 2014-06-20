@@ -50,7 +50,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.hasValueName = true
 			}
 
-			l := utf8.RuneCountInString(info.LongName) + lv
+			l := utf8.RuneCountInString(info.LongNameWithNamespace()) + lv
 
 			if c != p.Command {
 				// for indenting
@@ -109,7 +109,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		}
 
 		line.WriteString(defaultLongOptDelimiter)
-		line.WriteString(option.LongName)
+		line.WriteString(option.LongNameWithNamespace())
 	}
 
 	if option.canArgument() {

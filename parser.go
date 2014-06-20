@@ -21,6 +21,9 @@ type Parser struct {
 	// Option flags changing the behavior of the parser.
 	Options Options
 
+	// NamespaceDelimiter separates group namespaces and option long names
+	NamespaceDelimiter string
+
 	internalError error
 }
 
@@ -87,23 +90,32 @@ func ParseArgs(data interface{}, args []string) ([]string, error) {
 // group should not be added. The options parameter specifies a set of options
 // for the parser.
 func NewParser(data interface{}, options Options) *Parser {
-	ret := NewNamedParser(path.Base(os.Args[0]), options)
+	p := NewNamedParser(path.Base(os.Args[0]), options)
 
 	if data != nil {
-		_, ret.internalError = ret.AddGroup("Application Options", "", data)
+		g, err := p.AddGroup("Application Options", "", data)
+		if err == nil {
+			g.parent = p
+		}
+		p.internalError = err
 	}
 
-	return ret
+	return p
 }
 
 // NewNamedParser creates a new parser. The appname is used to display the
 // executable name in the built-in help message. Option groups and commands can
 // be added to this parser by using AddGroup and AddCommand.
 func NewNamedParser(appname string, options Options) *Parser {
-	return &Parser{
-		Command: newCommand(appname, "", "", nil),
-		Options: options,
+	p := &Parser{
+		Command:            newCommand(appname, "", "", nil),
+		Options:            options,
+		NamespaceDelimiter: ".",
 	}
+
+	p.Command.parent = p
+
+	return p
 }
 
 // Parse parses the command line arguments from os.Args using Parser.ParseArgs.

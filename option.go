@@ -53,6 +53,9 @@ type Option struct {
 	// passwords.
 	DefaultMask string
 
+	// The group which the option belongs to
+	group *Group
+
 	// The struct field which the option represents.
 	field reflect.StructField
 
@@ -62,6 +65,57 @@ type Option struct {
 	iniUsedName string
 	tag         multiTag
 	isSet       bool
+}
+
+// LongNameWithNamespace returns the option's long name with the group namespaces
+// prepended by walking up the option's group tree. Namespaces and the long name
+// itself are separated by the parser's namespace delimiter. If the long name is
+// empty an empty string is returned.
+func (option *Option) LongNameWithNamespace() string {
+	if len(option.LongName) == 0 {
+		return ""
+	}
+
+	// fetch the namespace delimiter from the parser which is always at the
+	// end of the group hierarchy
+	namespaceDelimiter := ""
+	g := option.group
+
+	for {
+		if p, ok := g.parent.(*Parser); ok {
+			namespaceDelimiter = p.NamespaceDelimiter
+
+			break
+		}
+
+		switch i := g.parent.(type) {
+		case *Command:
+			g = i.Group
+		case *Group:
+			g = i
+		}
+	}
+
+	// concatenate long name with namespace
+	longName := option.LongName
+	g = option.group
+
+	for g != nil {
+		if g.Namespace != "" {
+			longName = g.Namespace + namespaceDelimiter + longName
+		}
+
+		switch i := g.parent.(type) {
+		case *Command:
+			g = i.Group
+		case *Group:
+			g = i
+		case *Parser:
+			g = nil
+		}
+	}
+
+	return longName
 }
 
 // String converts an option to a human friendly readable string describing the
@@ -78,12 +132,12 @@ func (option *Option) String() string {
 		if len(option.LongName) != 0 {
 			s = fmt.Sprintf("%s%s, %s%s",
 				string(defaultShortOptDelimiter), short,
-				defaultLongOptDelimiter, option.LongName)
+				defaultLongOptDelimiter, option.LongNameWithNamespace())
 		} else {
 			s = fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
 		}
 	} else if len(option.LongName) != 0 {
-		s = fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongName)
+		s = fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongNameWithNamespace())
 	}
 
 	return s
