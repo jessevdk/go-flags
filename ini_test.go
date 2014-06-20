@@ -363,3 +363,75 @@ func TestWriteFile(t *testing.T) {
 		t.Fatalf("Expected file content to be \"%s\" but was \"%s\"", expected, found)
 	}
 }
+
+func TestOverwriteRequiredOptions(t *testing.T) {
+	var tests = []struct {
+		args     []string
+		expected []string
+	}{
+		{
+			args: []string{"--value", "from CLI"},
+			expected: []string{
+				"from CLI",
+				"from default",
+			},
+		},
+		{
+			args: []string{"--value", "from CLI", "--default", "from CLI"},
+			expected: []string{
+				"from CLI",
+				"from CLI",
+			},
+		},
+		{
+			args: []string{"--config", "no file name"},
+			expected: []string{
+				"from INI",
+				"from INI",
+			},
+		},
+		{
+			args: []string{"--value", "from CLI before", "--default", "from CLI before", "--config", "no file name"},
+			expected: []string{
+				"from INI",
+				"from INI",
+			},
+		},
+		{
+			args: []string{"--value", "from CLI before", "--default", "from CLI before", "--config", "no file name", "--value", "from CLI after", "--default", "from CLI after"},
+			expected: []string{
+				"from CLI after",
+				"from CLI after",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		var opts struct {
+			Config  func(s string) error `long:"config" no-ini:"true"`
+			Value   string               `long:"value" required:"true"`
+			Default string               `long:"default" required:"true" default:"from default"`
+		}
+
+		p := NewParser(&opts, Default)
+
+		opts.Config = func(s string) error {
+			ini := NewIniParser(p)
+
+			return ini.Parse(bytes.NewBufferString("value = from INI\ndefault = from INI"))
+		}
+
+		_, err := p.ParseArgs(test.args)
+		if err != nil {
+			t.Fatalf("Unexpected error %s with args %+v", err, test.args)
+		}
+
+		if opts.Value != test.expected[0] {
+			t.Fatalf("Expected Value to be \"%s\" but was \"%s\" with args %+v", test.expected[0], opts.Value, test.args)
+		}
+
+		if opts.Default != test.expected[1] {
+			t.Fatalf("Expected Default to be \"%s\" but was \"%s\" with args %+v", test.expected[1], opts.Default, test.args)
+		}
+	}
+}
