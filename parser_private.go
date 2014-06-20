@@ -15,8 +15,9 @@ type parseState struct {
 	retargs []string
 	err     error
 
-	command *Command
-	lookup  lookup
+	command      *Command
+	lookup       lookup
+	storedValues map[*Option]interface{}
 }
 
 func (p *parseState) eof() bool {

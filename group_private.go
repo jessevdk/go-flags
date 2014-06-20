@@ -46,33 +46,6 @@ func (g *Group) optionByName(name string, namematch func(*Option, string) bool) 
 	return retopt
 }
 
-func (g *Group) storeDefaults() {
-	for _, option := range g.options {
-		// First. empty out the value
-		if len(option.Default) > 0 {
-			option.clear()
-		}
-
-		for _, d := range option.Default {
-			option.set(&d)
-		}
-
-		if !option.value.CanSet() {
-			continue
-		}
-
-		if option.value.Kind() == reflect.Map {
-			option.defaultValue = reflect.MakeMap(option.value.Type())
-
-			for _, k := range option.value.MapKeys() {
-				option.defaultValue.SetMapIndex(k, option.value.MapIndex(k))
-			}
-		} else {
-			option.defaultValue = reflect.ValueOf(option.value.Interface())
-		}
-	}
-}
-
 func (g *Group) eachGroup(f func(*Group)) {
 	f(g)
 
@@ -172,6 +145,26 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			field: field,
 			value: realval.Field(i),
 			tag:   mtag,
+		}
+
+		// Set the default value if there is one defined
+		if len(option.Default) > 0 {
+			option.clear()
+
+			for _, d := range option.Default {
+				option.set(&d)
+			}
+		}
+
+		// Save the current value as the default value
+		if option.value.Kind() == reflect.Map {
+			option.defaultValue = reflect.MakeMap(option.value.Type())
+
+			for _, k := range option.value.MapKeys() {
+				option.defaultValue.SetMapIndex(k, option.value.MapIndex(k))
+			}
+		} else {
+			option.defaultValue = reflect.ValueOf(option.value.Interface())
 		}
 
 		g.options = append(g.options, option)

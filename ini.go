@@ -76,8 +76,6 @@ func IniParse(filename string, data interface{}) error {
 // information on the ini file format. The returned errors can be of the type
 // flags.Error or flags.IniError.
 func (i *IniParser) ParseFile(filename string) error {
-	i.parser.storeDefaults()
-
 	ini, err := readIniFromFile(filename)
 
 	if err != nil {
@@ -112,8 +110,6 @@ func (i *IniParser) ParseFile(filename string) error {
 //
 // The returned errors can be of the type flags.Error or flags.IniError.
 func (i *IniParser) Parse(reader io.Reader) error {
-	i.parser.storeDefaults()
-
 	ini, err := readIni(reader, "")
 
 	if err != nil {

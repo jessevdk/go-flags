@@ -36,10 +36,10 @@ func TestDefaults(t *testing.T) {
 				Time:        0,
 				TimeDefault: time.Minute,
 
-				Map:        map[string]int{},
+				Map:        nil,
 				MapDefault: map[string]int{"a": 1},
 
-				Slice:        []int{},
+				Slice:        nil,
 				SliceDefault: []int{1, 2},
 			},
 		},
@@ -85,10 +85,6 @@ func TestDefaults(t *testing.T) {
 		_, err := ParseArgs(&opts, test.args)
 		if err != nil {
 			t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
-		}
-
-		if opts.Slice == nil {
-			opts.Slice = []int{}
 		}
 
 		if !reflect.DeepEqual(opts, test.expected) {
