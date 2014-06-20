@@ -162,15 +162,14 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		var err error
-		var options []*Option
 
 		prefix, optname, islong := stripOptionPrefix(arg)
 		optname, argument := splitOption(prefix, optname, islong)
 
 		if islong {
-			options, err = p.parseLong(s, optname, argument)
+			err = p.parseLong(s, optname, argument)
 		} else {
-			options, err = p.parseShort(s, optname, argument)
+			err = p.parseShort(s, optname, argument)
 		}
 
 		if err != nil {
@@ -184,10 +183,6 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 			if ignoreUnknown {
 				s.retargs = append(s.retargs, arg)
-			}
-		} else {
-			for _, option := range options {
-				delete(s.lookup.required, option)
 			}
 		}
 	}
@@ -205,7 +200,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			})
 		}, true)
 
-		s.checkRequired()
+		s.checkRequired(p)
 	}
 
 	var reterr error

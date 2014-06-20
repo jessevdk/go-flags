@@ -42,8 +42,22 @@ func (p *parseState) peek() string {
 	return p.args[0]
 }
 
-func (p *parseState) checkRequired() error {
-	required := p.lookup.required
+func (p *parseState) checkRequired(parser *Parser) error {
+	c := parser.Command
+
+	required := make([]*Option, 0)
+
+	for c != nil {
+		c.eachGroup(func (g *Group) {
+			for _, option := range g.options {
+				if !option.isSet && option.Required {
+					required = append(required, option)
+				}
+			}
+		})
+
+		c = c.Active
+	}
 
 	if len(required) == 0 {
 		return nil
@@ -51,7 +65,7 @@ func (p *parseState) checkRequired() error {
 
 	names := make([]string, 0, len(required))
 
-	for k := range required {
+	for _, k := range required {
 		names = append(names, "`"+k.String()+"'")
 	}
 
@@ -155,20 +169,16 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 	return err
 }
 
-func (p *Parser) parseLong(s *parseState, name string, argument *string) (options []*Option, err error) {
+func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 	if option := s.lookup.longNames[name]; option != nil {
-		options = append(options, option)
-
 		// Only long options that are required can consume an argument
 		// from the argument list
 		canarg := !option.OptionalArgument
 
-		err := p.parseOption(s, name, option, canarg, argument)
-
-		return options, err
+		return p.parseOption(s, name, option, canarg, argument)
 	}
 
-	return nil, newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", name))
+	return newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", name))
 }
 
 func (p *Parser) splitShortConcatArg(s *parseState, optname string) (string, *string) {
@@ -188,7 +198,7 @@ func (p *Parser) splitShortConcatArg(s *parseState, optname string) (string, *st
 	return optname, nil
 }
 
-func (p *Parser) parseShort(s *parseState, optname string, argument *string) (options []*Option, err error) {
+func (p *Parser) parseShort(s *parseState, optname string, argument *string) error {
 	if argument == nil {
 		optname, argument = p.splitShortConcatArg(s, optname)
 	}
@@ -197,17 +207,15 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) (op
 		shortname := string(c)
 
 		if option := s.lookup.shortNames[shortname]; option != nil {
-			options = append(options, option)
-
 			// Only the last short argument can consume an argument from
 			// the arguments list, and only if it's non optional
 			canarg := (i+utf8.RuneLen(c) == len(optname)) && !option.OptionalArgument
 
 			if err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
-				return options, err
+				return err
 			}
 		} else {
-			return nil, newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", shortname))
+			return newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", shortname))
 		}
 
 		// Only the first option can have a concatted argument, so just
@@ -215,15 +223,11 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) (op
 		argument = nil
 	}
 
-	return options, nil
+	return nil
 }
 
 func (p *Parser) parseNonOption(s *parseState) error {
 	if cmd := s.lookup.commands[s.arg]; cmd != nil {
-		if err := s.checkRequired(); err != nil {
-			return err
-		}
-
 		s.command.Active = cmd
 
 		s.command = cmd
