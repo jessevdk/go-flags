@@ -59,9 +59,9 @@ type Option struct {
 	// The struct field value which the option represents.
 	value reflect.Value
 
-	defaultValue reflect.Value
-	iniUsedName  string
-	tag          multiTag
+	iniUsedName string
+	tag         multiTag
+	isSet       bool
 }
 
 // String converts an option to a human friendly readable string describing the

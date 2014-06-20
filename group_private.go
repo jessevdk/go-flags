@@ -46,33 +46,6 @@ func (g *Group) optionByName(name string, namematch func(*Option, string) bool) 
 	return retopt
 }
 
-func (g *Group) storeDefaults() {
-	for _, option := range g.options {
-		// First. empty out the value
-		if len(option.Default) > 0 {
-			option.clear()
-		}
-
-		for _, d := range option.Default {
-			option.set(&d)
-		}
-
-		if !option.value.CanSet() {
-			continue
-		}
-
-		if option.value.Kind() == reflect.Map {
-			option.defaultValue = reflect.MakeMap(option.value.Type())
-
-			for _, k := range option.value.MapKeys() {
-				option.defaultValue.SetMapIndex(k, option.value.MapIndex(k))
-			}
-		} else {
-			option.defaultValue = reflect.ValueOf(option.value.Interface())
-		}
-	}
-}
-
 func (g *Group) eachGroup(f func(*Group)) {
 	f(g)
 

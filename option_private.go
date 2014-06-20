@@ -8,6 +8,8 @@ import (
 // if the specified value could not be converted to the corresponding option
 // value type.
 func (option *Option) set(value *string) error {
+	option.isSet = true
+
 	if option.isFunc() {
 		return option.call(value)
 	} else if value != nil {
@@ -29,7 +31,7 @@ func (option *Option) canArgument() bool {
 	return !option.isBool()
 }
 
-func (option *Option) clear() {
+func (option *Option) empty() {
 	tp := option.value.Type()
 
 	switch tp.Kind() {
@@ -41,6 +43,18 @@ func (option *Option) clear() {
 	default:
 		zeroval := reflect.Zero(tp)
 		option.value.Set(zeroval)
+	}
+}
+
+func (option *Option) clearDefault() {
+	option.empty()
+
+	if len(option.Default) > 0 {
+		for _, d := range option.Default {
+			option.set(&d)
+		}
+
+		option.isSet = false
 	}
 }
 

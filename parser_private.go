@@ -127,7 +127,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		arg := s.pop()
 		err = option.set(&arg)
 	} else if option.OptionalArgument {
-		option.clear()
+		option.empty()
 
 		for _, v := range option.OptionalValue {
 			err = option.set(&v)
@@ -253,4 +253,14 @@ func (p *Parser) printError(err error) error {
 	}
 
 	return err
+}
+
+func (p *Parser) clearIsSet() {
+	p.eachCommand(func(c *Command) {
+		c.eachGroup(func(g *Group) {
+			for _, option := range g.options {
+				option.isSet = false
+			}
+		})
+	}, true)
 }

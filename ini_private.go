@@ -81,7 +81,7 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 
 		val := option.value
 
-		if (options&IniIncludeDefaults) == IniNone && reflect.DeepEqual(val.Interface(), option.defaultValue.Interface()) {
+		if (options&IniIncludeDefaults) == IniNone && !option.isSet {
 			continue
 		}
 
@@ -97,7 +97,7 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 		oname := optionIniName(option)
 
 		commentOption := ""
-		if (options&(IniIncludeDefaults|IniCommentDefaults)) == IniIncludeDefaults|IniCommentDefaults && reflect.DeepEqual(val.Interface(), option.defaultValue.Interface()) {
+		if (options&(IniIncludeDefaults|IniCommentDefaults)) == IniIncludeDefaults|IniCommentDefaults && !option.isSet {
 			commentOption = "; "
 		}
 
