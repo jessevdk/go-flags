@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -111,9 +112,19 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 				fmt.Fprintf(writer, "; %s =\n", oname)
 			}
 		case reflect.Map:
-			for _, key := range val.MapKeys() {
-				k, _ := convertToString(key, option.tag)
-				v, _ := convertToString(val.MapIndex(key), option.tag)
+			mkeys := val.MapKeys()
+			keys := make([]string, len(val.MapKeys()))
+			kkmap := make(map[string]reflect.Value)
+
+			for i, k := range mkeys {
+				keys[i], _ = convertToString(k, option.tag)
+				kkmap[keys[i]] = k
+			}
+
+			sort.Strings(keys)
+
+			for _, k := range keys {
+				v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
 
 				fmt.Fprintf(writer, "%s%s = %s:%s\n", commentOption, oname, k, v)
 			}

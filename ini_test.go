@@ -50,8 +50,8 @@ DefaultArray = Some value
 DefaultArray = Another value
 
 ; Testdefault map value
-DefaultMap = some:value
 DefaultMap = another:value
+DefaultMap = some:value
 
 ; Option only available in ini
 only-ini =
@@ -91,8 +91,8 @@ int-map = b:3
 ; DefaultArray = Another value
 
 ; Testdefault map value
-; DefaultMap = some:value
 ; DefaultMap = another:value
+; DefaultMap = some:value
 
 ; Option only available in ini
 ; only-ini =

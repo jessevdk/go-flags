@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"unicode/utf8"
 )
@@ -53,6 +54,8 @@ func (p *parseState) checkRequired() error {
 	for k := range required {
 		names = append(names, "`"+k.String()+"'")
 	}
+
+	sort.Strings(names)
 
 	var msg string
 
