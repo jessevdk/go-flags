@@ -1,23 +1,66 @@
 package flags
 
 import (
+	"fmt"
+	"path"
+	"runtime"
 	"testing"
 )
 
+func assertCallerInfo() (string, int) {
+	ptr := make([]uintptr, 15)
+	n := runtime.Callers(1, ptr)
+
+	if n == 0 {
+		return "", 0
+	}
+
+	mef := runtime.FuncForPC(ptr[0])
+	mefile, meline := mef.FileLine(ptr[0])
+
+	for i := 2; i < n; i++ {
+		f := runtime.FuncForPC(ptr[i])
+		file, line := f.FileLine(ptr[i])
+
+		if file != mefile {
+			return file, line
+		}
+	}
+
+	return mefile, meline
+}
+
+func assertErrorf(t *testing.T, format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+
+	file, line := assertCallerInfo()
+
+	t.Errorf("%s:%d: %s", path.Base(file), line, msg)
+}
+
+func assertFatalf(t *testing.T, format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+
+	file, line := assertCallerInfo()
+
+	t.Fatalf("%s:%d: %s", path.Base(file), line, msg)
+}
+
 func assertString(t *testing.T, a string, b string) {
 	if a != b {
-		t.Errorf("Expected %#v, but got %#v", b, a)
+		assertErrorf(t, "Expected %#v, but got %#v", b, a)
 	}
 }
+
 func assertStringArray(t *testing.T, a []string, b []string) {
 	if len(a) != len(b) {
-		t.Errorf("Expected %#v, but got %#v", b, a)
+		assertErrorf(t, "Expected %#v, but got %#v", b, a)
 		return
 	}
 
 	for i, v := range a {
 		if b[i] != v {
-			t.Errorf("Expected %#v, but got %#v", b, a)
+			assertErrorf(t, "Expected %#v, but got %#v", b, a)
 			return
 		}
 	}
@@ -25,13 +68,13 @@ func assertStringArray(t *testing.T, a []string, b []string) {
 
 func assertBoolArray(t *testing.T, a []bool, b []bool) {
 	if len(a) != len(b) {
-		t.Errorf("Expected %#v, but got %#v", b, a)
+		assertErrorf(t, "Expected %#v, but got %#v", b, a)
 		return
 	}
 
 	for i, v := range a {
 		if b[i] != v {
-			t.Errorf("Expected %#v, but got %#v", b, a)
+			assertErrorf(t, "Expected %#v, but got %#v", b, a)
 			return
 		}
 	}
@@ -56,19 +99,19 @@ func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string
 
 func assertError(t *testing.T, err error, typ ErrorType, msg string) {
 	if err == nil {
-		t.Fatalf("Expected error: %s", msg)
+		assertFatalf(t, "Expected error: %s", msg)
 		return
 	}
 
 	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected Error type, but got %#v", err)
+		assertFatalf(t, "Expected Error type, but got %#v", err)
 	} else {
 		if e.Type != typ {
-			t.Errorf("Expected error type {%s}, but got {%s}", typ, e.Type)
+			assertErrorf(t, "Expected error type {%s}, but got {%s}", typ, e.Type)
 		}
 
 		if e.Message != msg {
-			t.Errorf("Expected error message %#v, but got %#v", msg, e.Message)
+			assertErrorf(t, "Expected error message %#v, but got %#v", msg, e.Message)
 		}
 	}
 }
