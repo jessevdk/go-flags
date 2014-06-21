@@ -38,7 +38,7 @@ func helpDiff(a, b string) (string, error) {
 	os.Remove(atmp.Name())
 	os.Remove(btmp.Name())
 
-	return string(ret), nil
+	return string(ret), err
 }
 
 type helpOptions struct {
