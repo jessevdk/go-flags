@@ -38,6 +38,10 @@ func helpDiff(a, b string) (string, error) {
 	os.Remove(atmp.Name())
 	os.Remove(btmp.Name())
 
+	if err.Error() == "exit status 1" {
+		return string(ret), nil
+	}
+
 	return string(ret), err
 }
 
