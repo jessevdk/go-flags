@@ -10,10 +10,11 @@ import (
 )
 
 type parseState struct {
-	arg     string
-	args    []string
-	retargs []string
-	err     error
+	arg        string
+	args       []string
+	retargs    []string
+	positional []*Arg
+	err        error
 
 	command *Command
 	lookup  lookup
@@ -60,6 +61,34 @@ func (p *parseState) checkRequired(parser *Parser) error {
 	}
 
 	if len(required) == 0 {
+		if len(p.positional) > 0 && p.command.ArgsRequired {
+			reqnames := make([]string, 0)
+
+			for _, arg := range p.positional {
+				if arg.isRemaining() {
+					break
+				}
+
+				reqnames = append(reqnames, "`"+arg.Name+"`")
+			}
+
+			if len(reqnames) == 0 {
+				return nil
+			}
+
+			var msg string
+
+			if len(reqnames) == 1 {
+				msg = fmt.Sprintf("the required argument %s was not provided", reqnames[0])
+			} else {
+				msg = fmt.Sprintf("the required arguments %s and %s were not provided",
+					strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
+			}
+
+			p.err = newError(ErrRequired, msg)
+			return p.err
+		}
+
 		return nil
 	}
 
@@ -226,19 +255,52 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 	return nil
 }
 
+func (s *parseState) addArgs(args ...string) error {
+	for len(s.positional) > 0 && len(args) > 0 {
+		arg := s.positional[0]
+
+		if err := convert(args[0], arg.value, arg.tag); err != nil {
+			return err
+		}
+
+		if !arg.isRemaining() {
+			s.positional = s.positional[1:]
+		}
+
+		args = args[1:]
+	}
+
+	s.retargs = append(s.retargs, args...)
+	return nil
+}
+
 func (p *Parser) parseNonOption(s *parseState) error {
+	if len(s.positional) > 0 {
+		return s.addArgs(s.arg)
+	}
+
 	if cmd := s.lookup.commands[s.arg]; cmd != nil {
 		s.command.Active = cmd
 
 		s.command = cmd
 		s.lookup = cmd.makeLookup()
+
+		s.positional = make([]*Arg, len(cmd.args))
+		copy(s.positional, cmd.args)
 	} else if (p.Options & PassAfterNonOption) != None {
 		// If PassAfterNonOption is set then all remaining arguments
 		// are considered positional
-		s.retargs = append(append(s.retargs, s.arg), s.args...)
+		if err := s.addArgs(s.arg); err != nil {
+			return err
+		}
+
+		if err := s.addArgs(s.args...); err != nil {
+			return err
+		}
+
 		s.args = []string{}
 	} else {
-		s.retargs = append(s.retargs, s.arg)
+		return s.addArgs(s.arg)
 	}
 
 	return nil

@@ -73,6 +73,11 @@ type helpOptions struct {
 	Command struct {
 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
 	} `command:"command" alias:"cm" alias:"cmd" description:"A command"`
+
+	Args struct {
+		Filename string `name:"filename" description:"A filename"`
+		Num      int    `name:"num" description:"A number"`
+	} `positional-args:"yes"`
 }
 
 func TestHelp(t *testing.T) {
@@ -98,7 +103,7 @@ func TestHelp(t *testing.T) {
 
 		if runtime.GOOS == "windows" {
 			expected = `Usage:
-  TestHelp [OPTIONS] <command>
+  TestHelp [OPTIONS] [filename] [num] <command>
 
 Application Options:
   /v, /verbose             Show verbose debug information
@@ -123,12 +128,16 @@ Help Options:
   /?                       Show this help message
   /h, /help                Show this help message
 
+Arguments:
+  filename:                A filename
+  num:                     A number
+
 Available commands:
   command  A command (aliases: cm, cmd)
 `
 		} else {
 			expected = `Usage:
-  TestHelp [OPTIONS] <command>
+  TestHelp [OPTIONS] [filename] [num] <command>
 
 Application Options:
   -v, --verbose            Show verbose debug information
@@ -151,6 +160,10 @@ Subsubgroup:
 
 Help Options:
   -h, --help               Show this help message
+
+Arguments:
+  filename:                A filename
+  num:                     A number
 
 Available commands:
   command  A command (aliases: cm, cmd)

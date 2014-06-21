@@ -146,11 +146,15 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
 
+	positional := make([]*Arg, len(p.args))
+	copy(positional, p.args)
+
 	s := &parseState{
-		args:    args,
-		retargs: make([]string, 0, len(args)),
-		command: p.Command,
-		lookup:  p.makeLookup(),
+		args:       args,
+		retargs:    make([]string, 0, len(args)),
+		positional: positional,
+		command:    p.Command,
+		lookup:     p.makeLookup(),
 	}
 
 	for !s.eof() {
@@ -159,7 +163,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		// When PassDoubleDash is set and we encounter a --, then
 		// simply append all the rest as arguments and break out
 		if (p.Options&PassDoubleDash) != None && arg == "--" {
-			s.retargs = append(s.retargs, s.args...)
+			s.addArgs(s.args...)
 			break
 		}
 
@@ -194,7 +198,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			}
 
 			if ignoreUnknown {
-				s.retargs = append(s.retargs, arg)
+				s.addArgs(arg)
 			}
 		}
 	}

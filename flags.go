@@ -107,6 +107,14 @@
 //                           specified name as an alias for the command. Can be
 //                           be specified multiple times to add more than one
 //                           alias (optional)
+//     positional-args:      when specified on a field with a struct type,
+//                           uses the fields of that struct to parse remaining
+//                           positional command line arguments into (in order
+//                           of the fields). If a field has a slice type,
+//                           then all remaining arguments will be added to it.
+//                           Positional arguments are optional by default,
+//                           unless the "required" tag is specified together
+//                           with the "positional-args" tag (optional)
 //
 // Either short: or long: must be specified to make the field eligible as an
 // option.

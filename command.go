@@ -20,8 +20,12 @@ type Command struct {
 	// Aliases for the command
 	Aliases []string
 
+	// Whether positional arguments are required
+	ArgsRequired bool
+
 	commands            []*Command
 	hasBuiltinHelpGroup bool
+	args                []*Arg
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -91,4 +95,12 @@ func (c *Command) Find(name string) *Command {
 	}
 
 	return nil
+}
+
+// Args returns a list of positional arguments associated with this command
+func (c *Command) Args() []*Arg {
+	ret := make([]*Arg, len(c.args))
+	copy(ret, c.args)
+
+	return ret
 }

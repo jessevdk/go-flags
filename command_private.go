@@ -29,6 +29,44 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, err
 		}
 
+		positional := mtag.Get("positional-args")
+
+		if len(positional) != 0 {
+			stype := realval.Type()
+
+			for i := 0; i < stype.NumField(); i++ {
+				field := stype.Field(i)
+
+				m := newMultiTag((string(field.Tag)))
+
+				if err := m.Parse(); err != nil {
+					return true, err
+				}
+
+				name := m.Get("name")
+
+				if len(name) == 0 {
+					name = field.Name
+				}
+
+				arg := &Arg{
+					Name:        name,
+					Description: m.Get("description"),
+
+					value: realval.Field(i),
+					tag:   m,
+				}
+
+				c.args = append(c.args, arg)
+
+				if len(mtag.Get("required")) != 0 {
+					c.ArgsRequired = true
+				}
+			}
+
+			return true, nil
+		}
+
 		subcommand := mtag.Get("command")
 
 		if len(subcommand) != 0 {

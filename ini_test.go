@@ -15,7 +15,7 @@ func TestWriteIni(t *testing.T) {
 		expected string
 	}{
 		{
-			[]string{"-vv", "--intmap=a:2", "--intmap", "b:3", "command"},
+			[]string{"-vv", "--intmap=a:2", "--intmap", "b:3", "filename", "0", "command"},
 			IniDefault,
 			`[Application Options]
 ; Show verbose debug information
@@ -30,7 +30,7 @@ int-map = b:3
 `,
 		},
 		{
-			[]string{"-vv", "--intmap=a:2", "--intmap", "b:3", "command"},
+			[]string{"-vv", "--intmap=a:2", "--intmap", "b:3", "filename", "0", "command"},
 			IniDefault | IniIncludeDefaults,
 			`[Application Options]
 ; Show verbose debug information
@@ -80,7 +80,7 @@ Opt =
 `,
 		},
 		{
-			[]string{"command"},
+			[]string{"filename", "0", "command"},
 			IniDefault | IniIncludeDefaults | IniCommentDefaults,
 			`[Application Options]
 ; Show verbose debug information
@@ -128,7 +128,7 @@ Opt =
 `,
 		},
 		{
-			[]string{"--default=New value", "--default-array=New value", "--default-map=new:value", "command"},
+			[]string{"--default=New value", "--default-array=New value", "--default-map=new:value", "filename", "0", "command"},
 			IniDefault | IniIncludeDefaults | IniCommentDefaults,
 			`[Application Options]
 ; Show verbose debug information
