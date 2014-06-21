@@ -71,7 +71,7 @@ func TestConvertToString(t *testing.T) {
 		true,
 
 		[]int{-3, 4, -2},
-		map[int]float64{-2: 4.5, -3: 0.1},
+		map[int]float64{-2: 4.5},
 
 		new(bool),
 		float32(5.2),
@@ -104,7 +104,7 @@ func TestConvertToString(t *testing.T) {
 		"true",
 
 		"[-3, 4, -2]",
-		"{-2:4.5, -3:0.1}",
+		"{-2:4.5}",
 
 		"false",
 		"5.2",
