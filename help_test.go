@@ -109,6 +109,12 @@ Other Options:
   /s:                      A slice of strings (some, value)
       /intmap:             A map from string to int (a:1)
 
+Subgroup:
+      /sip.opt:            This is a subgroup option
+
+Subsubgroup:
+      /sip.sap.opt:        This is a subsubgroup option
+
 Help Options:
   /?                       Show this help message
   /h, /help                Show this help message
