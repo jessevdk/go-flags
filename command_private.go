@@ -240,3 +240,11 @@ func (c *Command) hasCliOptions() bool {
 
 	return ret
 }
+
+func (c *Command) fillParseState(s *parseState) {
+	s.positional = make([]*Arg, len(c.args))
+	copy(s.positional, c.args)
+
+	s.lookup = c.makeLookup()
+	s.command = c
+}

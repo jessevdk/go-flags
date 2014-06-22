@@ -117,6 +117,10 @@ func NewNamedParser(appname string, options Options) *Parser {
 
 	p.Command.parent = p
 
+	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
+		p.AddCommand("__complete", "completion", "automatic flags completion", &completion{parser: p})
+	}
+
 	return p
 }
 
@@ -148,16 +152,12 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
 
-	positional := make([]*Arg, len(p.args))
-	copy(positional, p.args)
-
 	s := &parseState{
-		args:       args,
-		retargs:    make([]string, 0, len(args)),
-		positional: positional,
-		command:    p.Command,
-		lookup:     p.makeLookup(),
+		args:    args,
+		retargs: make([]string, 0, len(args)),
 	}
+
+	p.fillParseState(s)
 
 	for !s.eof() {
 		arg := s.pop()
@@ -182,7 +182,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		var err error
 
 		prefix, optname, islong := stripOptionPrefix(arg)
-		optname, argument := splitOption(prefix, optname, islong)
+		optname, _, argument := splitOption(prefix, optname, islong)
 
 		if islong {
 			err = p.parseLong(s, optname, argument)

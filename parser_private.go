@@ -281,12 +281,7 @@ func (p *Parser) parseNonOption(s *parseState) error {
 
 	if cmd := s.lookup.commands[s.arg]; cmd != nil {
 		s.command.Active = cmd
-
-		s.command = cmd
-		s.lookup = cmd.makeLookup()
-
-		s.positional = make([]*Arg, len(cmd.args))
-		copy(s.positional, cmd.args)
+		cmd.fillParseState(s)
 	} else if (p.Options & PassAfterNonOption) != None {
 		// If PassAfterNonOption is set then all remaining arguments
 		// are considered positional
