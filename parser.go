@@ -94,9 +94,11 @@ func NewParser(data interface{}, options Options) *Parser {
 
 	if data != nil {
 		g, err := p.AddGroup("Application Options", "", data)
+
 		if err == nil {
 			g.parent = p
 		}
+
 		p.internalError = err
 	}
 
