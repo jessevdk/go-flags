@@ -36,6 +36,9 @@ func Example() {
 		// Example of a map
 		IntMap map[string]int `long:"intmap" description:"A map from string to int"`
 
+		// Example of a filename (useful for completion)
+		Filename Filename `long:"filename" description:"A filename"`
+
 		// Example of positional arguments
 		Args struct {
 			Id   string
@@ -65,6 +68,7 @@ func Example() {
 		"--ptrslice", "world",
 		"--intmap", "a:1",
 		"--intmap", "b:5",
+		"--filename", "hello.go",
 		"id",
 		"10",
 		"remaining1",
@@ -87,6 +91,7 @@ func Example() {
 	fmt.Printf("StringSlice: %v\n", opts.StringSlice)
 	fmt.Printf("PtrSlice: [%v %v]\n", *opts.PtrSlice[0], *opts.PtrSlice[1])
 	fmt.Printf("IntMap: [a:%v b:%v]\n", opts.IntMap["a"], opts.IntMap["b"])
+	fmt.Printf("Filename: %v\n", opts.Filename)
 	fmt.Printf("Args.Id: %s\n", opts.Args.Id)
 	fmt.Printf("Args.Num: %d\n", opts.Args.Num)
 	fmt.Printf("Args.Rest: %v\n", opts.Args.Rest)
@@ -98,6 +103,7 @@ func Example() {
 	// StringSlice: [hello world]
 	// PtrSlice: [hello world]
 	// IntMap: [a:1 b:5]
+	// Filename: hello.go
 	// Args.Id: id
 	// Args.Num: 10
 	// Args.Rest: [remaining1 remaining2]
