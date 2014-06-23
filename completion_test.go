@@ -12,18 +12,20 @@ import (
 type TestComplete struct {
 }
 
-func (t *TestComplete) Complete(match string) []string {
+func (t *TestComplete) Complete(match string) []Completion {
 	options := []string{
 		"hello world",
 		"hello universe",
 		"hello multiverse",
 	}
 
-	ret := make([]string, 0, len(options))
+	ret := make([]Completion, 0, len(options))
 
 	for _, o := range options {
 		if strings.HasPrefix(o, match) {
-			ret = append(ret, o)
+			ret = append(ret, Completion{
+				Item: o,
+			})
 		}
 	}
 
@@ -151,9 +153,14 @@ func TestCompletion(t *testing.T) {
 
 	for _, test := range tests {
 		ret := c.complete(test.Args)
+		items := make([]string, len(ret))
 
-		if !reflect.DeepEqual(ret, test.Completed) {
-			t.Errorf("Args: %#v\n  Expected: %#v\n  Got:     %#v", test.Args, test.Completed, ret)
+		for i, v := range ret {
+			items[i] = v.Item
+		}
+
+		if !reflect.DeepEqual(items, test.Completed) {
+			t.Errorf("Args: %#v\n  Expected: %#v\n  Got:     %#v", test.Args, test.Completed, items)
 		}
 	}
 }

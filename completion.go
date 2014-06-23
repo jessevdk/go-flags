@@ -9,13 +9,36 @@ import (
 	"unicode/utf8"
 )
 
+// Completion is a type containing information of a completion.
+type Completion struct {
+	// The completed item
+	Item string
+
+	// A description of the completed item (optional)
+	Description string
+}
+
+type completions []Completion
+
+func (c completions) Len() int {
+	return len(c)
+}
+
+func (c completions) Less(i, j int) bool {
+	return c[i].Item < c[j].Item
+}
+
+func (c completions) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
 // Completer is an interface which can be implemented by types
 // to provide custom command line argument completion.
 type Completer interface {
 	// Complete receives a prefix representing a (partial) value
 	// for its type and should provide a list of possible valid
 	// completions.
-	Complete(match string) []string
+	Complete(match string) []Completion
 }
 
 type completion struct {
@@ -25,11 +48,21 @@ type completion struct {
 // Filename is a string alias which provides filename completion.
 type Filename string
 
+func completionsWithoutDescriptions(items []string) []Completion {
+	ret := make([]Completion, len(items))
+
+	for i, v := range items {
+		ret[i].Item = v
+	}
+
+	return ret
+}
+
 // Complete returns a list of existing files with the given
 // prefix.
-func (f *Filename) Complete(match string) []string {
+func (f *Filename) Complete(match string) []Completion {
 	ret, _ := filepath.Glob(match + "*")
-	return ret
+	return completionsWithoutDescriptions(ret)
 }
 
 func (c *completion) skipPositional(s *parseState, n int) {
@@ -40,46 +73,56 @@ func (c *completion) skipPositional(s *parseState, n int) {
 	}
 }
 
-func (c *completion) completeOptionNames(names map[string]*Option, prefix string, match string) []string {
-	n := make([]string, 0, len(names))
+func (c *completion) completeOptionNames(names map[string]*Option, prefix string, match string) []Completion {
+	n := make([]Completion, 0, len(names))
 
-	for k, _ := range names {
+	for k, opt := range names {
 		if strings.HasPrefix(k, match) {
-			n = append(n, prefix+k)
+			n = append(n, Completion{
+				Item:        prefix + k,
+				Description: opt.Description,
+			})
 		}
 	}
 
 	return n
 }
 
-func (c *completion) completeLongNames(s *parseState, prefix string, match string) []string {
+func (c *completion) completeLongNames(s *parseState, prefix string, match string) []Completion {
 	return c.completeOptionNames(s.lookup.longNames, prefix, match)
 }
 
-func (c *completion) completeShortNames(s *parseState, prefix string, match string) []string {
+func (c *completion) completeShortNames(s *parseState, prefix string, match string) []Completion {
 	if len(match) != 0 {
-		return []string{prefix + match}
+		return []Completion{
+			Completion{
+				Item: prefix + match,
+			},
+		}
 	}
 
 	return c.completeOptionNames(s.lookup.shortNames, prefix, match)
 }
 
-func (c *completion) completeCommands(s *parseState, match string) []string {
-	n := make([]string, 0, len(s.command.commands))
+func (c *completion) completeCommands(s *parseState, match string) []Completion {
+	n := make([]Completion, 0, len(s.command.commands))
 
 	for _, cmd := range s.command.commands {
 		if cmd.data != c && strings.HasPrefix(cmd.Name, match) {
-			n = append(n, cmd.Name)
+			n = append(n, Completion{
+				Item:        cmd.Name,
+				Description: cmd.ShortDescription,
+			})
 		}
 	}
 
 	return n
 }
 
-func (c *completion) completeValue(value reflect.Value, prefix string, match string) []string {
+func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
 	i := value.Interface()
 
-	var ret []string
+	var ret []Completion
 
 	if cmp, ok := i.(Completer); ok {
 		ret = cmp.Complete(match)
@@ -90,13 +133,13 @@ func (c *completion) completeValue(value reflect.Value, prefix string, match str
 	}
 
 	for i, v := range ret {
-		ret[i] = prefix + v
+		ret[i].Item = prefix + v.Item
 	}
 
 	return ret
 }
 
-func (c *completion) complete(args []string) []string {
+func (c *completion) complete(args []string) []Completion {
 	if len(args) == 0 {
 		args = []string{""}
 	}
@@ -170,7 +213,7 @@ func (c *completion) complete(args []string) []string {
 	}
 
 	lastarg := s.args[len(s.args)-1]
-	var ret []string
+	var ret []Completion
 
 	if opt != nil {
 		// Completion for the argument of 'opt'
@@ -212,7 +255,7 @@ func (c *completion) complete(args []string) []string {
 		ret = c.completeCommands(s, lastarg)
 	}
 
-	sort.Strings(ret)
+	sort.Sort(completions(ret))
 	return ret
 }
 
@@ -220,7 +263,7 @@ func (c *completion) Execute(args []string) error {
 	ret := c.complete(args)
 
 	for _, v := range ret {
-		fmt.Println(v)
+		fmt.Println(v.Item)
 	}
 
 	return nil
