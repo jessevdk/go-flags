@@ -43,6 +43,8 @@ type Completer interface {
 
 type completion struct {
 	parser *Parser
+
+	ShowDescriptions bool `short:"d" long:"show-descriptions" description:"Show descriptions next to completion items"`
 }
 
 // Filename is a string alias which provides filename completion.
@@ -262,8 +264,28 @@ func (c *completion) complete(args []string) []Completion {
 func (c *completion) Execute(args []string) error {
 	ret := c.complete(args)
 
-	for _, v := range ret {
-		fmt.Println(v.Item)
+	if c.ShowDescriptions && len(ret) > 1 {
+		maxl := 0
+
+		for _, v := range ret {
+			if len(v.Item) > maxl {
+				maxl = len(v.Item)
+			}
+		}
+
+		for _, v := range ret {
+			fmt.Printf("%s", v.Item)
+
+			if len(v.Description) > 0 {
+				fmt.Printf("%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
+			}
+
+			fmt.Printf("\n")
+		}
+	} else {
+		for _, v := range ret {
+			fmt.Println(v.Item)
+		}
 	}
 
 	return nil
