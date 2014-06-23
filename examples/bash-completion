@@ -1,0 +1,8 @@
+_examples() {
+	args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
+
+	COMPREPLY=($(GO_FLAGS_COMPLETION=1 ${COMP_WORDS[0]} __complete -- "${args[@]}"))
+	return 1
+}
+
+complete -F _examples examples
