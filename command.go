@@ -97,7 +97,7 @@ func (c *Command) Find(name string) *Command {
 	return nil
 }
 
-// Args returns a list of positional arguments associated with this command
+// Args returns a list of positional arguments associated with this command.
 func (c *Command) Args() []*Arg {
 	ret := make([]*Arg, len(c.args))
 	copy(ret, c.args)

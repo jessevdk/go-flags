@@ -9,7 +9,12 @@ import (
 	"unicode/utf8"
 )
 
+// Completer is an interface which can be implemented by types
+// to provide custom command line argument completion.
 type Completer interface {
+	// Complete receives a prefix representing a (partial) value
+	// for its type and should provide a list of possible valid
+	// completions.
 	Complete(match string) []string
 }
 
@@ -17,8 +22,11 @@ type completion struct {
 	parser *Parser
 }
 
+// Filename is a string alias which provides filename completion.
 type Filename string
 
+// Complete returns a list of existing files with the given
+// prefix.
 func (f *Filename) Complete(match string) []string {
 	ret, _ := filepath.Glob(match + "*")
 	return ret

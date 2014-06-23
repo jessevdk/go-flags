@@ -4,8 +4,12 @@ import (
 	"reflect"
 )
 
+// Arg represents a positional argument on the command line.
 type Arg struct {
-	Name        string
+	// The name of the positional argument (used in the help)
+	Name string
+
+	// A description of the positional argument (used in the help)
 	Description string
 
 	value reflect.Value
