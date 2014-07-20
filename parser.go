@@ -7,6 +7,7 @@ package flags
 import (
 	"os"
 	"path"
+	"strings"
 )
 
 // A Parser provides command line option parsing. It can contain several
@@ -229,6 +230,14 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		reterr = p.printError(s.estimateCommand())
 	} else if cmd, ok := s.command.data.(Commander); ok {
 		reterr = p.printError(cmd.Execute(s.retargs))
+	} else if cmd, ok := s.command.data.(CommanderNoArgs); ok {
+		if len(s.retargs) > 0 {
+			reterr = p.printError(newErrorf(ErrTooManyArgs,
+				"too many arguments: %s",
+				strings.Join(s.retargs, ", ")))
+		} else {
+			reterr = p.printError(cmd.Execute())
+		}
 	}
 
 	if reterr != nil {

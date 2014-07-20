@@ -52,6 +52,10 @@ const (
 
 	// ErrUnknownCommand indicates that an unknown command was specified.
 	ErrUnknownCommand
+
+	// ErrTooManyArgs indicates that unwanted, extra positional args
+	// were given.
+	ErrTooManyArgs
 )
 
 func (e ErrorType) String() string {
