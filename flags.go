@@ -160,7 +160,7 @@ There are currently two ways to specify a command.
 
     1. Use AddCommand on an existing parser.
     2. Add a struct field to your options struct annotated with the
-       command:"command-name" tag.
+       command:"command" tag.
 
 The most common, idiomatic way to implement commands is to define a global
 parser instance and implement each command in a separate file. These
