@@ -124,6 +124,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 
 		description := mtag.Get("description")
 		def := mtag.GetMany("default")
+
 		optionalValue := mtag.GetMany("optional-value")
 		valueName := mtag.Get("value-name")
 		defaultMask := mtag.Get("default-mask")
@@ -136,6 +137,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			ShortName:        short,
 			LongName:         longname,
 			Default:          def,
+			EnvDefaultKey:    mtag.Get("env"),
+			EnvDefaultDelim:  mtag.Get("env-delim"),
 			OptionalArgument: optional,
 			OptionalValue:    optionalValue,
 			Required:         required,

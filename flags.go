@@ -17,6 +17,7 @@ The following features are supported in go-flags:
     Options with long names (--verbose)
     Options with and without arguments (bool v.s. other type)
     Options with optional arguments and default values
+    Option default values from ENVIRONMENT_VARIABLES, including slice and map values
     Multiple option groups each containing a set of options
     Generate and print well-formatted help message
     Passing remaining command line arguments after -- (optional)
@@ -95,6 +96,12 @@ The following is a list of tags for struct fields supported by go-flags:
                     showing up in the help. If default-mask takes the special
                     value "-", then no default value will be shown at all
                     (optional)
+    env:            the default value of the option is overridden from the
+                    specified environment variable, if one has been defined.
+                    (optional)
+    env-delim:      the 'env' default value from environment is split into
+                    multiple values with the given delimiter string, use with
+                    slices and maps (optional)
     value-name:     the name of the argument value (to be shown in the help,
                     (optional)
 

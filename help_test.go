@@ -54,6 +54,8 @@ type helpOptions struct {
 	Default      string            `long:"default" default:"Some value" description:"Test default value"`
 	DefaultArray []string          `long:"default-array" default:"Some value" default:"Another value" description:"Test default array value"`
 	DefaultMap   map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
+	EnvDefault1  string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
+	EnvDefault2  string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
 
@@ -81,8 +83,11 @@ type helpOptions struct {
 }
 
 func TestHelp(t *testing.T) {
-	var opts helpOptions
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
+	os.Setenv("ENV_DEFAULT", "env-def")
 
+	var opts helpOptions
 	p := NewNamedParser("TestHelp", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 
@@ -113,6 +118,8 @@ Application Options:
       /default:            Test default value (Some value)
       /default-array:      Test default array value (Some value, Another value)
       /default-map:        Testdefault map value (some:value, another:value)
+      /env-default1:       Test env-default1 value (Some value) [%ENV_DEFAULT%]
+      /env-default2:       Test env-default2 value [%ENV_DEFAULT%]
 
 Other Options:
   /s:                      A slice of strings (some, value)
@@ -147,6 +154,8 @@ Application Options:
       --default=           Test default value (Some value)
       --default-array=     Test default array value (Some value, Another value)
       --default-map=       Testdefault map value (some:value, another:value)
+      --env-default1=      Test env-default1 value (Some value) [$ENV_DEFAULT]
+      --env-default2=      Test env-default2 value [$ENV_DEFAULT]
 
 Other Options:
   -s=                      A slice of strings (some, value)
@@ -184,8 +193,11 @@ Available commands:
 }
 
 func TestMan(t *testing.T) {
-	var opts helpOptions
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
+	os.Setenv("ENV_DEFAULT", "env-def")
 
+	var opts helpOptions
 	p := NewNamedParser("TestMan", HelpFlag)
 	p.ShortDescription = "Test manpage generation"
 	p.LongDescription = "This is a somewhat `longer' description of what this does"
@@ -228,6 +240,12 @@ Test default array value
 .TP
 \fB--default-map\fP
 Testdefault map value
+.TP
+\fB--env-default1\fP
+Test env-default1 value
+.TP
+\fB--env-default2\fP
+Test env-default2 value
 .TP
 \fB-s\fP
 A slice of strings
@@ -273,8 +291,11 @@ type helpCommandNoOptions struct {
 }
 
 func TestHelpCommand(t *testing.T) {
-	var opts helpCommandNoOptions
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
+	os.Setenv("ENV_DEFAULT", "env-def")
 
+	var opts helpCommandNoOptions
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 
