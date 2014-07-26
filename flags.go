@@ -222,6 +222,7 @@ calls the binary which supports go-flags completion:
 Customized completion for argument values is supported by implementing
 the flags.Completer interface for the argument value type. An example
 of a type which does so is the flags.Filename type, an alias of string
-allowing simple filename completion.
+allowing simple filename completion. A slice or array argument value
+whose element type implements flags.Completer will also be completed.
 */
 package flags

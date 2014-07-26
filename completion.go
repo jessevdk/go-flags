@@ -122,6 +122,12 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 }
 
 func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
+	// For slices/arrays in positional args (that take the rest of the args),
+	// complete based on the element type.
+	if typ := value.Type(); typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice {
+		value = reflect.New(typ.Elem())
+	}
+
 	i := value.Interface()
 
 	var ret []Completion
@@ -205,7 +211,11 @@ func (c *completion) complete(args []string) []Completion {
 			}
 		} else {
 			if len(s.positional) > 0 {
-				s.positional = s.positional[1:]
+				if t := s.positional[0].value.Type(); t.Kind() != reflect.Array && t.Kind() != reflect.Slice {
+					// Don't advance beyond a slice/array positional (because
+					// they consume all subsequent args).
+					s.positional = s.positional[1:]
+				}
 			} else if cmd, ok := s.lookup.commands[arg]; ok {
 				cmd.fillParseState(s)
 			}

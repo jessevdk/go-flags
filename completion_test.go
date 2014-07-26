@@ -43,6 +43,12 @@ var completionTestOptions struct {
 		} `positional-args:"yes"`
 	} `command:"add"`
 
+	AddMultiCommand struct {
+		Positional struct {
+			Filename []Filename
+		} `positional-args:"yes"`
+	} `command:"add-multi"`
+
 	RemoveCommand struct {
 		Other bool     `short:"o"`
 		File  Filename `short:"f" long:"filename"`
@@ -90,7 +96,7 @@ func TestCompletion(t *testing.T) {
 		{
 			// Commands
 			[]string{""},
-			[]string{"add", "rename", "rm"},
+			[]string{"add", "add-multi", "rename", "rm"},
 		},
 
 		{
@@ -102,6 +108,22 @@ func TestCompletion(t *testing.T) {
 		{
 			// Positional filename
 			[]string{"add", filepath.Join(sourcedir, "completion")},
+			excompl,
+		},
+
+		{
+			// Multiple positional filename (1 arg)
+			[]string{"add-multi", filepath.Join(sourcedir, "completion")},
+			excompl,
+		},
+		{
+			// Multiple positional filename (2 args)
+			[]string{"add-multi", filepath.Join(sourcedir, "completion.go"), filepath.Join(sourcedir, "completion")},
+			excompl,
+		},
+		{
+			// Multiple positional filename (3 args)
+			[]string{"add-multi", filepath.Join(sourcedir, "completion.go"), filepath.Join(sourcedir, "completion.go"), filepath.Join(sourcedir, "completion")},
 			excompl,
 		},
 
