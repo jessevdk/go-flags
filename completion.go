@@ -124,7 +124,8 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
 	// For slices/arrays in positional args (that take the rest of the args),
 	// complete based on the element type.
-	if typ := value.Type(); typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice {
+	typ := value.Type()
+	if typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice {
 		value = reflect.New(typ.Elem())
 	}
 
