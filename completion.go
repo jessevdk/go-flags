@@ -121,12 +121,11 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 	return n
 }
 
-func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
-	// For slices/arrays in positional args (that take the rest of the args),
-	// complete based on the element type.
-	typ := value.Type()
-	if typ.Kind() == reflect.Array || typ.Kind() == reflect.Slice {
-		value = reflect.New(typ.Elem())
+func (c *completion) completeValue(value reflect.Value, prefix string, match string, isRemaining bool) []Completion {
+	// For remaining positional args (that are parsed into a slice), complete
+	// based on the element type.
+	if isRemaining {
+		value = reflect.New(value.Type().Elem())
 	}
 
 	i := value.Interface()
@@ -212,9 +211,9 @@ func (c *completion) complete(args []string) []Completion {
 			}
 		} else {
 			if len(s.positional) > 0 {
-				if t := s.positional[0].value.Type(); t.Kind() != reflect.Array && t.Kind() != reflect.Slice {
-					// Don't advance beyond a slice/array positional (because
-					// they consume all subsequent args).
+				if !s.positional[0].isRemaining() {
+					// Don't advance beyond a remaining positional arg (because
+					// it consumes all subsequent args).
 					s.positional = s.positional[1:]
 				}
 			} else if cmd, ok := s.lookup.commands[arg]; ok {
@@ -230,7 +229,7 @@ func (c *completion) complete(args []string) []Completion {
 
 	if opt != nil {
 		// Completion for the argument of 'opt'
-		ret = c.completeValue(opt.value, "", lastarg)
+		ret = c.completeValue(opt.value, "", lastarg, false)
 	} else if argumentIsOption(lastarg) {
 		// Complete the option
 		prefix, optname, islong := stripOptionPrefix(lastarg)
@@ -241,7 +240,7 @@ func (c *completion) complete(args []string) []Completion {
 			sname := string(rname)
 
 			if opt := s.lookup.shortNames[sname]; opt != nil && opt.canArgument() {
-				ret = c.completeValue(opt.value, prefix+sname, optname[n:])
+				ret = c.completeValue(opt.value, prefix+sname, optname[n:], false)
 			} else {
 				ret = c.completeShortNames(s, prefix, optname)
 			}
@@ -253,7 +252,7 @@ func (c *completion) complete(args []string) []Completion {
 			}
 
 			if opt != nil {
-				ret = c.completeValue(opt.value, prefix+optname+split, *argument)
+				ret = c.completeValue(opt.value, prefix+optname+split, *argument, false)
 			}
 		} else if islong {
 			ret = c.completeLongNames(s, prefix, optname)
@@ -262,7 +261,7 @@ func (c *completion) complete(args []string) []Completion {
 		}
 	} else if len(s.positional) > 0 {
 		// Complete for positional argument
-		ret = c.completeValue(s.positional[0].value, "", lastarg)
+		ret = c.completeValue(s.positional[0].value, "", lastarg, s.positional[0].isRemaining())
 	} else if len(s.command.commands) > 0 {
 		// Complete for command
 		ret = c.completeCommands(s, lastarg)
