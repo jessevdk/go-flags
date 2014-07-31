@@ -15,6 +15,14 @@ func newMultiTag(v string) multiTag {
 	}
 }
 
+func isWhitespace(r uint8) bool {
+	switch rune(r) {
+	case ' ', '\n', '\r', '\t', '\v', '\f', 0x85, 0xA0:
+		return true
+	}
+	return false
+}
+
 func (x *multiTag) scan() (map[string][]string, error) {
 	v := x.value
 
@@ -25,7 +33,7 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		i := 0
 
 		// Skip whitespace
-		for i < len(v) && v[i] == ' ' {
+		for i < len(v) && isWhitespace(v[i]) {
 			i++
 		}
 
@@ -38,7 +46,7 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		// Scan to colon to find key
 		i = 0
 
-		for i < len(v) && v[i] != ' ' && v[i] != ':' && v[i] != '"' {
+		for i < len(v) && !isWhitespace(v[i]) && v[i] != ':' && v[i] != '"' {
 			i++
 		}
 
