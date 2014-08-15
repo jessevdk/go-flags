@@ -42,7 +42,9 @@ func (option *Option) emptyValue() reflect.Value {
 }
 
 func (option *Option) empty() {
-	option.value.Set(option.emptyValue())
+	if !option.isFunc() {
+		option.value.Set(option.emptyValue())
+	}
 }
 
 func (option *Option) clearDefault() {
