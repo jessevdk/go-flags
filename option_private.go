@@ -2,6 +2,8 @@ package flags
 
 import (
 	"reflect"
+	"strings"
+	"syscall"
 )
 
 // Set the value of an option to the specified value. An error will be returned
@@ -48,10 +50,24 @@ func (option *Option) empty() {
 }
 
 func (option *Option) clearDefault() {
-	if len(option.Default) > 0 {
+	usedDefault := option.Default
+	if envKey := option.EnvDefaultKey; envKey != "" {
+		// os.Getenv() makes no distinction between undefined and
+		// empty values, so we use syscall.Getenv()
+		if value, ok := syscall.Getenv(envKey); ok {
+			if option.EnvDefaultDelim != "" {
+				usedDefault = strings.Split(value,
+					option.EnvDefaultDelim)
+			} else {
+				usedDefault = []string{value}
+			}
+		}
+	}
+
+	if len(usedDefault) > 0 {
 		option.empty()
 
-		for _, d := range option.Default {
+		for _, d := range usedDefault {
 			option.set(&d)
 		}
 	} else {

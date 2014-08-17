@@ -9,6 +9,10 @@ import (
 )
 
 func TestWriteIni(t *testing.T) {
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
+	os.Setenv("ENV_DEFAULT", "env-def")
+
 	var tests = []struct {
 		args     []string
 		options  IniOptions
@@ -21,6 +25,12 @@ func TestWriteIni(t *testing.T) {
 ; Show verbose debug information
 verbose = true
 verbose = true
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
 
 [Other Options]
 ; A map from string to int
@@ -52,6 +62,12 @@ DefaultArray = Another value
 ; Testdefault map value
 DefaultMap = another:value
 DefaultMap = some:value
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
 
 ; Option only available in ini
 only-ini =
@@ -102,6 +118,12 @@ Opt =
 ; DefaultMap = another:value
 ; DefaultMap = some:value
 
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
+
 ; Option only available in ini
 ; only-ini =
 
@@ -147,6 +169,12 @@ DefaultArray = New value
 
 ; Testdefault map value
 DefaultMap = new:value
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
 
 ; Option only available in ini
 ; only-ini =

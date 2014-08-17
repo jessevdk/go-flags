@@ -27,6 +27,12 @@ type Option struct {
 	// The default value of the option.
 	Default []string
 
+	// The optional environment default value key name.
+	EnvDefaultKey string
+
+	// The optional delimiter string for EnvDefaultKey values.
+	EnvDefaultDelim string
+
 	// If true, specifies that the argument to an option flag is optional.
 	// When no argument to the flag is specified on the command line, the
 	// value of Default will be set in the field this option represents.
