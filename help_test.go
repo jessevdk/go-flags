@@ -3,47 +3,11 @@ package flags
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"runtime"
 	"testing"
 	"time"
 )
-
-func helpDiff(a, b string) (string, error) {
-	atmp, err := ioutil.TempFile("", "help-diff")
-
-	if err != nil {
-		return "", err
-	}
-
-	btmp, err := ioutil.TempFile("", "help-diff")
-
-	if err != nil {
-		return "", err
-	}
-
-	if _, err := io.WriteString(atmp, a); err != nil {
-		return "", err
-	}
-
-	if _, err := io.WriteString(btmp, b); err != nil {
-		return "", err
-	}
-
-	ret, err := exec.Command("diff", "-u", "-d", "--label", "got", atmp.Name(), "--label", "expected", btmp.Name()).Output()
-
-	os.Remove(atmp.Name())
-	os.Remove(btmp.Name())
-
-	if err.Error() == "exit status 1" {
-		return string(ret), nil
-	}
-
-	return string(ret), err
-}
 
 type helpOptions struct {
 	Verbose          []bool       `short:"v" long:"verbose" description:"Show verbose debug information" ini-name:"verbose"`
@@ -179,16 +143,7 @@ Available commands:
 `
 		}
 
-		if e.Message != expected {
-			ret, err := helpDiff(e.Message, expected)
-
-			if err != nil {
-				t.Errorf("Unexpected diff error: %s", err)
-				t.Errorf("Unexpected help message, expected:\n\n%s\n\nbut got\n\n%s", expected, e.Message)
-			} else {
-				t.Errorf("Unexpected help message:\n\n%s", ret)
-			}
-		}
+		assertDiff(t, e.Message, expected, "help message")
 	}
 }
 
@@ -274,15 +229,7 @@ Longer \fBcommand\fP description
 Use for extra verbosity
 `, tt.Format("2 January 2006"))
 
-	if got != expected {
-		ret, err := helpDiff(got, expected)
-
-		if err != nil {
-			t.Errorf("Unexpected man page, expected:\n\n%s\n\nbut got\n\n%s", expected, got)
-		} else {
-			t.Errorf("Unexpected man page:\n\n%s", ret)
-		}
-	}
+	assertDiff(t, got, expected, "man page")
 }
 
 type helpCommandNoOptions struct {
@@ -331,15 +278,6 @@ Help Options:
 `
 		}
 
-		if e.Message != expected {
-			ret, err := helpDiff(e.Message, expected)
-
-			if err != nil {
-				t.Errorf("Unexpected diff error: %s", err)
-				t.Errorf("Unexpected help message, expected:\n\n%s\n\nbut got\n\n%s", expected, e.Message)
-			} else {
-				t.Errorf("Unexpected help message:\n\n%s", ret)
-			}
-		}
+		assertDiff(t, e.Message, expected, "help message")
 	}
 }

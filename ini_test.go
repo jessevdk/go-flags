@@ -2,6 +2,7 @@ package flags
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -223,15 +224,8 @@ EnvDefault2 = env-def
 		got := b.String()
 		expected := test.expected
 
-		if got != expected {
-			ret, err := helpDiff(got, expected)
-
-			if err != nil {
-				t.Errorf("Unexpected ini with arguments %+v and ini options %b, expected:\n\n%s\n\nbut got\n\n%s", test.args, test.options, expected, got)
-			} else {
-				t.Errorf("Unexpected ini with arguments %+v and ini options %b:\n\n%s", test.args, test.options, ret)
-			}
-		}
+		msg := fmt.Sprintf("with arguments %+v and ini options %b", test.args, test.options)
+		assertDiff(t, got, expected, msg)
 	}
 }
 
@@ -411,9 +405,7 @@ func TestWriteFile(t *testing.T) {
 
 	expected := "[Application Options]\nValue = 123\n\n"
 
-	if string(found) != expected {
-		t.Fatalf("Expected file content to be \"%s\" but was \"%s\"", expected, found)
-	}
+	assertDiff(t, string(found), expected, "ini content")
 }
 
 func TestOverwriteRequiredOptions(t *testing.T) {

@@ -171,13 +171,5 @@ func TestWrapText(t *testing.T) {
       occaecat cupidatat non proident, sunt in culpa qui officia
       deserunt mollit anim id est laborum.`
 
-	if got != expected {
-		ret, err := helpDiff(got, expected)
-
-		if err != nil {
-			t.Errorf("Unexpected wrapped text, expected:\n\n%s\n\nbut got\n\n%s", expected, got)
-		} else {
-			t.Errorf("Unexpected wrapped text:\n\n%s", ret)
-		}
-	}
+	assertDiff(t, got, expected, "wrapped text")
 }
