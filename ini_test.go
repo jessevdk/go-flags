@@ -307,6 +307,7 @@ AliasName = 5
 
 [add.Other Options]
 other = subgroup
+
 `
 
 	b := strings.NewReader(inic)
@@ -323,6 +324,13 @@ other = subgroup
 	}
 
 	assertString(t, opts.Add.Other.O, "subgroup")
+
+	// Test writing it back
+	buf := &bytes.Buffer{}
+
+	inip.Write(buf, IniDefault)
+
+	assertDiff(t, buf.String(), inic, "ini contents")
 }
 
 func TestIniNoIni(t *testing.T) {
