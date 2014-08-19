@@ -58,14 +58,14 @@ func optionIniName(option *Option) string {
 	return option.field.Name
 }
 
-func writeGroupIni(group *Group, namespace string, writer io.Writer, options IniOptions) {
+func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Writer, options IniOptions) {
 	var sname string
 
 	if len(namespace) != 0 {
 		sname = namespace
 	}
 
-	if len(group.ShortDescription) != 0 {
+	if cmd.Group != group && len(group.ShortDescription) != 0 {
 		if len(sname) != 0 {
 			sname += "."
 		}
@@ -160,7 +160,7 @@ func writeGroupIni(group *Group, namespace string, writer io.Writer, options Ini
 
 func writeCommandIni(command *Command, namespace string, writer io.Writer, options IniOptions) {
 	command.eachGroup(func(group *Group) {
-		writeGroupIni(group, namespace, writer, options)
+		writeGroupIni(command, group, namespace, writer, options)
 	})
 
 	for _, c := range command.commands {

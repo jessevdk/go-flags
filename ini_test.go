@@ -90,7 +90,7 @@ Opt =
 ; This is a subsubgroup option
 Opt =
 
-[command.A command]
+[command]
 ; Use for extra verbosity
 ; ExtraVerbose =
 
@@ -144,7 +144,7 @@ EnvDefault2 = env-def
 ; This is a subsubgroup option
 ; Opt =
 
-[command.A command]
+[command]
 ; Use for extra verbosity
 ; ExtraVerbose =
 
@@ -196,7 +196,7 @@ EnvDefault2 = env-def
 ; This is a subsubgroup option
 ; Opt =
 
-[command.A command]
+[command]
 ; Use for extra verbosity
 ; ExtraVerbose =
 
