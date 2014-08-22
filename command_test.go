@@ -115,6 +115,23 @@ func TestCommandEstimate(t *testing.T) {
 	assertError(t, err, ErrCommandRequired, "Please specify one command of: add or remove")
 }
 
+func TestCommandEstimate2(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Cmd1 struct {
+		} `command:"remove"`
+
+		Cmd2 struct {
+		} `command:"add"`
+	}{}
+
+	p := NewParser(&opts, None)
+	_, err := p.ParseArgs([]string{"rmive"})
+
+	assertError(t, err, ErrUnknownCommand, "Unknown command `rmive', did you mean `remove'?")
+}
+
 type testCommand struct {
 	G        bool `short:"g"`
 	Executed bool
