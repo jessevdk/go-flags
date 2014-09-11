@@ -171,7 +171,17 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 				def, _ = convertToString(option.value, option.tag)
 			}
 		} else if len(defs) != 0 {
-			def = strings.Join(defs, ", ")
+			if option.field.Type.Kind() == reflect.String {
+				l := len(defs) - 1
+
+				for i := 0; i < l; i++ {
+					def += quoteIfNeeded(defs[i]) + ", "
+				}
+
+				def += quoteIfNeeded(defs[l])
+			} else {
+				def = strings.Join(defs, ", ")
+			}
 		}
 
 		var envDef string
@@ -188,8 +198,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		var desc string
 
 		if def != "" {
-			desc = fmt.Sprintf("%s (%v)%s", option.Description, def,
-				envDef)
+			desc = fmt.Sprintf("%s (%v)%s", option.Description, def, envDef)
 		} else {
 			desc = option.Description + envDef
 		}

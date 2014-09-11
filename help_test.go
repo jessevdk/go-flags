@@ -15,7 +15,7 @@ type helpOptions struct {
 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 	EmptyDescription bool         `long:"empty-description"`
 
-	Default      string            `long:"default" default:"Some value" description:"Test default value"`
+	Default      string            `long:"default" default:"Some\nvalue" description:"Test default value"`
 	DefaultArray []string          `long:"default-array" default:"Some value" default:"Another value" description:"Test default array value"`
 	DefaultMap   map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
 	EnvDefault1  string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
@@ -79,7 +79,7 @@ Application Options:
   /c:                      Call phone number
       /ptrslice:           A slice of pointers to string
       /empty-description
-      /default:            Test default value (Some value)
+      /default:            Test default value ("Some\nvalue")
       /default-array:      Test default array value (Some value, Another value)
       /default-map:        Testdefault map value (some:value, another:value)
       /env-default1:       Test env-default1 value (Some value) [%ENV_DEFAULT%]
@@ -115,7 +115,7 @@ Application Options:
   -c=                      Call phone number
       --ptrslice=          A slice of pointers to string
       --empty-description
-      --default=           Test default value (Some value)
+      --default=           Test default value ("Some\nvalue")
       --default-array=     Test default array value (Some value, Another value)
       --default-map=       Testdefault map value (some:value, another:value)
       --env-default1=      Test env-default1 value (Some value) [$ENV_DEFAULT]

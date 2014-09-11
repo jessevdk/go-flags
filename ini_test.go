@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -54,7 +55,7 @@ verbose = true
 EmptyDescription = false
 
 ; Test default value
-Default = Some value
+Default = "Some\nvalue"
 
 ; Test default array value
 DefaultArray = Some value
@@ -109,7 +110,7 @@ Opt =
 ; EmptyDescription = false
 
 ; Test default value
-; Default = Some value
+; Default = "Some\nvalue"
 
 ; Test default array value
 ; DefaultArray = Some value
@@ -242,16 +243,23 @@ func TestReadIni(t *testing.T) {
 verbose = true
 verbose = true
 
+DefaultMap = another:"value\n1"
+DefaultMap = some:value 2
+
 [Application Options]
 ; A slice of pointers to string
 ; PtrSlice =
 
 ; Test default value
-Default = Some value
+Default = "New\nvalue"
+
+; Test env-default1 value
+EnvDefault1 = New value
 
 [Other Options]
 # A slice of strings
-# StringSlice =
+StringSlice = "some\nvalue"
+StringSlice = another value
 
 ; A map from string to int
 int-map = a:2
@@ -268,6 +276,16 @@ int-map = b:3
 
 	assertBoolArray(t, opts.Verbose, []bool{true, true})
 
+	if v := map[string]string{"another": "value\n1", "some": "value 2"}; !reflect.DeepEqual(opts.DefaultMap, v) {
+		t.Fatalf("Expected %#v for DefaultMap but got %#v", v, opts.DefaultMap)
+	}
+
+	assertString(t, opts.Default, "New\nvalue")
+
+	assertString(t, opts.EnvDefault1, "New value")
+
+	assertStringArray(t, opts.Other.StringSlice, []string{"some\nvalue", "another value"})
+
 	if v, ok := opts.Other.IntMap["a"]; !ok {
 		t.Errorf("Expected \"a\" in Other.IntMap")
 	} else if v != 2 {
@@ -278,6 +296,60 @@ int-map = b:3
 		t.Errorf("Expected \"b\" in Other.IntMap")
 	} else if v != 3 {
 		t.Errorf("Expected Other.IntMap[\"b\"] = 3, but got %v", v)
+	}
+}
+
+func TestReadIniWrongQuoting(t *testing.T) {
+	var tests = []struct {
+		iniFile    string
+		lineNumber uint
+	}{
+		{
+			iniFile:    `Default = "New\nvalue`,
+			lineNumber: 1,
+		},
+		{
+			iniFile:    `StringSlice = "New\nvalue`,
+			lineNumber: 1,
+		},
+		{
+			iniFile: `StringSlice = "New\nvalue"
+			StringSlice = "Second\nvalue`,
+			lineNumber: 2,
+		},
+		{
+			iniFile:    `DefaultMap = some:"value`,
+			lineNumber: 1,
+		},
+		{
+			iniFile: `DefaultMap = some:value
+			DefaultMap = another:"value`,
+			lineNumber: 2,
+		},
+	}
+
+	for _, test := range tests {
+		var opts helpOptions
+
+		p := NewNamedParser("TestIni", Default)
+		p.AddGroup("Application Options", "The application options", &opts)
+
+		inip := NewIniParser(p)
+
+		inic := test.iniFile
+
+		b := strings.NewReader(inic)
+		err := inip.Parse(b)
+
+		if err == nil {
+			t.Fatalf("Expect error")
+		}
+
+		iniError := err.(*IniError)
+
+		if iniError.LineNumber != test.lineNumber {
+			t.Fatalf("Expect error on line %d", test.lineNumber)
+		}
 	}
 }
 
@@ -354,7 +426,15 @@ value = some value
 		t.Fatalf("Expected error")
 	}
 
-	assertError(t, err, ErrUnknownFlag, "unknown option: value")
+	iniError := err.(*IniError)
+
+	if v := uint(2); iniError.LineNumber != v {
+		t.Errorf("Expected opts.Add.Name to be %d, but got %d", v, iniError.LineNumber)
+	}
+
+	if v := "unknown option: value"; iniError.Message != v {
+		t.Errorf("Expected opts.Add.Name to be %s, but got %s", v, iniError.Message)
+	}
 }
 
 func TestIniParse(t *testing.T) {

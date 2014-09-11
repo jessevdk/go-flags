@@ -294,6 +294,14 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	return nil
 }
 
+func quoteIfNeeded(s string) string {
+	if strconv.CanBackquote(s) {
+		return s
+	}
+
+	return strconv.Quote(s)
+}
+
 func wrapText(s string, l int, prefix string) string {
 	// Basic text wrapping of s at spaces to fit in l
 	var ret string
