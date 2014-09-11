@@ -119,6 +119,8 @@ func NewNamedParser(appname string, options Options) *Parser {
 
 	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
 		p.AddCommand("__complete", "completion", "automatic flags completion", &completion{parser: p})
+
+		p.Options |= PassDoubleDash
 	}
 
 	return p

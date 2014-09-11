@@ -226,6 +226,8 @@ calls the binary which supports go-flags completion:
 
     complete -F _completion_example completion-example
 
+Completion requires the parser option PassDoubleDash and is therefore enforced if the environment variable GO_FLAGS_COMPLETION is set.
+
 Customized completion for argument values is supported by implementing
 the flags.Completer interface for the argument value type. An example
 of a type which does so is the flags.Filename type, an alias of string
