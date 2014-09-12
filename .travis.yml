@@ -1,3 +1,25 @@
 language: go
-after_success:
-  - coveralls
+
+install:
+  # go-flags
+  - go get -d -v ./...
+  - go build -v ./...
+
+  # code coverage
+  - go get code.google.com/p/go.tools/cmd/cover
+  - go get github.com/onsi/ginkgo/ginkgo
+  - go get github.com/modocache/gover
+  - go get github.com/mattn/goveralls
+
+script:
+  # go-flags
+  - go test -v ./...
+
+  # Code coverage
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/ginkgo -r -race -cover
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/gover
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN
+
+env:
+  # coveralls.io
+  secure: "secure COVERALLS_TOKEN env in here"
