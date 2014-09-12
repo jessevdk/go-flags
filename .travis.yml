@@ -1,1 +1,3 @@
 language: go
+after_success:
+	- coveralls
