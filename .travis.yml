@@ -5,6 +5,11 @@ install:
   - go get -d -v ./...
   - go build -v ./...
 
+  # linting
+  - go get code.google.com/p/go.tools/cmd/vet
+  - go get github.com/golang/lint
+  - go install github.com/golang/lint/golint
+
   # code coverage
   - go get code.google.com/p/go.tools/cmd/cover
   - go get github.com/onsi/ginkgo/ginkgo
@@ -15,6 +20,10 @@ script:
   # go-flags
   - $(exit $(gofmt -l . | wc -l))
   - go test -v ./...
+
+  # linting
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/go tool vet -all=true -v=true .
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/golint .
 
   # code coverage
   - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/ginkgo -r -race -cover
