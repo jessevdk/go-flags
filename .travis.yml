@@ -13,9 +13,10 @@ install:
 
 script:
   # go-flags
+  - $(exit $(gofmt -l . | wc -l))
   - go test -v ./...
 
-  # Code coverage
+  # code coverage
   - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/ginkgo -r -race -cover
   - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/gover
   - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN
