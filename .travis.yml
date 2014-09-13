@@ -5,20 +5,30 @@ install:
   - go get -d -v ./...
   - go build -v ./...
 
+  # linting
+  - go get code.google.com/p/go.tools/cmd/vet
+  - go get github.com/golang/lint
+  - go install github.com/golang/lint/golint
+
   # code coverage
   - go get code.google.com/p/go.tools/cmd/cover
   - go get github.com/onsi/ginkgo/ginkgo
   - go get github.com/modocache/gover
-  - go get github.com/mattn/goveralls
+  - if [ "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then go get github.com/mattn/goveralls; fi
 
 script:
   # go-flags
+  - $(exit $(gofmt -l . | wc -l))
   - go test -v ./...
 
-  # Code coverage
-  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/ginkgo -r -race -cover
+  # linting
+  - go tool vet -all=true -v=true .
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/golint .
+
+  # code coverage
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/ginkgo -r -cover
   - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/gover
-  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN
+  - if [ "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN; fi
 
 env:
   # coveralls.io
