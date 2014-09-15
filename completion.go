@@ -121,13 +121,7 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 	return n
 }
 
-func (c *completion) completeValue(value reflect.Value, prefix string, match string, isRemaining bool) []Completion {
-	// For remaining positional args (that are parsed into a slice), complete
-	// based on the element type.
-	if isRemaining {
-		value = reflect.New(value.Type().Elem())
-	}
-
+func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
 	i := value.Interface()
 
 	var ret []Completion
@@ -145,6 +139,16 @@ func (c *completion) completeValue(value reflect.Value, prefix string, match str
 	}
 
 	return ret
+}
+
+func (c *completion) completeArg(arg *Arg, prefix string, match string) []Completion {
+	if arg.isRemaining() {
+		// For remaining positional args (that are parsed into a slice), complete
+		// based on the element type.
+		return c.completeValue(reflect.New(arg.value.Type().Elem()), prefix, match)
+	}
+
+	return c.completeValue(arg.value, prefix, match)
 }
 
 func (c *completion) complete(args []string) []Completion {
@@ -229,7 +233,7 @@ func (c *completion) complete(args []string) []Completion {
 
 	if opt != nil {
 		// Completion for the argument of 'opt'
-		ret = c.completeValue(opt.value, "", lastarg, false)
+		ret = c.completeValue(opt.value, "", lastarg)
 	} else if argumentIsOption(lastarg) {
 		// Complete the option
 		prefix, optname, islong := stripOptionPrefix(lastarg)
@@ -240,7 +244,7 @@ func (c *completion) complete(args []string) []Completion {
 			sname := string(rname)
 
 			if opt := s.lookup.shortNames[sname]; opt != nil && opt.canArgument() {
-				ret = c.completeValue(opt.value, prefix+sname, optname[n:], false)
+				ret = c.completeValue(opt.value, prefix+sname, optname[n:])
 			} else {
 				ret = c.completeShortNames(s, prefix, optname)
 			}
@@ -252,7 +256,7 @@ func (c *completion) complete(args []string) []Completion {
 			}
 
 			if opt != nil {
-				ret = c.completeValue(opt.value, prefix+optname+split, *argument, false)
+				ret = c.completeValue(opt.value, prefix+optname+split, *argument)
 			}
 		} else if islong {
 			ret = c.completeLongNames(s, prefix, optname)
@@ -261,7 +265,7 @@ func (c *completion) complete(args []string) []Completion {
 		}
 	} else if len(s.positional) > 0 {
 		// Complete for positional argument
-		ret = c.completeValue(s.positional[0].value, "", lastarg, s.positional[0].isRemaining())
+		ret = c.completeArg(s.positional[0], "", lastarg)
 	} else if len(s.command.commands) > 0 {
 		// Complete for command
 		ret = c.completeCommands(s, lastarg)
