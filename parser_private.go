@@ -46,7 +46,7 @@ func (p *parseState) peek() string {
 func (p *parseState) checkRequired(parser *Parser) error {
 	c := parser.Command
 
-	required := make([]*Option, 0)
+	var required []*Option
 
 	for c != nil {
 		c.eachGroup(func(g *Group) {
@@ -62,7 +62,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 
 	if len(required) == 0 {
 		if len(p.positional) > 0 && p.command.ArgsRequired {
-			reqnames := make([]string, 0)
+			var reqnames []string
 
 			for _, arg := range p.positional {
 				if arg.isRemaining() {
@@ -255,22 +255,22 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 	return nil
 }
 
-func (s *parseState) addArgs(args ...string) error {
-	for len(s.positional) > 0 && len(args) > 0 {
-		arg := s.positional[0]
+func (p *parseState) addArgs(args ...string) error {
+	for len(p.positional) > 0 && len(args) > 0 {
+		arg := p.positional[0]
 
 		if err := convert(args[0], arg.value, arg.tag); err != nil {
 			return err
 		}
 
 		if !arg.isRemaining() {
-			s.positional = s.positional[1:]
+			p.positional = p.positional[1:]
 		}
 
 		args = args[1:]
 	}
 
-	s.retargs = append(s.retargs, args...)
+	p.retargs = append(p.retargs, args...)
 	return nil
 }
 
