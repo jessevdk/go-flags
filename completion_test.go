@@ -218,7 +218,7 @@ func TestParserCompletion(t *testing.T) {
 
 		p := NewParser(&completionTestOptions, None)
 
-		_, err := p.ParseArgs(append([]string{"__complete", "--"}, test.Args...))
+		_, err := p.ParseArgs(test.Args)
 
 		w.Close()
 
