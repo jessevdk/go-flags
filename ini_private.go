@@ -107,26 +107,27 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 
 		oname := optionIniName(option)
 
-		commentOption := ""
-		if (options&(IniIncludeDefaults|IniCommentDefaults)) == IniIncludeDefaults|IniCommentDefaults && option.valueIsDefault() {
-			commentOption = "; "
-		}
+		commentOption := (options&(IniIncludeDefaults|IniCommentDefaults)) == IniIncludeDefaults|IniCommentDefaults && option.valueIsDefault()
 
 		kind := val.Type().Kind()
 		switch kind {
 		case reflect.Slice:
+			kind = val.Type().Elem().Kind()
+
 			if val.Len() == 0 {
-				fmt.Fprintf(writer, "; %s =\n", oname)
+				writeOption(writer, oname, kind, "", "", true)
 			} else {
 				for idx := 0; idx < val.Len(); idx++ {
 					v, _ := convertToString(val.Index(idx), option.tag)
 
-					writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), "", v)
+					writeOption(writer, oname, kind, "", v, commentOption)
 				}
 			}
 		case reflect.Map:
+			kind = val.Type().Elem().Kind()
+
 			if val.Len() == 0 {
-				fmt.Fprintf(writer, "; %s =\n", oname)
+				writeOption(writer, oname, kind, "", "", true)
 			} else {
 				mkeys := val.MapKeys()
 				keys := make([]string, len(val.MapKeys()))
@@ -142,17 +143,13 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 				for _, k := range keys {
 					v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
 
-					writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), k, v)
+					writeOption(writer, oname, kind, k, v, commentOption)
 				}
 			}
 		default:
 			v, _ := convertToString(val, option.tag)
 
-			if len(v) != 0 {
-				writeOption(writer, commentOption, oname, kind, "", v)
-			} else {
-				fmt.Fprintf(writer, "%s%s =\n", commentOption, oname)
-			}
+			writeOption(writer, oname, kind, "", v, commentOption)
 		}
 
 		if comments {
@@ -165,16 +162,25 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 	}
 }
 
-func writeOption(writer io.Writer, commentOption string, optionName string, optionType reflect.Kind, optionKey string, optionValue string) {
+func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, optionKey string, optionValue string, commentOption bool) {
 	if optionType == reflect.String {
 		optionValue = quoteIfNeeded(optionValue)
 	}
 
-	if optionKey == "" {
-		fmt.Fprintf(writer, "%s%s = %s\n", commentOption, optionName, optionValue)
-	} else {
-		fmt.Fprintf(writer, "%s%s = %s:%s\n", commentOption, optionName, optionKey, optionValue)
+	comment := ""
+	if commentOption {
+		comment = "; "
 	}
+
+	fmt.Fprintf(writer, "%s%s =", comment, optionName)
+
+	if optionKey != "" {
+		fmt.Fprintf(writer, " %s:%s", optionKey, optionValue)
+	} else if optionValue != "" {
+		fmt.Fprintf(writer, " %s", optionValue)
+	}
+
+	fmt.Fprintln(writer)
 }
 
 func writeCommandIni(command *Command, namespace string, writer io.Writer, options IniOptions) {
