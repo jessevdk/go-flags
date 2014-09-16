@@ -1,6 +1,9 @@
 package flags
 
 import (
+	"bytes"
+	"io"
+	"os"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -60,16 +63,20 @@ var completionTestOptions struct {
 	} `command:"rename"`
 }
 
-func TestCompletion(t *testing.T) {
+type completionTest struct {
+	Args      []string
+	Completed []string
+}
+
+var completionTests []completionTest
+
+func init() {
 	_, sourcefile, _, _ := runtime.Caller(0)
-	sourcedir := filepath.Join(filepath.SplitList(path.Dir(sourcefile))...)
+	completionTestSourcedir := filepath.Join(filepath.SplitList(path.Dir(sourcefile))...)
 
-	excompl := []string{filepath.Join(sourcedir, "completion.go"), filepath.Join(sourcedir, "completion_test.go")}
+	completionTestFilename := []string{filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion_test.go")}
 
-	tests := []struct {
-		Args      []string
-		Completed []string
-	}{
+	completionTests = []completionTest{
 		{
 			// Short names
 			[]string{"-"},
@@ -108,60 +115,60 @@ func TestCompletion(t *testing.T) {
 
 		{
 			// Positional filename
-			[]string{"add", filepath.Join(sourcedir, "completion")},
-			excompl,
+			[]string{"add", filepath.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
 		},
 
 		{
 			// Multiple positional filename (1 arg)
-			[]string{"add-multi", filepath.Join(sourcedir, "completion")},
-			excompl,
+			[]string{"add-multi", filepath.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
 		},
 		{
 			// Multiple positional filename (2 args)
-			[]string{"add-multi", filepath.Join(sourcedir, "completion.go"), filepath.Join(sourcedir, "completion")},
-			excompl,
+			[]string{"add-multi", filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
 		},
 		{
 			// Multiple positional filename (3 args)
-			[]string{"add-multi", filepath.Join(sourcedir, "completion.go"), filepath.Join(sourcedir, "completion.go"), filepath.Join(sourcedir, "completion")},
-			excompl,
+			[]string{"add-multi", filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
 		},
 
 		{
 			// Flag filename
-			[]string{"rm", "-f", path.Join(sourcedir, "completion")},
-			excompl,
+			[]string{"rm", "-f", path.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
 		},
 
 		{
 			// Flag short concat last filename
-			[]string{"rm", "-of", path.Join(sourcedir, "completion")},
-			excompl,
+			[]string{"rm", "-of", path.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
 		},
 
 		{
 			// Flag concat filename
-			[]string{"rm", "-f" + path.Join(sourcedir, "completion")},
-			[]string{"-f" + excompl[0], "-f" + excompl[1]},
+			[]string{"rm", "-f" + path.Join(completionTestSourcedir, "completion")},
+			[]string{"-f" + completionTestFilename[0], "-f" + completionTestFilename[1]},
 		},
 
 		{
 			// Flag equal concat filename
-			[]string{"rm", "-f=" + path.Join(sourcedir, "completion")},
-			[]string{"-f=" + excompl[0], "-f=" + excompl[1]},
+			[]string{"rm", "-f=" + path.Join(completionTestSourcedir, "completion")},
+			[]string{"-f=" + completionTestFilename[0], "-f=" + completionTestFilename[1]},
 		},
 
 		{
 			// Flag concat long filename
-			[]string{"rm", "--filename=" + path.Join(sourcedir, "completion")},
-			[]string{"--filename=" + excompl[0], "--filename=" + excompl[1]},
+			[]string{"rm", "--filename=" + path.Join(completionTestSourcedir, "completion")},
+			[]string{"--filename=" + completionTestFilename[0], "--filename=" + completionTestFilename[1]},
 		},
 
 		{
 			// Flag long filename
-			[]string{"rm", "--filename", path.Join(sourcedir, "completion")},
-			excompl,
+			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
 		},
 
 		{
@@ -170,11 +177,13 @@ func TestCompletion(t *testing.T) {
 			[]string{"hello universe"},
 		},
 	}
+}
 
+func TestCompletion(t *testing.T) {
 	p := NewParser(&completionTestOptions, Default)
 	c := &completion{parser: p}
 
-	for _, test := range tests {
+	for _, test := range completionTests {
 		ret := c.complete(test.Args)
 		items := make([]string, len(ret))
 
@@ -186,4 +195,45 @@ func TestCompletion(t *testing.T) {
 			t.Errorf("Args: %#v\n  Expected: %#v\n  Got:     %#v", test.Args, test.Completed, items)
 		}
 	}
+}
+
+func TestParserCompletion(t *testing.T) {
+	os.Setenv("GO_FLAGS_COMPLETION", "1")
+
+	for _, test := range completionTests {
+		tmp := os.Stdout
+
+		r, w, _ := os.Pipe()
+		os.Stdout = w
+
+		out := make(chan string)
+
+		go func() {
+			var buf bytes.Buffer
+
+			io.Copy(&buf, r)
+
+			out <- buf.String()
+		}()
+
+		p := NewParser(&completionTestOptions, None)
+
+		_, err := p.ParseArgs(append([]string{"__complete", "--"}, test.Args...))
+
+		w.Close()
+
+		os.Stdout = tmp
+
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		got := strings.Split(strings.Trim(<-out, "\n"), "\n")
+
+		if !reflect.DeepEqual(got, test.Completed) {
+			t.Errorf("Expected: %#v\nGot: %#v", test.Completed, got)
+		}
+	}
+
+	os.Setenv("GO_FLAGS_COMPLETION", "")
 }
