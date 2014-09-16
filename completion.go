@@ -275,7 +275,7 @@ func (c *completion) complete(args []string) []Completion {
 	return ret
 }
 
-func (c *completion) Execute(args []string) error {
+func (c *completion) execute(args []string) {
 	ret := c.complete(args)
 
 	if c.ShowDescriptions && len(ret) > 1 {
@@ -301,6 +301,4 @@ func (c *completion) Execute(args []string) error {
 			fmt.Println(v.Item)
 		}
 	}
-
-	return nil
 }

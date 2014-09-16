@@ -117,12 +117,6 @@ func NewNamedParser(appname string, options Options) *Parser {
 
 	p.Command.parent = p
 
-	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
-		p.AddCommand("__complete", "completion", "automatic flags completion", &completion{parser: p})
-
-		p.Options |= PassDoubleDash
-	}
-
 	return p
 }
 
@@ -152,6 +146,14 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	// Add built-in help group to all commands if necessary
 	if (p.Options & HelpFlag) != None {
 		p.addHelpGroups(p.showBuiltinHelp)
+	}
+
+	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
+		comp := &completion{parser: p}
+
+		comp.execute(args)
+
+		return nil, nil
 	}
 
 	s := &parseState{
@@ -226,15 +228,15 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	var reterr error
 
 	if s.err != nil {
-		reterr = p.printError(s.err)
+		reterr = s.err
 	} else if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
-		reterr = p.printError(s.estimateCommand())
+		reterr = s.estimateCommand()
 	} else if cmd, ok := s.command.data.(Commander); ok {
-		reterr = p.printError(cmd.Execute(s.retargs))
+		reterr = cmd.Execute(s.retargs)
 	}
 
 	if reterr != nil {
-		return append([]string{s.arg}, s.args...), reterr
+		return append([]string{s.arg}, s.args...), p.printError(reterr)
 	}
 
 	return s.retargs, nil
