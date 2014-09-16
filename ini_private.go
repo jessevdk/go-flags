@@ -14,6 +14,7 @@ import (
 type iniValue struct {
 	Name       string
 	Value      string
+	Quoted     bool
 	LineNumber uint
 }
 
@@ -115,19 +116,19 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 			kind = val.Type().Elem().Kind()
 
 			if val.Len() == 0 {
-				writeOption(writer, oname, kind, "", "", true)
+				writeOption(writer, oname, kind, "", "", true, option.iniQuote)
 			} else {
 				for idx := 0; idx < val.Len(); idx++ {
 					v, _ := convertToString(val.Index(idx), option.tag)
 
-					writeOption(writer, oname, kind, "", v, commentOption)
+					writeOption(writer, oname, kind, "", v, commentOption, option.iniQuote)
 				}
 			}
 		case reflect.Map:
 			kind = val.Type().Elem().Kind()
 
 			if val.Len() == 0 {
-				writeOption(writer, oname, kind, "", "", true)
+				writeOption(writer, oname, kind, "", "", true, option.iniQuote)
 			} else {
 				mkeys := val.MapKeys()
 				keys := make([]string, len(val.MapKeys()))
@@ -143,13 +144,13 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 				for _, k := range keys {
 					v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
 
-					writeOption(writer, oname, kind, k, v, commentOption)
+					writeOption(writer, oname, kind, k, v, commentOption, option.iniQuote)
 				}
 			}
 		default:
 			v, _ := convertToString(val, option.tag)
 
-			writeOption(writer, oname, kind, "", v, commentOption)
+			writeOption(writer, oname, kind, "", v, commentOption, option.iniQuote)
 		}
 
 		if comments {
@@ -162,9 +163,9 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 	}
 }
 
-func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, optionKey string, optionValue string, commentOption bool) {
-	if optionType == reflect.String {
-		optionValue = quoteIfNeeded(optionValue)
+func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, optionKey string, optionValue string, commentOption bool, forceQuote bool) {
+	if forceQuote || (optionType == reflect.String && !strconv.CanBackquote(optionValue)) {
+		optionValue = strconv.Quote(optionValue)
 	}
 
 	comment := ""
@@ -307,10 +308,13 @@ func readIni(contents io.Reader, filename string) (*ini, error) {
 
 		name := strings.TrimSpace(keyval[0])
 		value := strings.TrimSpace(keyval[1])
+		quoted := false
 
 		if len(value) != 0 && value[0] == '"' {
 			if v, err := strconv.Unquote(value); err == nil {
 				value = v
+
+				quoted = true
 			} else {
 				return nil, &IniError{
 					Message:    err.Error(),
@@ -323,6 +327,7 @@ func readIni(contents io.Reader, filename string) (*ini, error) {
 		section = append(section, iniValue{
 			Name:       name,
 			Value:      value,
+			Quoted:     quoted,
 			LineNumber: lineno,
 		})
 
@@ -406,6 +411,8 @@ func (i *IniParser) parse(ini *ini) error {
 					if len(parts) == 2 && parts[1][0] == '"' {
 						if v, err := strconv.Unquote(parts[1]); err == nil {
 							parts[1] = v
+
+							inival.Quoted = true
 						} else {
 							return &IniError{
 								Message:    err.Error(),
@@ -428,6 +435,9 @@ func (i *IniParser) parse(ini *ini) error {
 					LineNumber: inival.LineNumber,
 				}
 			}
+
+			// always quote in case one value of the option uses quotes
+			opt.iniQuote = opt.iniQuote || inival.Quoted
 
 			opt.tag.Set("_read-ini-name", inival.Name)
 		}

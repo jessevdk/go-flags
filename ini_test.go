@@ -299,6 +299,103 @@ int-map = b:3
 	}
 }
 
+func TestReadAndWriteIni(t *testing.T) {
+	var tests = []struct {
+		options IniOptions
+		read    string
+		write   string
+	}{
+		{
+			IniIncludeComments,
+			`[Application Options]
+; Show verbose debug information
+verbose = true
+verbose = true
+
+; Test default value
+Default = "quote me"
+
+; Test default array value
+DefaultArray = 1
+DefaultArray = "2"
+DefaultArray = 3
+
+; Testdefault map value
+; DefaultMap =
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
+
+[Other Options]
+; A slice of strings
+; StringSlice =
+
+; A map from string to int
+int-map = a:2
+int-map = b:"3"
+
+`,
+			`[Application Options]
+; Show verbose debug information
+verbose = true
+verbose = true
+
+; Test default value
+Default = "quote me"
+
+; Test default array value
+DefaultArray = "1"
+DefaultArray = "2"
+DefaultArray = "3"
+
+; Testdefault map value
+; DefaultMap =
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
+
+[Other Options]
+; A slice of strings
+; StringSlice =
+
+; A map from string to int
+int-map = a:"2"
+int-map = b:"3"
+
+`,
+		},
+	}
+
+	for _, test := range tests {
+		var opts helpOptions
+
+		p := NewNamedParser("TestIni", Default)
+		p.AddGroup("Application Options", "The application options", &opts)
+
+		inip := NewIniParser(p)
+
+		read := strings.NewReader(test.read)
+		err := inip.Parse(read)
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		var write bytes.Buffer
+		inip.Write(&write, test.options)
+
+		got := write.String()
+
+		msg := fmt.Sprintf("with ini options %b", test.options)
+		assertDiff(t, got, test.write, msg)
+	}
+}
+
 func TestReadIniWrongQuoting(t *testing.T) {
 	var tests = []struct {
 		iniFile    string

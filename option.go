@@ -68,6 +68,9 @@ type Option struct {
 	// The struct field value which the option represents.
 	value reflect.Value
 
+	// Determines if the option will be always quoted in the INI output
+	iniQuote bool
+
 	tag   multiTag
 	isSet bool
 }
