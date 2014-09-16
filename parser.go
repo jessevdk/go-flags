@@ -151,9 +151,9 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
 		comp := &completion{parser: p}
 
-		reterr := comp.Execute(args)
+		comp.execute(args)
 
-		return args, p.printError(reterr)
+		return nil, nil
 	}
 
 	s := &parseState{
