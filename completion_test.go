@@ -33,9 +33,10 @@ func (t *TestComplete) Complete(match string) []Completion {
 }
 
 var completionTestOptions struct {
-	Verbose bool `short:"v" long:"verbose"`
-	Debug   bool `short:"d" long:"debug"`
-	Version bool `long:"version"`
+	Verbose  bool `short:"v" long:"verbose"`
+	Debug    bool `short:"d" long:"debug"`
+	Version  bool `long:"version"`
+	Required bool `long:"required" required:"true"`
 
 	AddCommand struct {
 		Positional struct {
@@ -84,7 +85,7 @@ func TestCompletion(t *testing.T) {
 		{
 			// Long names
 			[]string{"--"},
-			[]string{"--debug", "--verbose", "--version"},
+			[]string{"--debug", "--required", "--verbose", "--version"},
 		},
 
 		{
