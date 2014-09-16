@@ -115,34 +115,35 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 		kind := val.Type().Kind()
 		switch kind {
 		case reflect.Slice:
-			for idx := 0; idx < val.Len(); idx++ {
-				v, _ := convertToString(val.Index(idx), option.tag)
-				writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), "", v)
-			}
-
 			if val.Len() == 0 {
 				fmt.Fprintf(writer, "; %s =\n", oname)
+			} else {
+				for idx := 0; idx < val.Len(); idx++ {
+					v, _ := convertToString(val.Index(idx), option.tag)
+
+					writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), "", v)
+				}
 			}
 		case reflect.Map:
-			mkeys := val.MapKeys()
-			keys := make([]string, len(val.MapKeys()))
-			kkmap := make(map[string]reflect.Value)
-
-			for i, k := range mkeys {
-				keys[i], _ = convertToString(k, option.tag)
-				kkmap[keys[i]] = k
-			}
-
-			sort.Strings(keys)
-
-			for _, k := range keys {
-				v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
-
-				writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), k, v)
-			}
-
 			if val.Len() == 0 {
 				fmt.Fprintf(writer, "; %s =\n", oname)
+			} else {
+				mkeys := val.MapKeys()
+				keys := make([]string, len(val.MapKeys()))
+				kkmap := make(map[string]reflect.Value)
+
+				for i, k := range mkeys {
+					keys[i], _ = convertToString(k, option.tag)
+					kkmap[keys[i]] = k
+				}
+
+				sort.Strings(keys)
+
+				for _, k := range keys {
+					v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
+
+					writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), k, v)
+				}
 			}
 		default:
 			v, _ := convertToString(val, option.tag)
