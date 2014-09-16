@@ -68,9 +68,8 @@ type Option struct {
 	// The struct field value which the option represents.
 	value reflect.Value
 
-	iniUsedName string
-	tag         multiTag
-	isSet       bool
+	tag   multiTag
+	isSet bool
 }
 
 // LongNameWithNamespace returns the option's long name with the group namespaces
