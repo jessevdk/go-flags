@@ -163,7 +163,7 @@ func TestCommandExecute(t *testing.T) {
 	}
 
 	if !opts.Command.G {
-		t.Errorf("Expected Command.C to be true")
+		t.Errorf("Expected Command.G to be true")
 	}
 
 	assertStringArray(t, opts.Command.EArgs, []string{"a", "b"})
@@ -350,5 +350,52 @@ func TestCommandAlias(t *testing.T) {
 
 	if !opts.Command.G {
 		t.Errorf("Expected G to be true")
+	}
+}
+
+type testCommandNoArgs struct {
+	G        bool `short:"g"`
+	Executed bool
+}
+
+func (c *testCommandNoArgs) Execute() error {
+	c.Executed = true
+
+	return nil
+}
+
+func TestCommandExecuteNoArgsOK(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command testCommandNoArgs `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "-v", "cmd", "-g")
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Command.Executed {
+		t.Errorf("Did not execute command")
+	}
+
+	if !opts.Command.G {
+		t.Errorf("Expected Command.G to be true")
+	}
+}
+
+func TestCommandExecuteNoArgsTooMany(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command testCommandNoArgs `command:"cmd"`
+	}{}
+
+	assertParseFail(t, ErrTooManyArgs, "too many arguments: a, b, c", &opts,
+		"-v", "cmd", "-g", "a", "b", "c")
+	if opts.Command.Executed {
+		t.Errorf("Did not expect command to be executed")
 	}
 }

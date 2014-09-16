@@ -39,6 +39,16 @@ type Commander interface {
 	Execute(args []string) error
 }
 
+// CommanderNoArgs is and interface like Commander, with the exception that it
+// does not accept any extra positional arguments and an error will be produced
+// before calling Execute(), if such arguments are given by the user.
+type CommanderNoArgs interface {
+	// Execute will be called for the last active (sub)command. The
+	// error that Execute returns will be eventually passed out of the
+	// Parse method of the Parser.
+	Execute() error
+}
+
 // Usage is an interface which can be implemented to show a custom usage string
 // in the help message shown for a command.
 type Usage interface {
