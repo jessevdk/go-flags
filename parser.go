@@ -117,12 +117,6 @@ func NewNamedParser(appname string, options Options) *Parser {
 
 	p.Command.parent = p
 
-	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
-		p.AddCommand("__complete", "completion", "automatic flags completion", &completion{parser: p})
-
-		p.Options |= PassDoubleDash
-	}
-
 	return p
 }
 
@@ -152,6 +146,14 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	// Add built-in help group to all commands if necessary
 	if (p.Options & HelpFlag) != None {
 		p.addHelpGroups(p.showBuiltinHelp)
+	}
+
+	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
+		comp := &completion{parser: p}
+
+		reterr := comp.Execute(args)
+
+		return args, p.printError(reterr)
 	}
 
 	s := &parseState{
