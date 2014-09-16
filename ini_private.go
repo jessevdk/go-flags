@@ -81,18 +81,6 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 	sectionwritten := false
 	comments := (options & IniIncludeComments) != IniNone
 
-	printOption := func(commentOption string, optionName string, optionType reflect.Kind, optionKey string, optionValue string) {
-		if optionType == reflect.String {
-			optionValue = quoteIfNeeded(optionValue)
-		}
-
-		if optionKey == "" {
-			fmt.Fprintf(writer, "%s%s = %s\n", commentOption, optionName, optionValue)
-		} else {
-			fmt.Fprintf(writer, "%s%s = %s:%s\n", commentOption, optionName, optionKey, optionValue)
-		}
-	}
-
 	for _, option := range group.options {
 		if option.isFunc() {
 			continue
@@ -129,7 +117,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 		case reflect.Slice:
 			for idx := 0; idx < val.Len(); idx++ {
 				v, _ := convertToString(val.Index(idx), option.tag)
-				printOption(commentOption, oname, val.Type().Elem().Kind(), "", v)
+				writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), "", v)
 			}
 
 			if val.Len() == 0 {
@@ -150,7 +138,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 			for _, k := range keys {
 				v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
 
-				printOption(commentOption, oname, val.Type().Elem().Kind(), k, v)
+				writeOption(writer, commentOption, oname, val.Type().Elem().Kind(), k, v)
 			}
 
 			if val.Len() == 0 {
@@ -160,7 +148,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 			v, _ := convertToString(val, option.tag)
 
 			if len(v) != 0 {
-				printOption(commentOption, oname, kind, "", v)
+				writeOption(writer, commentOption, oname, kind, "", v)
 			} else {
 				fmt.Fprintf(writer, "%s%s =\n", commentOption, oname)
 			}
@@ -173,6 +161,18 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 
 	if sectionwritten && !comments {
 		fmt.Fprintln(writer)
+	}
+}
+
+func writeOption(writer io.Writer, commentOption string, optionName string, optionType reflect.Kind, optionKey string, optionValue string) {
+	if optionType == reflect.String {
+		optionValue = quoteIfNeeded(optionValue)
+	}
+
+	if optionKey == "" {
+		fmt.Fprintf(writer, "%s%s = %s\n", commentOption, optionName, optionValue)
+	} else {
+		fmt.Fprintf(writer, "%s%s = %s:%s\n", commentOption, optionName, optionKey, optionValue)
 	}
 }
 
