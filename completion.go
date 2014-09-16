@@ -44,7 +44,7 @@ type Completer interface {
 type completion struct {
 	parser *Parser
 
-	ShowDescriptions bool `short:"d" long:"show-descriptions" description:"Show descriptions next to completion items"`
+	ShowDescriptions bool
 }
 
 // Filename is a string alias which provides filename completion.

@@ -148,8 +148,14 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
 
-	if len(os.Getenv("GO_FLAGS_COMPLETION")) != 0 {
+	compval := os.Getenv("GO_FLAGS_COMPLETION")
+
+	if len(compval) != 0 {
 		comp := &completion{parser: p}
+
+		if compval == "verbose" {
+			comp.ShowDescriptions = true
+		}
 
 		comp.execute(args)
 

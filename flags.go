@@ -205,7 +205,9 @@ complete a set of arguments is therefore:
 
 where `completion-example` is the binary, `arg1` and `arg2` are
 the current arguments, and `arg3` (the last argument) is the argument
-to be completed.
+to be completed. If the GO_FLAGS_COMPLETION is set to "verbose", then
+descriptions of possible completion items will also be shown, if there
+are more than 1 completion items.
 
 To use this with bash completion, a simple file can be written which
 calls the binary which supports go-flags completion:
