@@ -59,7 +59,7 @@ Default = "Some\nvalue"
 
 ; Test default array value
 DefaultArray = Some value
-DefaultArray = Another value
+DefaultArray = "Other\tvalue"
 
 ; Testdefault map value
 DefaultMap = another:value
@@ -114,7 +114,7 @@ Opt =
 
 ; Test default array value
 ; DefaultArray = Some value
-; DefaultArray = Another value
+; DefaultArray = "Other\tvalue"
 
 ; Testdefault map value
 ; DefaultMap = another:value

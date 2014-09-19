@@ -294,12 +294,22 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	return nil
 }
 
-func quoteIfNeeded(s string) string {
-	if strconv.CanBackquote(s) {
-		return s
+func isPrint(s string) bool {
+	for _, c := range s {
+		if !strconv.IsPrint(c) {
+			return false
+		}
 	}
 
-	return strconv.Quote(s)
+	return true
+}
+
+func quoteIfNeeded(s string) string {
+	if !isPrint(s) {
+		return strconv.Quote(s)
+	}
+
+	return s
 }
 
 func wrapText(s string, l int, prefix string) string {
