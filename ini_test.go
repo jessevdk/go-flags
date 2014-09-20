@@ -347,6 +347,71 @@ verbose = true
 Default = "quote me"
 
 ; Test default array value
+DefaultArray = 1
+DefaultArray = 2
+DefaultArray = 3
+
+; Testdefault map value
+; DefaultMap =
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
+
+[Other Options]
+; A slice of strings
+; StringSlice =
+
+; A map from string to int
+int-map = a:2
+int-map = b:3
+
+`,
+		},
+		{
+			IniIncludeComments,
+			`[Application Options]
+; Show verbose debug information
+verbose = true
+verbose = true
+
+; Test default value
+Default = "quote me"
+
+; Test default array value
+DefaultArray = "1"
+DefaultArray = "2"
+DefaultArray = "3"
+
+; Testdefault map value
+; DefaultMap =
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
+
+[Other Options]
+; A slice of strings
+; StringSlice =
+
+; A map from string to int
+int-map = a:"2"
+int-map = b:"3"
+
+`,
+			`[Application Options]
+; Show verbose debug information
+verbose = true
+verbose = true
+
+; Test default value
+Default = "quote me"
+
+; Test default array value
 DefaultArray = "1"
 DefaultArray = "2"
 DefaultArray = "3"

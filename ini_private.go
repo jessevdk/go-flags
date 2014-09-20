@@ -360,6 +360,8 @@ func (i *IniParser) matchingGroups(name string) []*Group {
 func (i *IniParser) parse(ini *ini) error {
 	p := i.parser
 
+	var quotesLookup = make(map[*Option]bool)
+
 	for name, section := range ini.Sections {
 		groups := i.matchingGroups(name)
 
@@ -436,11 +438,17 @@ func (i *IniParser) parse(ini *ini) error {
 				}
 			}
 
-			// always quote in case one value of the option uses quotes
-			opt.iniQuote = opt.iniQuote || inival.Quoted
+			// either all INI values are quoted or only values who need quoting
+			if _, ok := quotesLookup[opt]; !inival.Quoted || !ok {
+				quotesLookup[opt] = inival.Quoted
+			}
 
 			opt.tag.Set("_read-ini-name", inival.Name)
 		}
+	}
+
+	for opt, quoted := range quotesLookup {
+		opt.iniQuote = quoted
 	}
 
 	return nil
