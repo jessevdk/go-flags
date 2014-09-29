@@ -312,6 +312,14 @@ func quoteIfNeeded(s string) string {
 	return s
 }
 
+func unquoteIfPossible(s string) (string, error) {
+	if s[0] != '"' {
+		return s, nil
+	}
+
+	return strconv.Unquote(s)
+}
+
 func wrapText(s string, l int, prefix string) string {
 	// Basic text wrapping of s at spaces to fit in l
 	var ret string
