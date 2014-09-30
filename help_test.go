@@ -15,8 +15,8 @@ type helpOptions struct {
 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 	EmptyDescription bool         `long:"empty-description"`
 
-	Default      string            `long:"default" default:"Some value" description:"Test default value"`
-	DefaultArray []string          `long:"default-array" default:"Some value" default:"Another value" description:"Test default array value"`
+	Default      string            `long:"default" default:"Some\nvalue" description:"Test default value"`
+	DefaultArray []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
 	DefaultMap   map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
 	EnvDefault1  string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
 	EnvDefault2  string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
@@ -79,8 +79,8 @@ Application Options:
   /c:                      Call phone number
       /ptrslice:           A slice of pointers to string
       /empty-description
-      /default:            Test default value (Some value)
-      /default-array:      Test default array value (Some value, Another value)
+      /default:            Test default value ("Some\nvalue")
+      /default-array:      Test default array value (Some value, "Other\tvalue")
       /default-map:        Testdefault map value (some:value, another:value)
       /env-default1:       Test env-default1 value (Some value) [%ENV_DEFAULT%]
       /env-default2:       Test env-default2 value [%ENV_DEFAULT%]
@@ -115,8 +115,8 @@ Application Options:
   -c=                      Call phone number
       --ptrslice=          A slice of pointers to string
       --empty-description
-      --default=           Test default value (Some value)
-      --default-array=     Test default array value (Some value, Another value)
+      --default=           Test default value ("Some\nvalue")
+      --default-array=     Test default array value (Some value, "Other\tvalue")
       --default-map=       Testdefault map value (some:value, another:value)
       --env-default1=      Test env-default1 value (Some value) [$ENV_DEFAULT]
       --env-default2=      Test env-default2 value [$ENV_DEFAULT]

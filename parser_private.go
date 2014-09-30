@@ -164,11 +164,22 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		}
 
 		err = option.set(nil)
-	} else if argument != nil {
-		err = option.set(argument)
-	} else if canarg && !s.eof() {
-		arg := s.pop()
-		err = option.set(&arg)
+	} else if argument != nil || (canarg && !s.eof()) {
+		var arg string
+
+		if argument != nil {
+			arg = *argument
+		} else {
+			arg = s.pop()
+		}
+
+		if option.tag.Get("unquote") != "false" {
+			arg, err = unquoteIfPossible(arg)
+		}
+
+		if err == nil {
+			err = option.set(&arg)
+		}
 	} else if option.OptionalArgument {
 		option.empty()
 

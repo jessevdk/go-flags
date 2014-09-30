@@ -3,6 +3,7 @@ package flags
 import (
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -11,6 +12,10 @@ import (
 type defaultOptions struct {
 	Int        int `long:"i"`
 	IntDefault int `long:"id" default:"1"`
+
+	String            string `long:"str"`
+	StringDefault     string `long:"strd" default:"abc"`
+	StringNotUnquoted string `long:"strnot" unquote:"false"`
 
 	Time        time.Duration `long:"t"`
 	TimeDefault time.Duration `long:"td" default:"1m"`
@@ -35,6 +40,9 @@ func TestDefaults(t *testing.T) {
 				Int:        0,
 				IntDefault: 1,
 
+				String:        "",
+				StringDefault: "abc",
+
 				Time:        0,
 				TimeDefault: time.Minute,
 
@@ -47,10 +55,13 @@ func TestDefaults(t *testing.T) {
 		},
 		{
 			msg:  "non-zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=3", "--id=3", "--t=3ms", "--td=3ms", "--m=c:3", "--md=c:3", "--s=3", "--sd=3"},
+			args: []string{"--i=3", "--id=3", "--str=def", "--strd=def", "--t=3ms", "--td=3ms", "--m=c:3", "--md=c:3", "--s=3", "--sd=3"},
 			expected: defaultOptions{
 				Int:        3,
 				IntDefault: 3,
+
+				String:        "def",
+				StringDefault: "def",
 
 				Time:        3 * time.Millisecond,
 				TimeDefault: 3 * time.Millisecond,
@@ -64,10 +75,13 @@ func TestDefaults(t *testing.T) {
 		},
 		{
 			msg:  "zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=0", "--id=0", "--t=0ms", "--td=0s", "--m=:0", "--md=:0", "--s=0", "--sd=0"},
+			args: []string{"--i=0", "--id=0", "--str=\"\"", "--strd=\"\"", "--t=0ms", "--td=0s", "--m=:0", "--md=:0", "--s=0", "--sd=0"},
 			expected: defaultOptions{
 				Int:        0,
 				IntDefault: 0,
+
+				String:        "",
+				StringDefault: "",
 
 				Time:        0,
 				TimeDefault: 0,
@@ -95,6 +109,76 @@ func TestDefaults(t *testing.T) {
 
 		if !reflect.DeepEqual(opts, test.expected) {
 			t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
+		}
+	}
+}
+
+func TestUnquoting(t *testing.T) {
+	var tests = []struct {
+		arg   string
+		err   error
+		value string
+	}{
+		{
+			arg:   "\"abc",
+			err:   strconv.ErrSyntax,
+			value: "",
+		},
+		{
+			arg:   "\"\"abc\"",
+			err:   strconv.ErrSyntax,
+			value: "",
+		},
+		{
+			arg:   "\"abc\"",
+			err:   nil,
+			value: "abc",
+		},
+		{
+			arg:   "\"\\\"abc\\\"\"",
+			err:   nil,
+			value: "\"abc\"",
+		},
+		{
+			arg:   "\"\\\"abc\"",
+			err:   nil,
+			value: "\"abc",
+		},
+	}
+
+	for _, test := range tests {
+		var opts defaultOptions
+
+		for _, delimiter := range []bool{false, true} {
+			p := NewParser(&opts, None)
+
+			var err error
+			if delimiter {
+				_, err = p.ParseArgs([]string{"--str=" + test.arg, "--strnot=" + test.arg})
+			} else {
+				_, err = p.ParseArgs([]string{"--str", test.arg, "--strnot", test.arg})
+			}
+
+			if test.err == nil {
+				if err != nil {
+					t.Fatalf("Expected no error but got: %v", err)
+				}
+
+				if test.value != opts.String {
+					t.Fatalf("Expected String to be %q but got %q", test.value, opts.String)
+				}
+				if q := strconv.Quote(test.value); q != opts.StringNotUnquoted {
+					t.Fatalf("Expected StringDefault to be %q but got %q", q, opts.StringNotUnquoted)
+				}
+			} else {
+				if err == nil {
+					t.Fatalf("Expected error")
+				} else if e, ok := err.(*Error); ok {
+					if strings.HasPrefix(e.Message, test.err.Error()) {
+						t.Fatalf("Expected error message to end with %q but got %v", test.err.Error(), e.Message)
+					}
+				}
+			}
 		}
 	}
 }
