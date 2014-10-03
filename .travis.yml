@@ -22,8 +22,8 @@ script:
   - go test -v ./...
 
   # linting
-  - go tool vet -all=true -v=true .
-  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/golint .
+  - go tool vet -all=true -v=true . || true
+  - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/golint ./...
 
   # code coverage
   - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/ginkgo -r -cover
