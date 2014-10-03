@@ -22,7 +22,7 @@ script:
   - go test -v ./...
 
   # linting
-  - go tool vet -all=true -v=true .
+  - go tool vet -all=true -v=true . || true
   - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/golint ./...
 
   # code coverage
