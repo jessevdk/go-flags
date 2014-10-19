@@ -75,7 +75,7 @@ func TestDefaults(t *testing.T) {
 		},
 		{
 			msg:  "zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=0", "--id=0", "--str=\"\"", "--strd=\"\"", "--t=0ms", "--td=0s", "--m=:0", "--md=:0", "--s=0", "--sd=0"},
+			args: []string{"--i=0", "--id=0", "--str", "", "--strd=\"\"", "--t=0ms", "--td=0s", "--m=:0", "--md=:0", "--s=0", "--sd=0"},
 			expected: defaultOptions{
 				Int:        0,
 				IntDefault: 0,
