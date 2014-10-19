@@ -313,7 +313,7 @@ func quoteIfNeeded(s string) string {
 }
 
 func unquoteIfPossible(s string) (string, error) {
-	if s[0] != '"' {
+	if len(s) == 0 || s[0] != '"' {
 		return s, nil
 	}
 
