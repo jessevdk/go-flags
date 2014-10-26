@@ -232,6 +232,9 @@ func (c *Command) hasCliOptions() bool {
 		}
 
 		for _, opt := range g.options {
+			if opt.Hidden {
+				continue
+			}
 			if opt.canCli() {
 				ret = true
 			}

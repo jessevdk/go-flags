@@ -54,6 +54,8 @@ verbose = true
 
 EmptyDescription = false
 
+HiddenOption1 =
+
 ; Test default value
 Default = "Some\nvalue"
 
@@ -109,6 +111,8 @@ Opt =
 
 ; EmptyDescription = false
 
+; HiddenOption1 =
+
 ; Test default value
 ; Default = "Some\nvalue"
 
@@ -162,6 +166,8 @@ EnvDefault2 = env-def
 ; PtrSlice =
 
 ; EmptyDescription = false
+
+; HiddenOption1 =
 
 ; Test default value
 Default = New value

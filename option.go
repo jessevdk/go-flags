@@ -59,6 +59,9 @@ type Option struct {
 	// passwords.
 	DefaultMask string
 
+	// If true, then this flag will not be exposed in the help text output.
+	Hidden bool
+
 	// The group which the option belongs to
 	group *Group
 

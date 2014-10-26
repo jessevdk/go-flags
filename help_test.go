@@ -14,6 +14,7 @@ type helpOptions struct {
 	Call             func(string) `short:"c" description:"Call phone number" ini-name:"call"`
 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 	EmptyDescription bool         `long:"empty-description"`
+	HiddenOption1    string       `long:"hiddenoption1" hidden:"true"`
 
 	Default      string            `long:"default" default:"Some\nvalue" description:"Test default value"`
 	DefaultArray []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
