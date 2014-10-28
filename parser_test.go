@@ -305,3 +305,43 @@ func TestEnvDefaults(t *testing.T) {
 		}
 	}
 }
+
+func TestOptionAsArgument(t *testing.T) {
+	var tests = []struct {
+		args        []string
+		expectError bool
+		errType     ErrorType
+		errMsg      string
+	}{
+		{
+			// short option must not be accepted as argument
+			args:        []string{"--string-slice", "foobar", "--string-slice", "-o"},
+			expectError: true,
+			errType:     ErrExpectedArgument,
+			errMsg:      "expected argument for flag `--string-slice', but got option `-o'",
+		},
+		{
+			// long option must not be accepted as argument
+			args:        []string{"--string-slice", "foobar", "--string-slice", "--other-option"},
+			expectError: true,
+			errType:     ErrExpectedArgument,
+			errMsg:      "expected argument for flag `--string-slice', but got option `--other-option'",
+		},
+		{
+			// quoted and appended option should be accepted as argument (even if it looks like an option)
+			args: []string{"--string-slice", "foobar", "--string-slice=\"--other-option\""},
+		},
+	}
+	var opts struct {
+		StringSlice []string `long:"string-slice"`
+		OtherOption bool     `long:"other-option" short:"o"`
+	}
+
+	for _, test := range tests {
+		if test.expectError {
+			assertParseFail(t, test.errType, test.errMsg, &opts, test.args...)
+		} else {
+			assertParseSuccess(t, &opts, test.args...)
+		}
+	}
+}
