@@ -366,10 +366,7 @@ func (i *IniParser) parse(ini *ini) error {
 		groups := i.matchingGroups(name)
 
 		if len(groups) == 0 {
-			return newError(
-				ErrUnknownGroup,
-				fmt.Sprintf("could not find option group `%s'", name),
-			)
+			return newErrorf(ErrUnknownGroup, "could not find option group `%s'", name)
 		}
 
 		for _, inival := range section {

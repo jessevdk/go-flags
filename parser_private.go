@@ -159,8 +159,7 @@ func (p *parseState) estimateCommand() error {
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
 	if !option.canArgument() {
 		if argument != nil {
-			msg := fmt.Sprintf("bool flag `%s' cannot have an argument", option)
-			return newError(ErrNoArgumentForBool, msg)
+			return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)
 		}
 
 		err = option.set(nil)
@@ -172,8 +171,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		} else {
 			arg = s.pop()
 			if argumentIsOption(arg) {
-				msg := fmt.Sprintf("expected argument for flag `%s', but got option `%s'", option, arg)
-				return newError(ErrExpectedArgument, msg)
+				return newErrorf(ErrExpectedArgument, "expected argument for flag `%s', but got option `%s'", option, arg)
 			}
 		}
 
@@ -195,18 +193,15 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 			}
 		}
 	} else {
-		msg := fmt.Sprintf("expected argument for flag `%s'", option)
-		err = newError(ErrExpectedArgument, msg)
+		err = newErrorf(ErrExpectedArgument, "expected argument for flag `%s'", option)
 	}
 
 	if err != nil {
 		if _, ok := err.(*Error); !ok {
-			msg := fmt.Sprintf("invalid argument for flag `%s' (expected %s): %s",
+			err = newErrorf(ErrMarshal, "invalid argument for flag `%s' (expected %s): %s",
 				option,
 				option.value.Type(),
 				err.Error())
-
-			err = newError(ErrMarshal, msg)
 		}
 	}
 
@@ -222,7 +217,7 @@ func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 		return p.parseOption(s, name, option, canarg, argument)
 	}
 
-	return newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", name))
+	return newErrorf(ErrUnknownFlag, "unknown flag `%s'", name)
 }
 
 func (p *Parser) splitShortConcatArg(s *parseState, optname string) (string, *string) {
@@ -259,7 +254,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 				return err
 			}
 		} else {
-			return newError(ErrUnknownFlag, fmt.Sprintf("unknown flag `%s'", shortname))
+			return newErrorf(ErrUnknownFlag, "unknown flag `%s'", shortname)
 		}
 
 		// Only the first option can have a concatted argument, so just
