@@ -308,25 +308,27 @@ func TestEnvDefaults(t *testing.T) {
 
 func TestOptionAsArgument(t *testing.T) {
 	var tests = []struct {
-		msg         string
 		args        []string
 		expectError bool
 		errType     ErrorType
+		errMsg      string
 	}{
 		{
-			msg:         "short option must not be accepted as argument",
+			// short option must not be accepted as argument
 			args:        []string{"--string-slice", "foobar", "--string-slice", "-o"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
+			errMsg:      `expected argument for flag ` + "`" + `--string-slice', but got option ` + "`" + `-o'`,
 		},
 		{
-			msg:         "long option must not be accepted as argument",
+			// long option must not be accepted as argument
 			args:        []string{"--string-slice", "foobar", "--string-slice", "--other-option"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
+			errMsg:      `expected argument for flag ` + "`" + `--string-slice', but got option ` + "`" + `--other-option'`,
 		},
 		{
-			msg:  "quoted and appended option should be accepted as argument (even if it looks like an option)",
+			// quoted and appended option should be accepted as argument (even if it looks like an option)
 			args: []string{"--string-slice", "foobar", "--string-slice=\"--other-option\""},
 		},
 	}
@@ -335,26 +337,11 @@ func TestOptionAsArgument(t *testing.T) {
 		OtherOption bool     `long:"other-option" short:"o"`
 	}
 
-	parser := NewParser(&opts, PassDoubleDash)
-
 	for _, test := range tests {
-		_, err := parser.ParseArgs(test.args)
-
 		if test.expectError {
-			if err == nil {
-				t.Fatalf("Expected error")
-			}
-			parseError, ok := err.(*Error)
-			if !ok {
-				t.Fatalf("Expected error of type *flags.Error")
-			}
-			if parseError.Type != test.errType {
-				t.Fatalf("Expected error type %s but got %s", test.errType, parseError.Type)
-			}
+			assertParseFail(t, test.errType, test.errMsg, &opts, test.args...)
 		} else {
-			if err != nil {
-				t.Fatalf("Expected no error but got: %v", err)
-			}
+			assertParseSuccess(t, &opts, test.args...)
 		}
 	}
 }

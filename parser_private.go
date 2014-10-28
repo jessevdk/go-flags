@@ -171,8 +171,8 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 			arg = *argument
 		} else {
 			arg = s.pop()
-			if len(arg) > 0 && arg[0] == '-' {
-				msg := fmt.Sprintf("expected argument for flag `%s', got option `%s'", option, arg)
+			if argumentIsOption(arg) {
+				msg := fmt.Sprintf("expected argument for flag `%s', but got option `%s'", option, arg)
 				return newError(ErrExpectedArgument, msg)
 			}
 		}
