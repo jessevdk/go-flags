@@ -170,7 +170,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 			arg = *argument
 		} else {
 			arg = s.pop()
-			if argumentIsOption(arg) {
+			if len(arg) > 1 && argumentIsOption(arg) {
 				return newErrorf(ErrExpectedArgument, "expected argument for flag `%s', but got option `%s'", option, arg)
 			}
 		}
