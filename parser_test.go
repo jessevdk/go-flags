@@ -328,8 +328,19 @@ func TestOptionAsArgument(t *testing.T) {
 			errMsg:      "expected argument for flag `--string-slice', but got option `--other-option'",
 		},
 		{
+			// long option must not be accepted as argument
+			args:        []string{"--string-slice", "--"},
+			expectError: true,
+			errType:     ErrExpectedArgument,
+			errMsg:      "expected argument for flag `--string-slice', but got option `--'",
+		},
+		{
 			// quoted and appended option should be accepted as argument (even if it looks like an option)
 			args: []string{"--string-slice", "foobar", "--string-slice=\"--other-option\""},
+		},
+		{
+			// Accept any single character arguments including '-'
+			args: []string{"--string-slice", "-"},
 		},
 	}
 	var opts struct {
