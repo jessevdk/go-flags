@@ -359,11 +359,10 @@ func TestOptionAsArgument(t *testing.T) {
 }
 
 func TestUnknownFlagHandler(t *testing.T) {
-	type options struct {
+	var opts struct {
 		Flag1 string `long:"flag1"`
 		Flag2 string `long:"flag2"`
 	}
-	var opts options
 	p := NewParser(&opts, None)
 	var unknownFlag1 string
 	var unknownFlag2 bool
