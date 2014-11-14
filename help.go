@@ -80,6 +80,10 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		}
 
 		for _, info := range grp.options {
+			if info.Hidden {
+				continue
+			}
+
 			if !info.canCli() {
 				continue
 			}
@@ -347,6 +351,9 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 
 			for _, info := range grp.options {
+				if info.Hidden {
+					continue
+				}
 				if !info.canCli() {
 					continue
 				}
