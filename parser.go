@@ -24,6 +24,8 @@ type Parser struct {
 	// NamespaceDelimiter separates group namespaces and option long names
 	NamespaceDelimiter string
 
+	UnknownOptionHandler func(option string, args []string) ([]string, error)
+
 	internalError error
 }
 
@@ -204,13 +206,21 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			ignoreUnknown := (p.Options & IgnoreUnknown) != None
 			parseErr := wrapError(err)
 
-			if !(parseErr.Type == ErrUnknownFlag && ignoreUnknown) {
+			if !(parseErr.Type == ErrUnknownFlag &&
+				(ignoreUnknown || p.UnknownOptionHandler != nil)) {
 				s.err = parseErr
 				break
 			}
 
 			if ignoreUnknown {
 				s.addArgs(arg)
+			} else if p.UnknownOptionHandler != nil {
+				modifiedArgs, err := p.UnknownOptionHandler(optname, s.args)
+				if err != nil {
+					s.err = err
+					break
+				}
+				s.args = modifiedArgs
 			}
 		}
 	}
