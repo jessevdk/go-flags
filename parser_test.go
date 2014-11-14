@@ -367,7 +367,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 	var unknownFlag1 string
 	var unknownFlag2 bool
 
-	//Set up a callback to intercept unknown options during parsing
+	// Set up a callback to intercept unknown options during parsing
 	p.UnknownOptionHandler = func(option string, args []string) ([]string, error) {
 		if option == "unknownFlag1" {
 			//consume a value from any args
@@ -381,8 +381,8 @@ func TestUnknownFlagHandler(t *testing.T) {
 		return args, fmt.Errorf("Unknown flag: %v", option)
 	}
 
-	//Parse args containing some unknown flags, verify that
-	//our callback can handle all of them
+	// Parse args containing some unknown flags, verify that
+	// our callback can handle all of them
 	_, err := p.ParseArgs([]string{"--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--flag2=foo"})
 	if err != nil {
 		assertErrorf(t, "Parser returned unexpected error %v", err)
@@ -396,7 +396,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 		assertErrorf(t, "Flag should have been set by unknown handler, but had value: %v", unknownFlag2)
 	}
 
-	//Parse args with unknown flags that callback doesn't handle, verify it returns error
+	// Parse args with unknown flags that callback doesn't handle, verify it returns error
 	_, err = p.ParseArgs([]string{"--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo"})
 	if err == nil {
 		assertErrorf(t, "Parser should have returned error, but returned nil")
