@@ -211,8 +211,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			ignoreUnknown := (p.Options & IgnoreUnknown) != None
 			parseErr := wrapError(err)
 
-			if parseErr.Type != ErrUnknownFlag ||
-				(!ignoreUnknown && p.UnknownOptionHandler == nil) {
+			if parseErr.Type != ErrUnknownFlag || (!ignoreUnknown && p.UnknownOptionHandler == nil) {
 				s.err = parseErr
 				break
 			}
