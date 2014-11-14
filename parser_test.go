@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"strconv"
@@ -354,5 +355,56 @@ func TestOptionAsArgument(t *testing.T) {
 		} else {
 			assertParseSuccess(t, &opts, test.args...)
 		}
+	}
+}
+
+func TestUnknownFlagHandler(t *testing.T) {
+
+	var opts struct {
+		Flag1 string `long:"flag1"`
+		Flag2 string `long:"flag2"`
+	}
+
+	p := NewParser(&opts, None)
+
+	var unknownFlag1 string
+	var unknownFlag2 bool
+
+	// Set up a callback to intercept unknown options during parsing
+	p.UnknownOptionHandler = func(option string, args []string) ([]string, error) {
+		if option == "unknownFlag1" {
+			// consume a value from remaining args list
+			unknownFlag1 = args[0]
+			return args[1:], nil
+		} else if option == "unknownFlag2" {
+			// treat this one as a bool switch, don't consume any args
+			unknownFlag2 = true
+			return args, nil
+		}
+
+		return args, fmt.Errorf("Unknown flag: %v", option)
+	}
+
+	// Parse args containing some unknown flags, verify that
+	// our callback can handle all of them
+	_, err := p.ParseArgs([]string{"--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--flag2=foo"})
+
+	if err != nil {
+		assertErrorf(t, "Parser returned unexpected error %v", err)
+	}
+
+	assertString(t, opts.Flag1, "stuff")
+	assertString(t, opts.Flag2, "foo")
+	assertString(t, unknownFlag1, "blah")
+
+	if !unknownFlag2 {
+		assertErrorf(t, "Flag should have been set by unknown handler, but had value: %v", unknownFlag2)
+	}
+
+	// Parse args with unknown flags that callback doesn't handle, verify it returns error
+	_, err = p.ParseArgs([]string{"--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo"})
+
+	if err == nil {
+		assertErrorf(t, "Parser should have returned error, but returned nil")
 	}
 }
