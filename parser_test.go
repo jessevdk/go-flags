@@ -359,10 +359,12 @@ func TestOptionAsArgument(t *testing.T) {
 }
 
 func TestUnknownFlagHandler(t *testing.T) {
+
 	var opts struct {
 		Flag1 string `long:"flag1"`
 		Flag2 string `long:"flag2"`
 	}
+
 	p := NewParser(&opts, None)
 	var unknownFlag1 string
 	var unknownFlag2 bool
@@ -370,7 +372,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 	// Set up a callback to intercept unknown options during parsing
 	p.UnknownOptionHandler = func(option string, args []string) ([]string, error) {
 		if option == "unknownFlag1" {
-			//consume a value from any args
+			// consume a value from remaining args list
 			unknownFlag1 = args[0]
 			return args[1:], nil
 		} else if option == "unknownFlag2" {
