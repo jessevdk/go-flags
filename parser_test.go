@@ -376,10 +376,11 @@ func TestUnknownFlagHandler(t *testing.T) {
 			unknownFlag1 = args[0]
 			return args[1:], nil
 		} else if option == "unknownFlag2" {
-			//treat this one as a bool switch, don't consume any args
+			// treat this one as a bool switch, don't consume any args
 			unknownFlag2 = true
 			return args, nil
 		}
+
 		return args, fmt.Errorf("Unknown flag: %v", option)
 	}
 
