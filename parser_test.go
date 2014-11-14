@@ -366,6 +366,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 	}
 
 	p := NewParser(&opts, None)
+
 	var unknownFlag1 string
 	var unknownFlag2 bool
 
