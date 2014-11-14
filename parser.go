@@ -24,6 +24,11 @@ type Parser struct {
 	// NamespaceDelimiter separates group namespaces and option long names
 	NamespaceDelimiter string
 
+	//UnknownOptionsHandler is a function which, if non-nil, is called
+	//when the parser encounters an option that is unmapped.
+	//It takes the option name and remaining args to be parsed, and should
+	//return the (modified, if necessary) args, and a non-nil error if the
+	//handler fails.
 	UnknownOptionHandler func(option string, args []string) ([]string, error)
 
 	internalError error
