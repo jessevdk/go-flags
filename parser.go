@@ -26,7 +26,7 @@ type Parser struct {
 
 	// UnknownOptionsHandler is a function which gets called when the parser
 	// encounters an unknown option. The function receives the unknown option
-	// name and the remaining command line arguments.
+	// name, its value if specified with '=', and the remaining command line arguments.
 	// It should return a new list of remaining arguments to continue parsing,
 	// or an error to indicate a parse failure.
 	UnknownOptionHandler func(option string, val *string, args []string) ([]string, error)
