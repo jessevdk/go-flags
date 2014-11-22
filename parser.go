@@ -29,7 +29,7 @@ type Parser struct {
 	// name and the remaining command line arguments.
 	// It should return a new list of remaining arguments to continue parsing,
 	// or an error to indicate a parse failure.
-	UnknownOptionHandler func(option string, args []string) ([]string, error)
+	UnknownOptionHandler func(option string, val *string, args []string) ([]string, error)
 
 	internalError error
 }
@@ -219,7 +219,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			if ignoreUnknown {
 				s.addArgs(arg)
 			} else if p.UnknownOptionHandler != nil {
-				modifiedArgs, err := p.UnknownOptionHandler(optname, s.args)
+				modifiedArgs, err := p.UnknownOptionHandler(optname, argument, s.args)
 
 				if err != nil {
 					s.err = err
