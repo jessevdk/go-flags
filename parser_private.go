@@ -65,7 +65,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 			var reqnames []string
 
 			for _, arg := range p.positional {
-				if arg.isRemaining() {
+				if arg.isRemaining() && !arg.required {
 					break
 				}
 

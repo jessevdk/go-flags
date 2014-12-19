@@ -12,8 +12,9 @@ type Arg struct {
 	// A description of the positional argument (used in the help)
 	Description string
 
-	value reflect.Value
-	tag   multiTag
+	value    reflect.Value
+	tag      multiTag
+	required bool
 }
 
 func (a *Arg) isRemaining() bool {

@@ -51,3 +51,20 @@ func TestPositionalRequired(t *testing.T) {
 
 	assertError(t, err, ErrRequired, "the required argument `Filename` was not provided")
 }
+
+func TestPositionalRestRequired(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Positional struct {
+			Command  int
+			Filename string
+			Rest     []string `required:"yes"`
+		} `positional-args:"yes" required:"yes"`
+	}{}
+
+	p := NewParser(&opts, None)
+	_, err := p.ParseArgs([]string{"10", "arg_test.go"})
+
+	assertError(t, err, ErrRequired, "the required argument `Rest` was not provided")
+}
