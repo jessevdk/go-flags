@@ -569,7 +569,8 @@ other = subgroup
 
 func TestIniNoIni(t *testing.T) {
 	var opts struct {
-		Value string `short:"v" long:"value" no-ini:"yes"`
+		NoValue string `short:"n" long:"novalue" no-ini:"yes"`
+		Value   string `short:"v" long:"value"`
 	}
 
 	p := NewNamedParser("TestIni", Default)
@@ -577,8 +578,10 @@ func TestIniNoIni(t *testing.T) {
 
 	inip := NewIniParser(p)
 
+	// read INI
 	inic := `[Application Options]
-value = some value
+novalue = some value
+value = some other value
 `
 
 	b := strings.NewReader(inic)
@@ -594,9 +597,33 @@ value = some value
 		t.Errorf("Expected opts.Add.Name to be %d, but got %d", v, iniError.LineNumber)
 	}
 
-	if v := "unknown option: value"; iniError.Message != v {
+	if v := "unknown option: novalue"; iniError.Message != v {
 		t.Errorf("Expected opts.Add.Name to be %s, but got %s", v, iniError.Message)
 	}
+
+	// write INI
+	opts.NoValue = "some value"
+	opts.Value = "some other value"
+
+	file, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Cannot create temporary file: %s", err)
+	}
+	defer os.Remove(file.Name())
+
+	err = inip.WriteFile(file.Name(), IniIncludeDefaults)
+	if err != nil {
+		t.Fatalf("Could not write ini file: %s", err)
+	}
+
+	found, err := ioutil.ReadFile(file.Name())
+	if err != nil {
+		t.Fatalf("Could not read written ini file: %s", err)
+	}
+
+	expected := "[Application Options]\nValue = some other value\n\n"
+
+	assertDiff(t, string(found), expected, "ini content")
 }
 
 func TestIniParse(t *testing.T) {
