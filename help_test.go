@@ -41,8 +41,8 @@ type helpOptions struct {
 	} `command:"command" alias:"cm" alias:"cmd" description:"A command"`
 
 	Args struct {
-		Filename string `name:"filename" description:"A filename"`
-		Num      int    `name:"num" description:"A number"`
+		Filename string `positional-arg-name:"filename" description:"A filename"`
+		Number   int    `positional-arg-name:"num" description:"A number"`
 	} `positional-args:"yes"`
 }
 

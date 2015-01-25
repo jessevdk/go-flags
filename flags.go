@@ -134,6 +134,10 @@ The following is a list of tags for struct fields supported by go-flags:
                           Positional arguments are optional by default,
                           unless the "required" tag is specified together
                           with the "positional-args" tag (optional)
+    positional-arg-name:  used on a field in a positional argument struct; name
+                          of the positional argument placeholder to be shown in
+                          the help (optional)
+
 
 Either the `short:` tag or the `long:` must be specified to make the field eligible as an
 option.
