@@ -102,7 +102,7 @@ The following is a list of tags for struct fields supported by go-flags:
     env-delim:      the 'env' default value from environment is split into
                     multiple values with the given delimiter string, use with
                     slices and maps (optional)
-    value-name:     the name of the argument value (to be shown in the help,
+    value-name:     the name of the argument value (to be shown in the help)
                     (optional)
 
     base: a base (radix) used to convert strings to integer values, the
@@ -134,6 +134,10 @@ The following is a list of tags for struct fields supported by go-flags:
                           Positional arguments are optional by default,
                           unless the "required" tag is specified together
                           with the "positional-args" tag (optional)
+    positional-arg-name:  used on a field in a positional argument struct; name
+                          of the positional argument placeholder to be shown in
+                          the help (optional)
+
 
 Either the `short:` tag or the `long:` must be specified to make the field eligible as an
 option.

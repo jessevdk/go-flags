@@ -71,6 +71,9 @@ EnvDefault1 = env-def
 ; Test env-default2 value
 EnvDefault2 = env-def
 
+; Option with named argument
+OptionWithArgName =
+
 ; Option only available in ini
 only-ini =
 
@@ -126,6 +129,9 @@ EnvDefault1 = env-def
 ; Test env-default2 value
 EnvDefault2 = env-def
 
+; Option with named argument
+; OptionWithArgName =
+
 ; Option only available in ini
 ; only-ini =
 
@@ -177,6 +183,9 @@ EnvDefault1 = env-def
 
 ; Test env-default2 value
 EnvDefault2 = env-def
+
+; Option with named argument
+; OptionWithArgName =
 
 ; Option only available in ini
 ; only-ini =

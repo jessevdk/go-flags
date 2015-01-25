@@ -43,7 +43,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					return true, err
 				}
 
-				name := m.Get("name")
+				name := m.Get("positional-arg-name")
 
 				if len(name) == 0 {
 					name = field.Name
