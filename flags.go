@@ -102,7 +102,7 @@ The following is a list of tags for struct fields supported by go-flags:
     env-delim:      the 'env' default value from environment is split into
                     multiple values with the given delimiter string, use with
                     slices and maps (optional)
-    value-name:     the name of the argument value (to be shown in the help,
+    value-name:     the name of the argument value (to be shown in the help)
                     (optional)
 
     base: a base (radix) used to convert strings to integer values, the
