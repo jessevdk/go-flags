@@ -15,11 +15,12 @@ type helpOptions struct {
 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 	EmptyDescription bool         `long:"empty-description"`
 
-	Default      string            `long:"default" default:"Some\nvalue" description:"Test default value"`
-	DefaultArray []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
-	DefaultMap   map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
-	EnvDefault1  string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
-	EnvDefault2  string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
+	Default           string            `long:"default" default:"Some\nvalue" description:"Test default value"`
+	DefaultArray      []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
+	DefaultMap        map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
+	EnvDefault1       string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
+	EnvDefault2       string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
+	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
 
@@ -75,33 +76,34 @@ func TestHelp(t *testing.T) {
   TestHelp [OPTIONS] [filename] [num] <command>
 
 Application Options:
-  /v, /verbose             Show verbose debug information
-  /c:                      Call phone number
-      /ptrslice:           A slice of pointers to string
+  /v, /verbose                         Show verbose debug information
+  /c:                                  Call phone number
+      /ptrslice:                       A slice of pointers to string
       /empty-description
-      /default:            Test default value ("Some\nvalue")
-      /default-array:      Test default array value (Some value, "Other\tvalue")
-      /default-map:        Testdefault map value (some:value, another:value)
-      /env-default1:       Test env-default1 value (Some value) [%ENV_DEFAULT%]
-      /env-default2:       Test env-default2 value [%ENV_DEFAULT%]
+      /default:                        Test default value ("Some\nvalue")
+      /default-array:                  Test default array value (Some value, "Other\tvalue")
+      /default-map:                    Testdefault map value (some:value, another:value)
+      /env-default1:                   Test env-default1 value (Some value) [%ENV_DEFAULT%]
+      /env-default2:                   Test env-default2 value [%ENV_DEFAULT%]
+      /opt-with-arg-name:something     Option with named argument
 
 Other Options:
-  /s:                      A slice of strings (some, value)
-      /intmap:             A map from string to int (a:1)
+  /s:                                  A slice of strings (some, value)
+      /intmap:                         A map from string to int (a:1)
 
 Subgroup:
-      /sip.opt:            This is a subgroup option
+      /sip.opt:                        This is a subgroup option
 
 Subsubgroup:
-      /sip.sap.opt:        This is a subsubgroup option
+      /sip.sap.opt:                    This is a subsubgroup option
 
 Help Options:
-  /?                       Show this help message
-  /h, /help                Show this help message
+  /?                                   Show this help message
+  /h, /help                            Show this help message
 
 Arguments:
-  filename:                A filename
-  num:                     A number
+  filename:                            A filename
+  num:                                 A number
 
 Available commands:
   command  A command (aliases: cm, cmd)
@@ -111,32 +113,36 @@ Available commands:
   TestHelp [OPTIONS] [filename] [num] <command>
 
 Application Options:
-  -v, --verbose            Show verbose debug information
-  -c=                      Call phone number
-      --ptrslice=          A slice of pointers to string
+  -v, --verbose                        Show verbose debug information
+  -c=                                  Call phone number
+      --ptrslice=                      A slice of pointers to string
       --empty-description
-      --default=           Test default value ("Some\nvalue")
-      --default-array=     Test default array value (Some value, "Other\tvalue")
-      --default-map=       Testdefault map value (some:value, another:value)
-      --env-default1=      Test env-default1 value (Some value) [$ENV_DEFAULT]
-      --env-default2=      Test env-default2 value [$ENV_DEFAULT]
+      --default=                       Test default value ("Some\nvalue")
+      --default-array=                 Test default array value (Some value,
+                                       "Other\tvalue")
+      --default-map=                   Testdefault map value (some:value,
+                                       another:value)
+      --env-default1=                  Test env-default1 value (Some value)
+                                       [$ENV_DEFAULT]
+      --env-default2=                  Test env-default2 value [$ENV_DEFAULT]
+      --opt-with-arg-name=something    Option with named argument
 
 Other Options:
-  -s=                      A slice of strings (some, value)
-      --intmap=            A map from string to int (a:1)
+  -s=                                  A slice of strings (some, value)
+      --intmap=                        A map from string to int (a:1)
 
 Subgroup:
-      --sip.opt=           This is a subgroup option
+      --sip.opt=                       This is a subgroup option
 
 Subsubgroup:
-      --sip.sap.opt=       This is a subsubgroup option
+      --sip.sap.opt=                   This is a subsubgroup option
 
 Help Options:
-  -h, --help               Show this help message
+  -h, --help                           Show this help message
 
 Arguments:
-  filename:                A filename
-  num:                     A number
+  filename:                            A filename
+  num:                                 A number
 
 Available commands:
   command  A command (aliases: cm, cmd)
@@ -201,6 +207,9 @@ Test env-default1 value
 .TP
 \fB--env-default2\fP
 Test env-default2 value
+.TP
+\fB--opt-with-arg-name\fP
+Option with named argument
 .TP
 \fB-s\fP
 A slice of strings
