@@ -256,7 +256,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.eachCommand(func(c *Command) {
 			c.eachGroup(func(g *Group) {
 				for _, option := range g.options {
-					if option.isSet {
+					if option.IsSet {
 						continue
 					}
 

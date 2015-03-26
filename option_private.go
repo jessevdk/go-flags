@@ -10,7 +10,7 @@ import (
 // if the specified value could not be converted to the corresponding option
 // value type.
 func (option *Option) set(value *string) error {
-	option.isSet = true
+	option.IsSet = true
 
 	if option.isFunc() {
 		return option.call(value)
