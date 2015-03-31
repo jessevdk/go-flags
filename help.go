@@ -108,6 +108,10 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		prefix += 4
 	}
 
+	if option.Hidden {
+		return
+	}
+
 	line.WriteString(strings.Repeat(" ", prefix))
 
 	if option.ShortName != 0 {

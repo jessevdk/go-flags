@@ -104,6 +104,7 @@ The following is a list of tags for struct fields supported by go-flags:
                     slices and maps (optional)
     value-name:     the name of the argument value (to be shown in the help)
                     (optional)
+    hidden:         the option is not visible in the help output
 
     base: a base (radix) used to convert strings to integer values, the
           default base is 10 (i.e. decimal) (optional)
