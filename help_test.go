@@ -254,7 +254,7 @@ A command
 Longer \fBcommand\fP description
 
 \fBUsage\fP: TestMan [OPTIONS] command [command-OPTIONS]
-
+.TP
 
 \fBAliases\fP: cm, cmd
 
