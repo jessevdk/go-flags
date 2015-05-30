@@ -113,7 +113,7 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 	}
 
 	if len(usage) > 0 {
-		fmt.Fprintf(wr, "\n\\fBUsage\\fP: %s %s\n\n", pre, usage)
+		fmt.Fprintf(wr, "\n\\fBUsage\\fP: %s %s\n.TP\n", pre, usage)
 	}
 
 	if len(command.Aliases) > 0 {
