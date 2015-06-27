@@ -155,3 +155,8 @@ func (option *Option) String() string {
 func (option *Option) Value() interface{} {
 	return option.value.Interface()
 }
+
+// IsSet returns true if option has been set
+func (option *Option) IsSet() bool {
+	return option.isSet
+}
