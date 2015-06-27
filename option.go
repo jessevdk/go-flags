@@ -35,7 +35,7 @@ type Option struct {
 
 	// If true, specifies that the argument to an option flag is optional.
 	// When no argument to the flag is specified on the command line, the
-	// value of Default will be set in the field this option represents.
+	// value of OptionalValue will be set in the field this option represents.
 	// This is only valid for non-boolean options.
 	OptionalArgument bool
 
