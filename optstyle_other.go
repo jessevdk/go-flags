@@ -4,6 +4,7 @@ package flags
 
 import (
 	"strings"
+	"unicode"
 )
 
 const (
@@ -17,7 +18,7 @@ func argumentStartsOption(arg string) bool {
 }
 
 func argumentIsOption(arg string) bool {
-	if len(arg) > 1 && arg[0] == '-' && arg[1] != '-' {
+	if len(arg) > 1 && arg[0] == '-' && arg[1] != '-' && !unicode.IsDigit(rune(arg[1])) {
 		return true
 	}
 
