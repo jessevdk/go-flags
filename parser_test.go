@@ -357,11 +357,11 @@ func TestOptionAsArgument(t *testing.T) {
 			args: []string{"--string-slice", "-"},
 		},
 		{
-			// Accept argumtns which start with '-' if the next character is a digit
+			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--string-slice", "-3.14"},
 		},
 		{
-			// Do not accept argumtns which start with '-' if the next character is not a digit
+			// Do not accept arguments which start with '-' if the next character is not a digit
 			args:        []string{"--string-slice", "-character"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
