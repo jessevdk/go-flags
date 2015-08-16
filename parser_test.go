@@ -17,6 +17,8 @@ type defaultOptions struct {
 	Float64        float64 `long:"f"`
 	Float64Default float64 `long:"fd" default:"-3.14"`
 
+	NumericFlag bool `short:"3" default:"false"`
+
 	String            string `long:"str"`
 	StringDefault     string `long:"strd" default:"abc"`
 	StringNotUnquoted string `long:"strnot" unquote:"false"`
@@ -47,6 +49,8 @@ func TestDefaults(t *testing.T) {
 				Float64:        0.0,
 				Float64Default: -3.14,
 
+				NumericFlag: false,
+
 				String:        "",
 				StringDefault: "abc",
 
@@ -62,13 +66,15 @@ func TestDefaults(t *testing.T) {
 		},
 		{
 			msg:  "non-zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=3", "--id=3", "--f=-2.71", "--fd=2.71", "--str=def", "--strd=def", "--t=3ms", "--td=3ms", "--m=c:3", "--md=c:3", "--s=3", "--sd=3"},
+			args: []string{"--i=3", "--id=3", "--f=-2.71", "--fd=2.71", "-3", "--str=def", "--strd=def", "--t=3ms", "--td=3ms", "--m=c:3", "--md=c:3", "--s=3", "--sd=3"},
 			expected: defaultOptions{
 				Int:        3,
 				IntDefault: 3,
 
 				Float64:        -2.71,
 				Float64Default: 2.71,
+
+				NumericFlag: true,
 
 				String:        "def",
 				StringDefault: "def",
@@ -357,8 +363,11 @@ func TestOptionAsArgument(t *testing.T) {
 			args: []string{"--string-slice", "-"},
 		},
 		{
-			// Accept arguments which start with '-' if the next character is a digit
-			args: []string{"--string-slice", "-3.14"},
+			// Do not accept arguments which start with '-' even if the next character is a digit
+			args:        []string{"--string-slice", "-3.14"},
+			expectError: true,
+			errType:     ErrExpectedArgument,
+			errMsg:      "expected argument for flag `--string-slice', but got option `-3.14'",
 		},
 		{
 			// Do not accept arguments which start with '-' if the next character is not a digit
