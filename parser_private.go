@@ -51,7 +51,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 	for c != nil {
 		c.eachGroup(func(g *Group) {
 			for _, option := range g.options {
-				if !option.isSet && option.Required {
+				if !option.IsSet && option.Required {
 					required = append(required, option)
 				}
 			}
@@ -333,7 +333,7 @@ func (p *Parser) clearIsSet() {
 	p.eachCommand(func(c *Command) {
 		c.eachGroup(func(g *Group) {
 			for _, option := range g.options {
-				option.isSet = false
+				option.IsSet = false
 			}
 		})
 	}, true)

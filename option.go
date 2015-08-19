@@ -72,7 +72,7 @@ type Option struct {
 	iniQuote bool
 
 	tag   multiTag
-	isSet bool
+	IsSet bool
 }
 
 // LongNameWithNamespace returns the option's long name with the group namespaces
