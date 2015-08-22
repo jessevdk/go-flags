@@ -149,6 +149,8 @@ func (c *Command) makeLookup() lookup {
 	for parent != nil {
 		if cmd, ok := parent.(*Command); ok {
 			cmd.fillLookup(&ret, true)
+			parent = cmd.parent
+			continue
 		}
 
 		if grp, ok := parent.(*Group); ok {
