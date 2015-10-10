@@ -12,6 +12,29 @@ import (
 func (option *Option) set(value *string) error {
 	option.isSet = true
 
+	if len(option.Choices) != 0 {
+		found := false
+
+		for _, choice := range option.Choices {
+			if choice == *value {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
+
+			if len(option.Choices) > 1 {
+				allowed += " or " + option.Choices[len(option.Choices)-1]
+			}
+
+			return newErrorf(ErrInvalidChoice,
+				"Invalid value `%s' for option `%s'. Allowed values are: %s",
+				*value, option, allowed)
+		}
+	}
+
 	if option.isFunc() {
 		return option.call(value)
 	} else if value != nil {

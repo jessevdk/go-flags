@@ -338,21 +338,21 @@ func TestOptionAsArgument(t *testing.T) {
 			args:        []string{"--string-slice", "foobar", "--string-slice", "-o"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `--string-slice', but got option `-o'",
+			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-o'",
 		},
 		{
 			// long option must not be accepted as argument
 			args:        []string{"--string-slice", "foobar", "--string-slice", "--other-option"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `--string-slice', but got option `--other-option'",
+			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `--other-option'",
 		},
 		{
 			// long option must not be accepted as argument
 			args:        []string{"--string-slice", "--"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `--string-slice', but got double dash `--'",
+			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got double dash `--'",
 		},
 		{
 			// quoted and appended option should be accepted as argument (even if it looks like an option)
@@ -367,14 +367,14 @@ func TestOptionAsArgument(t *testing.T) {
 			args:        []string{"--string-slice", "-3.14"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `--string-slice', but got option `-3.14'",
+			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-3.14'",
 		},
 		{
 			// Do not accept arguments which start with '-' if the next character is not a digit
 			args:        []string{"--string-slice", "-character"},
 			expectError: true,
 			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `--string-slice', but got option `-character'",
+			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-character'",
 		},
 		{
 			args: []string{"-o", "-", "-"},
@@ -460,4 +460,14 @@ func TestUnknownFlagHandler(t *testing.T) {
 	if err == nil {
 		assertErrorf(t, "Parser should have returned error, but returned nil")
 	}
+}
+
+func TestChoices(t *testing.T) {
+	var opts struct {
+		Choice string `long:"choose" choice:"v1" choice:"v2"`
+	}
+
+	assertParseFail(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
+	assertParseSuccess(t, &opts, "--choose", "v2")
+	assertString(t, opts.Choice, "v2")
 }

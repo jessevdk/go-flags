@@ -59,6 +59,9 @@ type Option struct {
 	// passwords.
 	DefaultMask string
 
+	// If non empty, only a certain set of values is allowed for an option.
+	Choices []string
+
 	// The group which the option belongs to
 	group *Group
 

@@ -92,7 +92,13 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.hasValueName = true
 			}
 
-			ret.updateLen(info.LongNameWithNamespace()+info.ValueName, c != p.Command)
+			l := info.LongNameWithNamespace() + info.ValueName
+
+			if len(info.Choices) != 0 {
+				l += "[" + strings.Join(info.Choices, "|") + "]"
+			}
+
+			ret.updateLen(l, c != p.Command)
 		}
 	})
 
@@ -135,6 +141,10 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 		if len(option.ValueName) > 0 {
 			line.WriteString(option.ValueName)
+		}
+
+		if len(option.Choices) > 0 {
+			line.WriteString("[" + strings.Join(option.Choices, "|") + "]")
 		}
 	}
 
