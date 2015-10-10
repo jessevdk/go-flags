@@ -76,6 +76,8 @@ type Option struct {
 
 	tag   multiTag
 	isSet bool
+
+	defaultLiteral string
 }
 
 // LongNameWithNamespace returns the option's long name with the group namespaces

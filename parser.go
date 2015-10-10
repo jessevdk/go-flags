@@ -170,7 +170,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		return nil, p.internalError
 	}
 
-	p.clearIsSet()
+	p.eachOption(func(c *Command, g *Group, option *Option) {
+		option.isSet = false
+		option.updateDefaultLiteral()
+	})
 
 	// Add built-in help group to all commands if necessary
 	if (p.Options & HelpFlag) != None {
@@ -254,17 +257,13 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	if s.err == nil {
-		p.eachCommand(func(c *Command) {
-			c.eachGroup(func(g *Group) {
-				for _, option := range g.options {
-					if option.isSet {
-						continue
-					}
+		p.eachOption(func(c *Command, g *Group, option *Option) {
+			if option.isSet {
+				return
+			}
 
-					option.clearDefault()
-				}
-			})
-		}, true)
+			option.clearDefault()
+		})
 
 		s.checkRequired(p)
 	}

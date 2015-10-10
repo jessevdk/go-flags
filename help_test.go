@@ -315,3 +315,79 @@ Help Options:
 		assertDiff(t, e.Message, expected, "help message")
 	}
 }
+
+func TestHelpDefaults(t *testing.T) {
+	var expected string
+
+	if runtime.GOOS == "windows" {
+		expected = `Usage:
+  TestHelpDefaults [OPTIONS]
+
+Application Options:
+      /with-default:               With default (default: default-value)
+      /without-default:            Without default
+      /with-programmatic-default:  With programmatic default (default:
+                                   default-value)
+
+Help Options:
+  /?                               Show this help message
+  /h, /help                        Show this help message
+`
+	} else {
+		expected = `Usage:
+  TestHelpDefaults [OPTIONS]
+
+Application Options:
+      --with-default=              With default (default: default-value)
+      --without-default=           Without default
+      --with-programmatic-default= With programmatic default (default:
+                                   default-value)
+
+Help Options:
+  -h, --help                       Show this help message
+`
+	}
+
+	tests := []struct {
+		Args   []string
+		Output string
+	}{
+		{
+			Args:   []string{"-h"},
+			Output: expected,
+		},
+		{
+			Args:   []string{"--with-default", "other-value", "--with-programmatic-default", "other-value", "-h"},
+			Output: expected,
+		},
+	}
+
+	for _, test := range tests {
+		var opts struct {
+			WithDefault             string `long:"with-default" default:"default-value" description:"With default"`
+			WithoutDefault          string `long:"without-default" description:"Without default"`
+			WithProgrammaticDefault string `long:"with-programmatic-default" description:"With programmatic default"`
+		}
+
+		opts.WithProgrammaticDefault = "default-value"
+
+		p := NewNamedParser("TestHelpDefaults", HelpFlag)
+		p.AddGroup("Application Options", "The application options", &opts)
+
+		_, err := p.ParseArgs(test.Args)
+
+		if err == nil {
+			t.Fatalf("Expected help error")
+		}
+
+		if e, ok := err.(*Error); !ok {
+			t.Fatalf("Expected flags.Error, but got %T", err)
+		} else {
+			if e.Type != ErrHelp {
+				t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
+			}
+
+			assertDiff(t, e.Message, test.Output, "help message")
+		}
+	}
+}

@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"reflect"
 	"runtime"
 	"strings"
 	"unicode/utf8"
@@ -155,39 +154,12 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		dw := descstart - written
 		writer.WriteString(strings.Repeat(" ", dw))
 
-		def := ""
-		defs := option.Default
+		var def string
 
-		if len(option.DefaultMask) != 0 {
-			if option.DefaultMask != "-" {
-				def = option.DefaultMask
-			}
-		} else if len(defs) == 0 && option.canArgument() {
-			var showdef bool
-
-			switch option.field.Type.Kind() {
-			case reflect.Func, reflect.Ptr:
-				showdef = !option.value.IsNil()
-			case reflect.Slice, reflect.String, reflect.Array:
-				showdef = option.value.Len() > 0
-			case reflect.Map:
-				showdef = !option.value.IsNil() && option.value.Len() > 0
-			default:
-				zeroval := reflect.Zero(option.field.Type)
-				showdef = !reflect.DeepEqual(zeroval.Interface(), option.value.Interface())
-			}
-
-			if showdef {
-				def, _ = convertToString(option.value, option.tag)
-			}
-		} else if len(defs) != 0 {
-			l := len(defs) - 1
-
-			for i := 0; i < l; i++ {
-				def += quoteIfNeeded(defs[i]) + ", "
-			}
-
-			def += quoteIfNeeded(defs[l])
+		if len(option.DefaultMask) != 0 && option.DefaultMask != "-" {
+			def = option.DefaultMask
+		} else {
+			def = option.defaultLiteral
 		}
 
 		var envDef string

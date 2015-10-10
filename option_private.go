@@ -203,3 +203,38 @@ func (option *Option) call(value *string) error {
 
 	return nil
 }
+
+func (option *Option) updateDefaultLiteral() {
+	defs := option.Default
+	def := ""
+
+	if len(defs) == 0 && option.canArgument() {
+		var showdef bool
+
+		switch option.field.Type.Kind() {
+		case reflect.Func, reflect.Ptr:
+			showdef = !option.value.IsNil()
+		case reflect.Slice, reflect.String, reflect.Array:
+			showdef = option.value.Len() > 0
+		case reflect.Map:
+			showdef = !option.value.IsNil() && option.value.Len() > 0
+		default:
+			zeroval := reflect.Zero(option.field.Type)
+			showdef = !reflect.DeepEqual(zeroval.Interface(), option.value.Interface())
+		}
+
+		if showdef {
+			def, _ = convertToString(option.value, option.tag)
+		}
+	} else if len(defs) != 0 {
+		l := len(defs) - 1
+
+		for i := 0; i < l; i++ {
+			def += quoteIfNeeded(defs[i]) + ", "
+		}
+
+		def += quoteIfNeeded(defs[l])
+	}
+
+	option.defaultLiteral = def
+}
