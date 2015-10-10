@@ -84,7 +84,9 @@ The following is a list of tags for struct fields supported by go-flags:
                       displayed in generated man pages (optional)
     no-flag:          if non-empty this field is ignored as an option (optional)
 
-    optional:       whether an argument of the option is optional (optional)
+    optional:       whether an argument of the option is optional. When an
+                    argument is optional it can only be specified using
+                    --option=argument (optional)
     optional-value: the value of an optional option when the option occurs
                     without an argument. This tag can be specified multiple
                     times in the case of maps or slices (optional)
