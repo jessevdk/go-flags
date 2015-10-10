@@ -162,7 +162,8 @@ func (p *Parser) Parse() ([]string, error) {
 //
 // When the common help group has been added (AddHelp) and either -h or --help
 // was specified in the command line arguments, a help message will be
-// automatically printed. Furthermore, the special error type ErrHelp is returned.
+// automatically printed if the PrintErrors option is enabled.
+// Furthermore, the special error type ErrHelp is returned.
 // It is up to the caller to exit the program if so desired.
 func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	if p.internalError != nil {

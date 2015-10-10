@@ -81,21 +81,24 @@ Application Options:
   /c:                                       Call phone number
       /ptrslice:                            A slice of pointers to string
       /empty-description
-      /default:                             Test default value ("Some\nvalue")
-      /default-array:                       Test default array value (Some
-                                            value, "Other\tvalue")
-      /default-map:                         Testdefault map value (some:value,
-                                            another:value)
-      /env-default1:                        Test env-default1 value (Some
-                                            value) [%ENV_DEFAULT%]
+      /default:                             Test default value (default:
+                                            "Some\nvalue")
+      /default-array:                       Test default array value (default:
+                                            Some value, "Other\tvalue")
+      /default-map:                         Testdefault map value (default:
+                                            some:value, another:value)
+      /env-default1:                        Test env-default1 value (default:
+                                            Some value) [%ENV_DEFAULT%]
       /env-default2:                        Test env-default2 value
                                             [%ENV_DEFAULT%]
       /opt-with-arg-name:something          Option with named argument
       /opt-with-choices:choice[dog|cat]     Option with choices
 
 Other Options:
-  /s:                                       A slice of strings (some, value)
-      /intmap:                              A map from string to int (a:1)
+  /s:                                       A slice of strings (default: some,
+                                            value)
+      /intmap:                              A map from string to int (default:
+                                            a:1)
 
 Subgroup:
       /sip.opt:                             This is a subgroup option
@@ -123,21 +126,24 @@ Application Options:
   -c=                                       Call phone number
       --ptrslice=                           A slice of pointers to string
       --empty-description
-      --default=                            Test default value ("Some\nvalue")
-      --default-array=                      Test default array value (Some
-                                            value, "Other\tvalue")
-      --default-map=                        Testdefault map value (some:value,
-                                            another:value)
-      --env-default1=                       Test env-default1 value (Some
-                                            value) [$ENV_DEFAULT]
+      --default=                            Test default value (default:
+                                            "Some\nvalue")
+      --default-array=                      Test default array value (default:
+                                            Some value, "Other\tvalue")
+      --default-map=                        Testdefault map value (default:
+                                            some:value, another:value)
+      --env-default1=                       Test env-default1 value (default:
+                                            Some value) [$ENV_DEFAULT]
       --env-default2=                       Test env-default2 value
                                             [$ENV_DEFAULT]
       --opt-with-arg-name=something         Option with named argument
       --opt-with-choices=choice[dog|cat]    Option with choices
 
 Other Options:
-  -s=                                       A slice of strings (some, value)
-      --intmap=                             A map from string to int (a:1)
+  -s=                                       A slice of strings (default: some,
+                                            value)
+      --intmap=                             A map from string to int (default:
+                                            a:1)
 
 Subgroup:
       --sip.opt=                            This is a subgroup option

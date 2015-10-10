@@ -204,7 +204,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		var desc string
 
 		if def != "" {
-			desc = fmt.Sprintf("%s (%v)%s", option.Description, def, envDef)
+			desc = fmt.Sprintf("%s (default: %v)%s", option.Description, def, envDef)
 		} else {
 			desc = option.Description + envDef
 		}
