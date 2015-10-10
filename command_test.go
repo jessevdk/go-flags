@@ -400,3 +400,21 @@ func TestCommandAlias(t *testing.T) {
 		t.Errorf("Expected G to be true")
 	}
 }
+
+func TestGlobalFlagAfterSubcommand(t *testing.T) {
+	var opts = struct {
+		Flag    bool `long:"flag" default:"false"`
+		Command struct {
+			Subcommand struct {
+			} `command:"subcmd"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "--flag", "cmd", "subcmd")
+	assertParseSuccess(t, &opts, "cmd", "--flag", "subcmd")
+	assertParseSuccess(t, &opts, "cmd", "subcmd", "--flag")
+
+	if !opts.Flag {
+		t.Errorf("Expected Flag to be true")
+	}
+}
