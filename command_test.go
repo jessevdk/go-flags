@@ -106,6 +106,34 @@ func TestCommandFlagOrder2(t *testing.T) {
 	}
 }
 
+func TestCommandFlagOrderSub(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			G bool `short:"g"`
+
+			SubCommand struct {
+				B bool `short:"b"`
+			} `command:"sub"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Command.G {
+		t.Errorf("Expected Command.G to be true")
+	}
+
+	if !opts.Command.SubCommand.B {
+		t.Errorf("Expected Command.SubCommand.B to be true")
+	}
+}
+
 func TestCommandFlagOverride1(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
@@ -136,6 +164,58 @@ func TestCommandFlagOverride2(t *testing.T) {
 	}{}
 
 	assertParseSuccess(t, &opts, "cmd", "-v")
+
+	if opts.Value {
+		t.Errorf("Expected Value to be false")
+	}
+
+	if !opts.Command.Value {
+		t.Errorf("Expected Command.Value to be true")
+	}
+}
+
+func TestCommandFlagOverrideSub(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			Value bool `short:"v"`
+
+			SubCommand struct {
+				Value bool `short:"v"`
+			} `command:"sub"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
+
+	if opts.Value {
+		t.Errorf("Expected Value to be false")
+	}
+
+	if opts.Command.Value {
+		t.Errorf("Expected Command.Value to be false")
+	}
+
+	if !opts.Command.SubCommand.Value {
+		t.Errorf("Expected Command.Value to be true")
+	}
+}
+
+func TestCommandFlagOverrideSub2(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command struct {
+			Value bool `short:"v"`
+
+			SubCommand struct {
+				G bool `short:"g"`
+			} `command:"sub"`
+		} `command:"cmd"`
+	}{}
+
+	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
 
 	if opts.Value {
 		t.Errorf("Expected Value to be false")

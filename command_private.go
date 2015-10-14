@@ -156,16 +156,19 @@ func (c *Command) makeLookup() lookup {
 
 	parent := c.parent
 
+	var parents []*Command
+
 	for parent != nil {
 		if cmd, ok := parent.(*Command); ok {
-			cmd.fillLookup(&ret, true)
-		}
-
-		if grp, ok := parent.(*Group); ok {
-			parent = grp
+			parents = append(parents, cmd)
+			parent = cmd.parent
 		} else {
 			parent = nil
 		}
+	}
+
+	for i := len(parents) - 1; i >= 0; i-- {
+		parents[i].fillLookup(&ret, true)
 	}
 
 	c.fillLookup(&ret, false)
