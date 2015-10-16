@@ -53,8 +53,9 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					Name:        name,
 					Description: m.Get("description"),
 
-					value: realval.Field(i),
-					tag:   m,
+					value:    realval.Field(i),
+					tag:      m,
+					required: len(m.Get("required")) != 0,
 				}
 
 				c.args = append(c.args, arg)
