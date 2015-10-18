@@ -391,3 +391,20 @@ Help Options:
 		}
 	}
 }
+
+func TestHelpRestArgs(t *testing.T) {
+	opts := struct {
+		Verbose bool `short:"v"`
+	}{}
+
+	p := NewNamedParser("TestHelpDefaults", HelpFlag)
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	retargs, err := p.ParseArgs([]string{"-h", "-v", "rest"})
+
+	if err == nil {
+		t.Fatalf("Expected help error")
+	}
+
+	assertStringArray(t, retargs, []string{"-v", "rest"})
+}

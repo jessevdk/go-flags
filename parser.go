@@ -279,7 +279,15 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	if reterr != nil {
-		return append([]string{s.arg}, s.args...), p.printError(reterr)
+		var retargs []string
+
+		if ourErr, ok := reterr.(*Error); !ok || ourErr.Type != ErrHelp {
+			retargs = append([]string{s.arg}, s.args...)
+		} else {
+			retargs = s.args
+		}
+
+		return retargs, p.printError(reterr)
 	}
 
 	return s.retargs, nil
