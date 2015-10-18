@@ -138,7 +138,13 @@ The following is a list of tags for struct fields supported by go-flags:
                           then all remaining arguments will be added to it.
                           Positional arguments are optional by default,
                           unless the "required" tag is specified together
-                          with the "positional-args" tag (optional)
+                          with the "positional-args" tag. The "required" tag
+                          can also be set on the individual rest argument
+                          fields, to require only the first N positional
+                          arguments. If the "required" tag is set on the
+                          rest arguments slice, then its value determines
+                          the minimum amount of rest arguments that needs to
+                          be provided (e.g. `required:"2"`) (optional)
     positional-arg-name:  used on a field in a positional argument struct; name
                           of the positional argument placeholder to be shown in
                           the help (optional)
