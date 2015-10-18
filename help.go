@@ -306,7 +306,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		if len(cmd.LongDescription) != 0 {
 			fmt.Fprintln(wr)
 
-			t := wrapText(cmd.LongDescription,
+			t := wrapParagraph(cmd.LongDescription,
 				aligninfo.terminalColumns,
 				"")
 

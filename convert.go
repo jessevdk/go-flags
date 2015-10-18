@@ -340,6 +340,20 @@ func unquoteIfPossible(s string) (string, error) {
 	return strconv.Unquote(s)
 }
 
+func wrapParagraph(s string, l int, prefix string) string {
+	paragraphs := strings.Split(s, "\n\n")
+
+	for i := range paragraphs {
+		paragraphs[i] = wrapText(paragraphs[i], l, prefix)
+
+		if i != 0 {
+			paragraphs[i] = prefix + paragraphs[i]
+		}
+	}
+
+	return strings.Join(paragraphs, "\n\n")
+}
+
 func wrapText(s string, l int, prefix string) string {
 	// Basic text wrapping of s at spaces to fit in l
 	var ret string
