@@ -195,6 +195,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			p.CompletionHandler(items)
 		} else {
 			comp.print(items, compval == "verbose")
+			os.Exit(0)
 		}
 
 		return nil, nil
