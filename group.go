@@ -32,6 +32,9 @@ type Group struct {
 	// The namespace of the group
 	Namespace string
 
+	// If true, the group is not displayed in the help or man page
+	Hidden bool
+
 	// The parent of the group or nil if it has no parent
 	parent interface{}
 

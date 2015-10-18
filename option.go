@@ -51,9 +51,6 @@ type Option struct {
 	// error.
 	Required bool
 
-	// If true, the option is not displayed in the help output
-	Hidden bool
-
 	// A name for the value of an option shown in the Help as --flag [ValueName]
 	ValueName string
 
@@ -64,6 +61,9 @@ type Option struct {
 
 	// If non empty, only a certain set of values is allowed for an option.
 	Choices []string
+
+	// If true, the option is not displayed in the help or man page
+	Hidden bool
 
 	// The group which the option belongs to
 	group *Group

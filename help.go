@@ -340,10 +340,12 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 					co, cc = "<", ">"
 				}
 
-				if len(allcmd.commands) > 3 {
+				visibleCommands := allcmd.visibleCommands()
+
+				if len(visibleCommands) > 3 {
 					fmt.Fprintf(wr, " %scommand%s", co, cc)
 				} else {
-					subcommands := allcmd.sortedCommands()
+					subcommands := allcmd.sortedVisibleCommands()
 					names := make([]string, len(subcommands))
 
 					for i, subc := range subcommands {
@@ -380,12 +382,12 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 			// Skip built-in help group for all commands except the top-level
 			// parser
-			if grp.isBuiltinHelp && c != p.Command {
+			if grp.Hidden || (grp.isBuiltinHelp && c != p.Command) {
 				return
 			}
 
 			for _, info := range grp.options {
-				if !info.canCli() {
+				if !info.canCli() || info.Hidden {
 					continue
 				}
 
@@ -435,7 +437,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		c = c.Active
 	}
 
-	scommands := cmd.sortedCommands()
+	scommands := cmd.sortedVisibleCommands()
 
 	if len(scommands) > 0 {
 		maxnamelen := maxCommandLength(scommands)

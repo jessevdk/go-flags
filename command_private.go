@@ -79,6 +79,8 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 			subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
 
+			subc.Hidden = mtag.Get("hidden") != ""
+
 			if err != nil {
 				return true, err
 			}
@@ -235,18 +237,23 @@ func (c commandList) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
-// FIXME: maybe call this sortedVisibleCommands ?
-func (c *Command) sortedCommands() []*Command {
-	ret := make(commandList, 0, len(c.commands))
+func (c *Command) sortedVisibleCommands() []*Command {
+	ret := commandList(c.visibleCommands())
+	sort.Sort(ret)
 
-	for _, e := range c.commands {
-		if !e.Hidden {
-			ret = append(ret, e)
+	return []*Command(ret)
+}
+
+func (c *Command) visibleCommands() []*Command {
+	ret := make([]*Command, 0, len(c.commands))
+
+	for _, cmd := range c.commands {
+		if !cmd.Hidden {
+			ret = append(ret, cmd)
 		}
 	}
 
-	sort.Sort(ret)
-	return []*Command(ret)
+	return ret
 }
 
 func (c *Command) match(name string) bool {

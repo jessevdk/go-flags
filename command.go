@@ -23,9 +23,6 @@ type Command struct {
 	// Whether positional arguments are required
 	ArgsRequired bool
 
-	// If true, the option is not displayed in the help output
-	Hidden bool
-
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 	args                []*Arg

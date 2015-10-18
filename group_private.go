@@ -211,6 +211,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		}
 
 		group.Namespace = mtag.Get("namespace")
+		group.Hidden = mtag.Get("hidden") != ""
 
 		return true, nil
 	}

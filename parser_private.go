@@ -114,7 +114,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 }
 
 func (p *parseState) estimateCommand() error {
-	commands := p.command.sortedCommands()
+	commands := p.command.sortedVisibleCommands()
 	cmdnames := make([]string, len(commands))
 
 	for i, v := range commands {
