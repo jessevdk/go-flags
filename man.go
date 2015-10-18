@@ -38,7 +38,7 @@ func formatForMan(wr io.Writer, s string) {
 
 func writeManPageOptions(wr io.Writer, grp *Group) {
 	grp.eachGroup(func(group *Group) {
-		if grp.Hidden {
+		if group.Hidden {
 			return
 		}
 

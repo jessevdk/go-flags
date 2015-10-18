@@ -22,6 +22,7 @@ type helpOptions struct {
 	EnvDefault2       string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
 	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
+	Hidden            string            `long:"hidden" description:"Hidden option" hidden:"yes"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
 
@@ -30,8 +31,13 @@ type helpOptions struct {
 		IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int" ini-name:"int-map"`
 	} `group:"Other Options"`
 
+	HiddenGroup struct {
+		InsideHiddenGroup string `long:"inside-hidden-group" description:"Inside hidden group"`
+	} `group:"Hidden group" hidden:"yes"`
+
 	Group struct {
-		Opt string `long:"opt" description:"This is a subgroup option"`
+		Opt               string `long:"opt" description:"This is a subgroup option"`
+		HiddenInsideGroup string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
 
 		Group struct {
 			Opt string `long:"opt" description:"This is a subsubgroup option"`
@@ -41,6 +47,10 @@ type helpOptions struct {
 	Command struct {
 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
 	} `command:"command" alias:"cm" alias:"cmd" description:"A command"`
+
+	HiddenCommand struct {
+		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
+	} `command:"hidden-command" description:"A hidden command" hidden:"yes"`
 
 	Args struct {
 		Filename string `positional-arg-name:"filename" description:"A filename"`

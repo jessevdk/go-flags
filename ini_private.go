@@ -83,7 +83,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 	comments := (options & IniIncludeComments) != IniNone
 
 	for _, option := range group.options {
-		if option.isFunc() {
+		if option.isFunc() || option.Hidden {
 			continue
 		}
 
@@ -186,11 +186,17 @@ func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, o
 
 func writeCommandIni(command *Command, namespace string, writer io.Writer, options IniOptions) {
 	command.eachGroup(func(group *Group) {
-		writeGroupIni(command, group, namespace, writer, options)
+		if !group.Hidden {
+			writeGroupIni(command, group, namespace, writer, options)
+		}
 	})
 
 	for _, c := range command.commands {
 		var nns string
+
+		if c.Hidden {
+			continue
+		}
 
 		if len(namespace) != 0 {
 			nns = c.Name + "." + nns
