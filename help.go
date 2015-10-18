@@ -104,6 +104,58 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	return ret
 }
 
+func wrapText(s string, l int, prefix string) string {
+	var ret string
+
+	// Basic text wrapping of s at spaces to fit in l
+	lines := strings.Split(s, "\n")
+
+	for _, line := range lines {
+		var retline string
+
+		line = strings.TrimSpace(line)
+
+		for len(line) > l {
+			// Try to split on space
+			suffix := ""
+
+			pos := strings.LastIndex(line[:l], " ")
+
+			if pos < 0 {
+				pos = l - 1
+				suffix = "-\n"
+			}
+
+			if len(retline) != 0 {
+				retline += "\n" + prefix
+			}
+
+			retline += strings.TrimSpace(line[:pos]) + suffix
+			line = strings.TrimSpace(line[pos:])
+		}
+
+		if len(line) > 0 {
+			if len(retline) != 0 {
+				retline += "\n" + prefix
+			}
+
+			retline += line
+		}
+
+		if len(ret) > 0 {
+			ret += "\n"
+
+			if len(retline) > 0 {
+				ret += prefix
+			}
+		}
+
+		ret += retline
+	}
+
+	return ret
+}
+
 func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alignmentInfo) {
 	line := &bytes.Buffer{}
 
