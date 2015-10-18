@@ -357,15 +357,31 @@ func (p *parseState) checkRequired(parser *Parser) error {
 	}
 
 	if len(required) == 0 {
-		if len(p.positional) > 0 && p.command.ArgsRequired {
+		if len(p.positional) > 0 {
 			var reqnames []string
 
 			for _, arg := range p.positional {
-				if arg.isRemaining() {
-					break
+				argRequired := (!arg.isRemaining() && p.command.ArgsRequired) || arg.Required != 0
+
+				if !argRequired {
+					continue
 				}
 
-				reqnames = append(reqnames, "`"+arg.Name+"`")
+				if arg.isRemaining() {
+					if arg.value.Len() < arg.Required {
+						var arguments string
+
+						if arg.Required > 1 {
+							arguments = "arguments, but got only " + fmt.Sprintf("%d", arg.value.Len())
+						} else {
+							arguments = "argument"
+						}
+
+						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprintf("%d", arg.Required)+" "+arguments+")`")
+					}
+				} else {
+					reqnames = append(reqnames, "`"+arg.Name+"`")
+				}
 			}
 
 			if len(reqnames) == 0 {

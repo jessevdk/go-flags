@@ -3,6 +3,7 @@ package flags
 import (
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"unsafe"
 )
@@ -154,9 +155,22 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					name = field.Name
 				}
 
+				var required int
+
+				sreq := m.Get("required")
+
+				if sreq != "" {
+					required = 1
+
+					if preq, err := strconv.ParseInt(sreq, 10, 32); err == nil {
+						required = int(preq)
+					}
+				}
+
 				arg := &Arg{
 					Name:        name,
 					Description: m.Get("description"),
+					Required:    required,
 
 					value: realval.Field(i),
 					tag:   m,
