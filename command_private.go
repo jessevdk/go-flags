@@ -235,9 +235,15 @@ func (c commandList) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
+// FIXME: maybe call this sortedVisibleCommands ?
 func (c *Command) sortedCommands() []*Command {
-	ret := make(commandList, len(c.commands))
-	copy(ret, c.commands)
+	ret := make(commandList, 0, len(c.commands))
+
+	for _, e := range c.commands {
+		if !e.Hidden {
+			ret = append(ret, e)
+		}
+	}
 
 	sort.Sort(ret)
 	return []*Command(ret)
