@@ -79,8 +79,9 @@ type Option struct {
 	// Determines if the option will be always quoted in the INI output
 	iniQuote bool
 
-	tag   multiTag
-	isSet bool
+	tag            multiTag
+	isSet          bool
+	preventDefault bool
 
 	defaultLiteral string
 }
@@ -182,6 +183,7 @@ func (option *Option) set(value *string) error {
 	}
 
 	option.isSet = true
+	option.preventDefault = true
 
 	if len(option.Choices) != 0 {
 		found := false
@@ -245,6 +247,7 @@ func (option *Option) empty() {
 
 func (option *Option) clearDefault() {
 	usedDefault := option.Default
+
 	if envKey := option.EnvDefaultKey; envKey != "" {
 		// os.Getenv() makes no distinction between undefined and
 		// empty values, so we use syscall.Getenv()

@@ -281,7 +281,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 	if s.err == nil {
 		p.eachOption(func(c *Command, g *Group, option *Option) {
-			if option.isSet {
+			if option.preventDefault {
 				return
 			}
 

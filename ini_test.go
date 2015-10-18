@@ -720,6 +720,46 @@ func TestIniCliOverrides(t *testing.T) {
 	}
 }
 
+func TestIniOverrides(t *testing.T) {
+	file, err := ioutil.TempFile("", "")
+
+	if err != nil {
+		t.Fatalf("Cannot create temporary file: %s", err)
+	}
+
+	defer os.Remove(file.Name())
+
+	_, err = file.WriteString("value-with-default = \"ini-value\"\n")
+	_, err = file.WriteString("value-with-default-override-cli = \"ini-value\"\n")
+
+	if err != nil {
+		t.Fatalf("Cannot write to temporary file: %s", err)
+	}
+
+	file.Close()
+
+	var opts struct {
+		ValueWithDefault            string `long:"value-with-default" default:"value"`
+		ValueWithDefaultOverrideCli string `long:"value-with-default-override-cli" default:"value"`
+	}
+
+	p := NewParser(&opts, Default)
+	err = NewIniParser(p).ParseFile(file.Name())
+
+	if err != nil {
+		t.Fatalf("Could not parse ini: %s", err)
+	}
+
+	_, err = p.ParseArgs([]string{"--value-with-default-override-cli", "cli-value"})
+
+	if err != nil {
+		t.Fatalf("Failed to parse arguments: %s", err)
+	}
+
+	assertString(t, opts.ValueWithDefault, "ini-value")
+	assertString(t, opts.ValueWithDefaultOverrideCli, "cli-value")
+}
+
 func TestWriteFile(t *testing.T) {
 	file, err := ioutil.TempFile("", "")
 	if err != nil {
