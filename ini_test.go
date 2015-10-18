@@ -672,6 +672,54 @@ func TestIniParse(t *testing.T) {
 	}
 }
 
+func TestIniCliOverrides(t *testing.T) {
+	file, err := ioutil.TempFile("", "")
+
+	if err != nil {
+		t.Fatalf("Cannot create temporary file: %s", err)
+	}
+
+	defer os.Remove(file.Name())
+
+	_, err = file.WriteString("values = 123\n")
+	_, err = file.WriteString("values = 456\n")
+
+	if err != nil {
+		t.Fatalf("Cannot write to temporary file: %s", err)
+	}
+
+	file.Close()
+
+	var opts struct {
+		Values []int `long:"values"`
+	}
+
+	p := NewParser(&opts, Default)
+	err = NewIniParser(p).ParseFile(file.Name())
+
+	if err != nil {
+		t.Fatalf("Could not parse ini: %s", err)
+	}
+
+	_, err = p.ParseArgs([]string{"--values", "111", "--values", "222"})
+
+	if err != nil {
+		t.Fatalf("Failed to parse arguments: %s", err)
+	}
+
+	if len(opts.Values) != 2 {
+		t.Fatalf("Expected Values to contain two elements, but got %d", len(opts.Values))
+	}
+
+	if opts.Values[0] != 111 {
+		t.Fatalf("Expected Values[0] to be 111, but got '%d'", opts.Values[0])
+	}
+
+	if opts.Values[1] != 222 {
+		t.Fatalf("Expected Values[0] to be 222, but got '%d'", opts.Values[1])
+	}
+}
+
 func TestWriteFile(t *testing.T) {
 	file, err := ioutil.TempFile("", "")
 	if err != nil {

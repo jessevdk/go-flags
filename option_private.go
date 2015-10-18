@@ -10,6 +10,12 @@ import (
 // if the specified value could not be converted to the corresponding option
 // value type.
 func (option *Option) set(value *string) error {
+	kind := option.value.Type().Kind()
+
+	if (kind == reflect.Map || kind == reflect.Slice) && !option.isSet {
+		option.empty()
+	}
+
 	option.isSet = true
 
 	if len(option.Choices) != 0 {
