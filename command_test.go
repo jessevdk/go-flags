@@ -480,3 +480,65 @@ func TestCommandAlias(t *testing.T) {
 		t.Errorf("Expected G to be true")
 	}
 }
+
+func TestSubCommandFindOptionByLongFlag(t *testing.T) {
+	var opts struct {
+		Testing bool `long:"testing" description:"Testing"`
+	}
+
+	var cmd struct {
+		Other bool `long:"other" description:"Other"`
+	}
+
+	p := NewParser(&opts, Default)
+	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
+
+	opt := c.FindOptionByLongName("other")
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	assertString(t, opt.LongName, "other")
+
+	opt = c.FindOptionByLongName("testing")
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	assertString(t, opt.LongName, "testing")
+}
+
+func TestSubCommandFindOptionByShortFlag(t *testing.T) {
+	var opts struct {
+		Testing bool `short:"t" description:"Testing"`
+	}
+
+	var cmd struct {
+		Other bool `short:"o" description:"Other"`
+	}
+
+	p := NewParser(&opts, Default)
+	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
+
+	opt := c.FindOptionByShortName('o')
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	if opt.ShortName != 'o' {
+		t.Errorf("Expected 'o', but got %v", opt.ShortName)
+	}
+
+	opt = c.FindOptionByShortName('t')
+
+	if opt == nil {
+		t.Errorf("Expected option, but found none")
+	}
+
+	if opt.ShortName != 't' {
+		t.Errorf("Expected 'o', but got %v", opt.ShortName)
+	}
+}

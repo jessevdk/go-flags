@@ -112,6 +112,32 @@ func (c *Command) Find(name string) *Command {
 	return nil
 }
 
+// Find an option that is part of the command, or any of its
+// parent commands, by matching its long name
+// (including the option namespace).
+func (c *Command) FindOptionByLongName(longName string) (option *Option) {
+	for option == nil && c != nil {
+		option = c.Group.FindOptionByLongName(longName)
+
+		c, _ = c.parent.(*Command)
+	}
+
+	return option
+}
+
+// Find an option that is part of the command, or any of its
+// parent commands, by matching its long name
+// (including the option namespace).
+func (c *Command) FindOptionByShortName(shortName rune) (option *Option) {
+	for option == nil && c != nil {
+		option = c.Group.FindOptionByShortName(shortName)
+
+		c, _ = c.parent.(*Command)
+	}
+
+	return option
+}
+
 // Args returns a list of positional arguments associated with this command.
 func (c *Command) Args() []*Arg {
 	ret := make([]*Arg, len(c.args))
