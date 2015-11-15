@@ -223,12 +223,11 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			aliases := mtag.GetMany("alias")
 
 			subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
-
-			subc.Hidden = mtag.Get("hidden") != ""
-
 			if err != nil {
 				return true, err
 			}
+
+			subc.Hidden = mtag.Get("hidden") != ""
 
 			if len(subcommandsOptional) > 0 {
 				subc.SubcommandsOptional = true
