@@ -471,3 +471,17 @@ func TestChoices(t *testing.T) {
 	assertParseSuccess(t, &opts, "--choose", "v2")
 	assertString(t, opts.Choice, "v2")
 }
+
+func TestEmbedded(t *testing.T) {
+	type embedded struct {
+		V bool `short:"v"`
+	}
+	var opts struct {
+		embedded
+	}
+
+	assertParseSuccess(t, &opts, "-v")
+	if !opts.V {
+		t.Errorf("Expected V to be true")
+	}
+}
