@@ -197,6 +197,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					Name:        name,
 					Description: m.Get("description"),
 					Required:    required,
+					SkipHelp:    m.Get("skip-help") != "",
 
 					value: realval.Field(i),
 					tag:   m,

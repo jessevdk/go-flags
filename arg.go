@@ -15,6 +15,10 @@ type Arg struct {
 	// Whether a positional argument is required
 	Required int
 
+	// If true, the argument is not displayed in the help or man page
+	// but is still displayed by the usage line.
+	SkipHelp bool
+
 	value reflect.Value
 	tag   multiTag
 }
