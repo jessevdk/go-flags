@@ -86,6 +86,10 @@ type Option struct {
 	defaultLiteral string
 }
 
+func (option *Option) Field() reflect.Value {
+	return option.value
+}
+
 // LongNameWithNamespace returns the option's long name with the group namespaces
 // prepended by walking up the option's group tree. Namespaces and the long name
 // itself are separated by the parser's namespace delimiter. If the long name is
@@ -170,6 +174,11 @@ func (option *Option) Value() interface{} {
 // IsSet returns true if option has been set
 func (option *Option) IsSet() bool {
 	return option.isSet
+}
+
+// IsSetDefault returns true if option has been set with its default value.
+func (option *Option) IsSetDefault() bool {
+	return option.isSetDefault
 }
 
 // Set the value of an option to the specified value. An error will be returned
@@ -267,6 +276,7 @@ func (option *Option) clearDefault() {
 
 		for _, d := range usedDefault {
 			option.set(&d)
+			option.isSetDefault = true
 		}
 	} else {
 		tp := option.value.Type()
