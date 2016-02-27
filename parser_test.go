@@ -139,9 +139,9 @@ func TestNoDefaultsForBools(t *testing.T) {
 	}
 
 	if runtime.GOOS == "windows" {
-		assertParseFail(t, ErrInvalidTag, "boolean flag `/d' may not have default values, they always default to `false' and can only be turned off", &opts)
+		assertParseFail(t, ErrInvalidTag, "boolean flag `/d' may not have default values, they always default to `false' and can only be turned on", &opts)
 	} else {
-		assertParseFail(t, ErrInvalidTag, "boolean flag `-d' may not have default values, they always default to `false' and can only be turned off", &opts)
+		assertParseFail(t, ErrInvalidTag, "boolean flag `-d' may not have default values, they always default to `false' and can only be turned on", &opts)
 	}
 }
 

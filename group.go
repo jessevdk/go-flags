@@ -278,7 +278,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 
 		if option.isBool() && option.Default != nil {
 			return newErrorf(ErrInvalidTag,
-				"boolean flag `%s' may not have default values, they always default to `false' and can only be turned off",
+				"boolean flag `%s' may not have default values, they always default to `false' and can only be turned on",
 				option.shortAndLongName())
 		}
 
