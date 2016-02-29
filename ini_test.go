@@ -802,7 +802,7 @@ func TestIniCliOverrides(t *testing.T) {
 	}
 
 	if opts.Values[1] != 222 {
-		t.Fatalf("Expected Values[0] to be 222, but got '%d'", opts.Values[1])
+		t.Fatalf("Expected Values[1] to be 222, but got '%d'", opts.Values[1])
 	}
 }
 
@@ -946,5 +946,59 @@ func TestOverwriteRequiredOptions(t *testing.T) {
 		if opts.Default != test.expected[1] {
 			t.Fatalf("Expected Default to be \"%s\" but was \"%s\" with args %+v", test.expected[1], opts.Default, test.args)
 		}
+	}
+}
+
+func TestIniOverwriteOptions(t *testing.T) {
+	var tests = []struct {
+		args     []string
+		expected string
+	}{
+		{
+			args:     []string{},
+			expected: "from default",
+		},
+		{
+			args:     []string{"--value", "from CLI"},
+			expected: "from CLI",
+		},
+		{
+			args:     []string{"--config", "no file name"},
+			expected: "from INI",
+		},
+		{
+			args:     []string{"--value", "from CLI before", "--config", "no file name"},
+			expected: "from CLI before",
+		},
+		{
+			args:     []string{"--config", "no file name", "--value", "from CLI after"},
+			expected: "from CLI after",
+		},
+	}
+
+	for _, test := range tests {
+		var opts struct {
+			Config string `long:"config" no-ini:"true"`
+			Value  string `long:"value" default:"from default" ini-override:"true"`
+		}
+
+		p := NewParser(&opts, Default)
+
+		_, err := p.ParseArgs(test.args)
+		if err != nil {
+			t.Fatalf("Unexpected error %s with args %+v", err, test.args)
+		}
+
+		if opts.Config != "" {
+			err = NewIniParser(p).Parse(bytes.NewBufferString("value = from INI"))
+			if err != nil {
+				t.Fatalf("Unexpected error %s with args %+v", err, test.args)
+			}
+		}
+
+		if opts.Value != test.expected {
+			t.Fatalf("Expected Value to be \"%s\" but was \"%s\" with args %+v", test.expected, opts.Value, test.args)
+		}
+
 	}
 }
