@@ -539,6 +539,12 @@ func (i *IniParser) parse(ini *ini) error {
 				continue
 			}
 
+			// ini value is ignored if override is not set or
+			// value was previously set from non default
+			if len(opt.tag.Get("ini-override")) > 0 && !opt.isSetDefault {
+				continue
+			}
+
 			pval := &inival.Value
 
 			if !opt.canArgument() && len(inival.Value) == 0 {

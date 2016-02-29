@@ -193,6 +193,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 	p.eachOption(func(c *Command, g *Group, option *Option) {
 		option.isSet = false
+		option.isSetDefault = false
 		option.updateDefaultLiteral()
 	})
 
