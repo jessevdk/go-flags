@@ -261,9 +261,9 @@ func (option *Option) clearDefault() {
 		}
 	}
 
+	option.isSetDefault = true
 	if len(usedDefault) > 0 {
 		option.empty()
-		option.isSetDefault = true
 
 		for _, d := range usedDefault {
 			option.set(&d)
