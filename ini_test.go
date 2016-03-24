@@ -953,6 +953,7 @@ func TestIniOverwriteOptions(t *testing.T) {
 	var tests = []struct {
 		args     []string
 		expected string
+		toggled  bool
 	}{
 		{
 			args:     []string{},
@@ -965,14 +966,22 @@ func TestIniOverwriteOptions(t *testing.T) {
 		{
 			args:     []string{"--config", "no file name"},
 			expected: "from INI",
+			toggled:  true,
 		},
 		{
 			args:     []string{"--value", "from CLI before", "--config", "no file name"},
 			expected: "from CLI before",
+			toggled:  true,
 		},
 		{
 			args:     []string{"--config", "no file name", "--value", "from CLI after"},
 			expected: "from CLI after",
+			toggled:  true,
+		},
+		{
+			args:     []string{"--toggle"},
+			toggled:  true,
+			expected: "from default",
 		},
 	}
 
@@ -980,6 +989,7 @@ func TestIniOverwriteOptions(t *testing.T) {
 		var opts struct {
 			Config string `long:"config" no-ini:"true"`
 			Value  string `long:"value" default:"from default" ini-override:"true"`
+			Toggle bool   `long:"toggle" ini-override:"true"`
 		}
 
 		p := NewParser(&opts, Default)
@@ -990,7 +1000,7 @@ func TestIniOverwriteOptions(t *testing.T) {
 		}
 
 		if opts.Config != "" {
-			err = NewIniParser(p).Parse(bytes.NewBufferString("value = from INI"))
+			err = NewIniParser(p).Parse(bytes.NewBufferString("value = from INI\ntoggle = true"))
 			if err != nil {
 				t.Fatalf("Unexpected error %s with args %+v", err, test.args)
 			}
@@ -998,6 +1008,10 @@ func TestIniOverwriteOptions(t *testing.T) {
 
 		if opts.Value != test.expected {
 			t.Fatalf("Expected Value to be \"%s\" but was \"%s\" with args %+v", test.expected, opts.Value, test.args)
+		}
+
+		if opts.Toggle != test.toggled {
+			t.Fatalf("Expected Toggle to be \"%v\" but was \"%v\" with args %+v", test.toggled, opts.Toggle, test.args)
 		}
 
 	}
