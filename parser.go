@@ -620,10 +620,19 @@ func (p *Parser) parseNonOption(s *parseState) error {
 		return s.addArgs(s.arg)
 	}
 
-	if cmd := s.lookup.commands[s.arg]; cmd != nil {
-		s.command.Active = cmd
-		cmd.fillParseState(s)
-	} else if (p.Options & PassAfterNonOption) != None {
+	if len(s.command.commands) > 0 && len(s.retargs) == 0 {
+		if cmd := s.lookup.commands[s.arg]; cmd != nil {
+			s.command.Active = cmd
+			cmd.fillParseState(s)
+
+			return nil
+		} else if !s.command.SubcommandsOptional {
+			s.addArgs(s.arg)
+			return newErrorf(ErrUnknownCommand, "Unknown command `%s'", s.arg)
+		}
+	}
+
+	if (p.Options & PassAfterNonOption) != None {
 		// If PassAfterNonOption is set then all remaining arguments
 		// are considered positional
 		if err := s.addArgs(s.arg); err != nil {
