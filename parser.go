@@ -47,6 +47,9 @@ type Parser struct {
 	// overridden to perform certain actions (such as applying global flags)
 	// just before the command is executed. Note that if you override the
 	// handler it is your responsibility to call the command.Execute function.
+	//
+	// The command passed into CommandHandler may be nil in case there is no
+	// command to be executed when parsing has finished.
 	CommandHandler func(command Commander, args []string) error
 
 	internalError error
@@ -310,6 +313,8 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		} else {
 			reterr = cmd.Execute(s.retargs)
 		}
+	} else if p.CommandHandler != nil {
+		reterr = p.CommandHandler(nil, s.retargs)
 	}
 
 	if reterr != nil {
