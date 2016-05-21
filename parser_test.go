@@ -519,7 +519,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 
 	executed := false
 
-	parser.CommandHandler = func (command Commander, args []string) error {
+	parser.CommandHandler = func(command Commander, args []string) error {
 		executed = true
 
 		executedCommand = command
@@ -545,7 +545,6 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 	assertStringArray(t, executedArgs, []string{"arg1", "arg2"})
 }
 
-
 func TestCommandHandler(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
@@ -560,7 +559,7 @@ func TestCommandHandler(t *testing.T) {
 
 	executed := false
 
-	parser.CommandHandler = func (command Commander, args []string) error {
+	parser.CommandHandler = func(command Commander, args []string) error {
 		executed = true
 
 		executedCommand = command
