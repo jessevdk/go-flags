@@ -494,7 +494,47 @@ func TestEmbedded(t *testing.T) {
 	}
 
 	assertParseSuccess(t, &opts, "-v")
+
 	if !opts.V {
 		t.Errorf("Expected V to be true")
 	}
+}
+
+type command struct {
+}
+
+func (c *command) Execute(args []string) error {
+	return nil
+}
+
+func TestCommandHandler(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command command `command:"cmd"`
+	}{}
+
+	parser := NewParser(&opts, Default&^PrintErrors)
+
+	var executedCommand Commander
+	var executedArgs []string
+
+	parser.CommandHandler = func (command Commander, args []string) error {
+		executedCommand = command
+		executedArgs = args
+
+		return nil
+	}
+
+	_, err := parser.ParseArgs([]string{"cmd", "arg1", "arg2"})
+
+	if err != nil {
+		t.Fatalf("Unexpected parse error: %s", err)
+	}
+
+	if executedCommand == nil {
+		t.Errorf("Expected command handler to be executed")
+	}
+
+	assertStringArray(t, executedArgs, []string{"arg1", "arg2"})
 }

@@ -42,6 +42,13 @@ type Parser struct {
 	// You can override this default behavior by specifying a custom CompletionHandler.
 	CompletionHandler func(items []Completion)
 
+	// CommandHandler is a function that gets called to handle execution of a
+	// command. By default, the command will simply be executed. This can be
+	// overridden to perform certain actions (such as applying global flags)
+	// just before the command is executed. Note that if you override the
+	// handler it is your responsibility to call the command.Execute function.
+	CommandHandler func(command Commander, args []string) error
+
 	internalError error
 }
 
@@ -298,7 +305,11 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	} else if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
 		reterr = s.estimateCommand()
 	} else if cmd, ok := s.command.data.(Commander); ok {
-		reterr = cmd.Execute(s.retargs)
+		if p.CommandHandler != nil {
+			reterr = p.CommandHandler(cmd, s.retargs)
+		} else {
+			reterr = cmd.Execute(s.retargs)
+		}
 	}
 
 	if reterr != nil {
