@@ -1,5 +1,8 @@
 language: go
 
+go:
+  - 1.6
+
 install:
   # go-flags
   - go get -d -v ./...
