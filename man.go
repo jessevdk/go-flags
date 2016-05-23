@@ -38,8 +38,17 @@ func formatForMan(wr io.Writer, s string) {
 
 func writeManPageOptions(wr io.Writer, grp *Group) {
 	grp.eachGroup(func(group *Group) {
-		if group.Hidden {
+		if group.Hidden || len(group.options) == 0 {
 			return
+		}
+
+		if group.ShortDescription != "" {
+			fmt.Fprintf(wr, ".SH %s\n", group.ShortDescription)
+
+			if group.LongDescription != "" {
+				formatForMan(wr, group.LongDescription)
+				fmt.Fprintln(wr, "")
+			}
 		}
 
 		for _, opt := range group.options {
