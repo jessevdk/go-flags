@@ -988,8 +988,8 @@ func TestIniOverwriteOptions(t *testing.T) {
 	for _, test := range tests {
 		var opts struct {
 			Config string `long:"config" no-ini:"true"`
-			Value  string `long:"value" default:"from default" ini-override:"true"`
-			Toggle bool   `long:"toggle" ini-override:"true"`
+			Value  string `long:"value" default:"from default"`
+			Toggle bool   `long:"toggle"`
 		}
 
 		p := NewParser(&opts, Default)
@@ -1000,7 +1000,10 @@ func TestIniOverwriteOptions(t *testing.T) {
 		}
 
 		if opts.Config != "" {
-			err = NewIniParser(p).Parse(bytes.NewBufferString("value = from INI\ntoggle = true"))
+			inip := NewIniParser(p)
+			inip.ParseAsDefaults = true
+
+			err = inip.Parse(bytes.NewBufferString("value = from INI\ntoggle = true"))
 			if err != nil {
 				t.Fatalf("Unexpected error %s with args %+v", err, test.args)
 			}

@@ -58,6 +58,8 @@ const (
 // IniParser is a utility to read and write flags options from and to ini
 // formatted strings.
 type IniParser struct {
+	ParseAsDefaults bool // override default flags
+
 	parser *Parser
 }
 
@@ -539,9 +541,9 @@ func (i *IniParser) parse(ini *ini) error {
 				continue
 			}
 
-			// ini value is ignored if override is not set or
+			// ini value is ignored if override is set and
 			// value was previously set from non default
-			if len(opt.tag.Get("ini-override")) > 0 && !opt.isSetDefault {
+			if i.ParseAsDefaults && !opt.isSetDefault {
 				continue
 			}
 
