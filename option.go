@@ -79,9 +79,10 @@ type Option struct {
 	// Determines if the option will be always quoted in the INI output
 	iniQuote bool
 
-	tag                 multiTag
-	isSet, isSetDefault bool
-	preventDefault      bool
+	tag            multiTag
+	isSet          bool
+	isSetDefault   bool
+	preventDefault bool
 
 	defaultLiteral string
 }
@@ -271,6 +272,7 @@ func (option *Option) clearDefault() {
 	}
 
 	option.isSetDefault = true
+
 	if len(usedDefault) > 0 {
 		option.empty()
 
