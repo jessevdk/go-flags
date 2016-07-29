@@ -15,14 +15,15 @@ type helpOptions struct {
 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 	EmptyDescription bool         `long:"empty-description"`
 
-	Default           string            `long:"default" default:"Some\nvalue" description:"Test default value"`
-	DefaultArray      []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
-	DefaultMap        map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
-	EnvDefault1       string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
-	EnvDefault2       string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
-	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
-	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
-	Hidden            string            `long:"hidden" description:"Hidden option" hidden:"yes"`
+	Default                 string            `long:"default" default:"Some\nvalue" description:"Test default value"`
+	DefaultArray            []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
+	DefaultMap              map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
+	EnvDefault1             string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
+	EnvDefault2             string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
+	OptionWithArgName       string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
+	OptionWithChoices       string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
+	OptionWithHiddenChoices string            `long:"opt-with-hidden-choices" value-name:"choice" choice:"dog" hidden-choice:"cat" description:"Option with hidden choices"`
+	Hidden                  string            `long:"hidden" description:"Hidden option" hidden:"yes"`
 
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
 
@@ -105,6 +106,7 @@ Application Options:
                                             [%ENV_DEFAULT%]
       /opt-with-arg-name:something          Option with named argument
       /opt-with-choices:choice[dog|cat]     Option with choices
+      /opt-with-choices:choice[dog]         Option with hidden choices
 
 Other Options:
   /s:                                       A slice of strings (default: some,
@@ -134,42 +136,46 @@ Available commands:
   TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <command>
 
 Application Options:
-  -v, --verbose                             Show verbose debug information
-  -c=                                       Call phone number
-      --ptrslice=                           A slice of pointers to string
+  -v, --verbose                                Show verbose debug information
+  -c=                                          Call phone number
+      --ptrslice=                              A slice of pointers to string
       --empty-description
-      --default=                            Test default value (default:
-                                            "Some\nvalue")
-      --default-array=                      Test default array value (default:
-                                            Some value, "Other\tvalue")
-      --default-map=                        Testdefault map value (default:
-                                            some:value, another:value)
-      --env-default1=                       Test env-default1 value (default:
-                                            Some value) [$ENV_DEFAULT]
-      --env-default2=                       Test env-default2 value
-                                            [$ENV_DEFAULT]
-      --opt-with-arg-name=something         Option with named argument
-      --opt-with-choices=choice[dog|cat]    Option with choices
+      --default=                               Test default value (default:
+                                               "Some\nvalue")
+      --default-array=                         Test default array value
+                                               (default: Some value,
+                                               "Other\tvalue")
+      --default-map=                           Testdefault map value (default:
+                                               some:value, another:value)
+      --env-default1=                          Test env-default1 value
+                                               (default: Some value)
+                                               [$ENV_DEFAULT]
+      --env-default2=                          Test env-default2 value
+                                               [$ENV_DEFAULT]
+      --opt-with-arg-name=something            Option with named argument
+      --opt-with-choices=choice[dog|cat]       Option with choices
+      --opt-with-hidden-choices=choice[dog]    Option with hidden choices
 
 Other Options:
-  -s=                                       A slice of strings (default: some,
-                                            value)
-      --intmap=                             A map from string to int (default:
-                                            a:1)
+  -s=                                          A slice of strings (default:
+                                               some, value)
+      --intmap=                                A map from string to int
+                                               (default: a:1)
 
 Subgroup:
-      --sip.opt=                            This is a subgroup option
+      --sip.opt=                               This is a subgroup option
 
 Subsubgroup:
-      --sip.sap.opt=                        This is a subsubgroup option
+      --sip.sap.opt=                           This is a subsubgroup option
 
 Help Options:
-  -h, --help                                Show this help message
+  -h, --help                                   Show this help message
 
 Arguments:
-  filename:                                 A filename with a long description
-                                            to trigger line wrapping
-  num:                                      A number
+  filename:                                    A filename with a long
+                                               description to trigger line
+                                               wrapping
+  num:                                         A number
 
 Available commands:
   command  A command (aliases: cm, cmd)
@@ -250,6 +256,9 @@ Option with named argument
 .TP
 \fB\fB\-\-opt-with-choices\fR \fIchoice\fR\fP
 Option with choices
+.TP
+\fB\fB\-\-opt-with-hidden-choices\fR \fIchoice\fR\fP
+Option with hidden choices
 .SS Other Options
 .TP
 \fB\fB\-s\fR <default: \fI"some", "value"\fR>\fP
