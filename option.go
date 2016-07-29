@@ -65,6 +65,10 @@ type Option struct {
 	// If non empty, only a certain set of values is allowed for an option.
 	Choices []string
 
+	// If non empty, an additional set of values is allowed for an option,
+	// but not shown in help output.
+	HiddenChoices []string
+
 	// If true, the option is not displayed in the help or man page
 	Hidden bool
 
@@ -186,13 +190,17 @@ func (option *Option) set(value *string) error {
 	option.isSet = true
 	option.preventDefault = true
 
-	if len(option.Choices) != 0 {
+	if len(option.Choices)+len(option.HiddenChoices) != 0 {
 		found := false
 
-		for _, choice := range option.Choices {
-			if choice == *value {
-				found = true
-				break
+		choiceLists := [][]string{option.Choices, option.HiddenChoices}
+	ChoiceLoop:
+		for _, choices := range choiceLists {
+			for _, choice := range choices {
+				if choice == *value {
+					found = true
+					break ChoiceLoop
+				}
 			}
 		}
 

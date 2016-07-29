@@ -77,6 +77,9 @@ OptionWithArgName =
 ; Option with choices
 OptionWithChoices =
 
+; Option with hidden choices
+OptionWithHiddenChoices =
+
 ; Option only available in ini
 only-ini =
 
@@ -138,6 +141,9 @@ EnvDefault2 = env-def
 ; Option with choices
 ; OptionWithChoices =
 
+; Option with hidden choices
+; OptionWithHiddenChoices =
+
 ; Option only available in ini
 ; only-ini =
 
@@ -195,6 +201,9 @@ EnvDefault2 = env-def
 
 ; Option with choices
 ; OptionWithChoices =
+
+; Option with hidden choices
+; OptionWithHiddenChoices =
 
 ; Option only available in ini
 ; only-ini =
