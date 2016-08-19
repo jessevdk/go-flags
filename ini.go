@@ -143,7 +143,7 @@ func (i *IniParser) Parse(reader io.Reader) error {
 	return i.parse(ini)
 }
 
-// WriteFile writes the flags as ini format into a file. See WriteIni
+// WriteFile writes the flags as ini format into a file. See Write
 // for more information. The returned error occurs when the specified file
 // could not be opened for writing.
 func (i *IniParser) WriteFile(filename string, options IniOptions) error {
