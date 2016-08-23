@@ -485,6 +485,13 @@ func (p *parseState) estimateCommand() error {
 }
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
+	for _, group := range option.MutexGroup {
+		if v, ok := s.command.optionsMutexGroup[group]; ok {
+			return newErrorf(ErrDuplicateMutexOption, "conflicting mutually exclusive option `%s' and `%s' provided", v, option)
+		}
+		s.command.optionsMutexGroup[group] = option.String()
+	}
+
 	if !option.canArgument() {
 		if argument != nil {
 			return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)

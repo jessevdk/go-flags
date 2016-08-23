@@ -254,6 +254,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		choices := mtag.GetMany("choice")
 		hidden := (mtag.Get("hidden") != "")
 
+		mutexGroups := mtag.GetMany("mutex-group")
+
 		option := &Option{
 			Description:      description,
 			ShortName:        short,
@@ -268,6 +270,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			DefaultMask:      defaultMask,
 			Choices:          choices,
 			Hidden:           hidden,
+			MutexGroup:       mutexGroups,
 
 			group: g,
 

@@ -402,6 +402,18 @@ func TestCommandNestedInline(t *testing.T) {
 	}
 }
 
+func TestCommandsOptionMutexGroup(t *testing.T) {
+	var opts = struct {
+		One bool `long:"one" mutex-group:"group"`
+		Two bool `long:"two" mutex-group:"group"`
+	}{}
+
+	p := NewParser(&opts, None)
+
+	_, err := p.ParseArgs([]string{"--one", "--two"})
+	assertError(t, err, ErrDuplicateMutexOption, "conflicting mutually exclusive option `--one' and `--two' provided")
+}
+
 func TestRequiredOnCommand(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v" required:"true"`

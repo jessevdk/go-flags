@@ -34,6 +34,7 @@ type Command struct {
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 	args                []*Arg
+	optionsMutexGroup   map[string]string
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -148,8 +149,9 @@ func (c *Command) Args() []*Arg {
 
 func newCommand(name string, shortDescription string, longDescription string, data interface{}) *Command {
 	return &Command{
-		Group: newGroup(shortDescription, longDescription, data),
-		Name:  name,
+		Group:             newGroup(shortDescription, longDescription, data),
+		Name:              name,
+		optionsMutexGroup: make(map[string]string),
 	}
 }
 
