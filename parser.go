@@ -601,6 +601,7 @@ func (p *parseState) addArgs(args ...string) error {
 		arg := p.positional[0]
 
 		if err := convert(args[0], arg.value, arg.tag); err != nil {
+			p.err = err
 			return err
 		}
 
