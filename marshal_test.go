@@ -91,7 +91,7 @@ func TestUnmarshalPositionalError(t *testing.T) {
 	}{}
 
 	parser := NewParser(&opts, Default&^PrintErrors)
-	_, err := parser.ParseArgs([]string { "invalid" })
+	_, err := parser.ParseArgs([]string{"invalid"})
 
 	msg := "`invalid' is not a valid value, please specify `yes' or `no'"
 

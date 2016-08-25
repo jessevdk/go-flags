@@ -207,9 +207,9 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 				}
 
 				arg := &Arg{
-					Name:        name,
-					Description: m.Get("description"),
-					Required:    required,
+					Name:            name,
+					Description:     m.Get("description"),
+					Required:        required,
 					RequiredMaximum: requiredMaximum,
 
 					value: realval.Field(i),
