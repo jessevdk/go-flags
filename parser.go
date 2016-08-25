@@ -377,7 +377,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 			var reqnames []string
 
 			for _, arg := range p.positional {
-				argRequired := (!arg.isRemaining() && p.command.ArgsRequired) || arg.Required != 0
+				argRequired := (!arg.isRemaining() && p.command.ArgsRequired) || arg.Required != -1 || arg.RequiredMaximum != -1
 
 				if !argRequired {
 					continue
@@ -394,6 +394,20 @@ func (p *parseState) checkRequired(parser *Parser) error {
 						}
 
 						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprintf("%d", arg.Required)+" "+arguments+")`")
+					} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
+						if arg.RequiredMaximum == 0 {
+							reqnames = append(reqnames, "`"+arg.Name+" (zero arguments)`")
+						} else {
+							var arguments string
+
+							if arg.RequiredMaximum > 1 {
+								arguments = "arguments, but got " + fmt.Sprintf("%d", arg.value.Len())
+							} else {
+								arguments = "argument"
+							}
+
+							reqnames = append(reqnames, "`"+arg.Name+" (at most "+fmt.Sprintf("%d", arg.RequiredMaximum)+" "+arguments+")`")
+						}
 					}
 				} else {
 					reqnames = append(reqnames, "`"+arg.Name+"`")
