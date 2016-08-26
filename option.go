@@ -82,6 +82,7 @@ type Option struct {
 
 	tag            multiTag
 	isSet          bool
+	isSetDefault   bool
 	preventDefault bool
 
 	defaultLiteral string
@@ -262,11 +263,14 @@ func (option *Option) clearDefault() {
 		}
 	}
 
+	option.isSetDefault = true
+
 	if len(usedDefault) > 0 {
 		option.empty()
 
 		for _, d := range usedDefault {
 			option.set(&d)
+			option.isSetDefault = true
 		}
 	} else {
 		tp := option.value.Type()
