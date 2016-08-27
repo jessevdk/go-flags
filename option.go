@@ -336,14 +336,27 @@ func (option *Option) isBool() bool {
 
 	for {
 		switch tp.Kind() {
+		case reflect.Slice, reflect.Ptr:
+			tp = tp.Elem()
 		case reflect.Bool:
 			return true
-		case reflect.Slice:
-			return (tp.Elem().Kind() == reflect.Bool)
 		case reflect.Func:
 			return tp.NumIn() == 0
-		case reflect.Ptr:
+		default:
+			return false
+		}
+	}
+}
+
+func (option *Option) isSignedNumber() bool {
+	tp := option.value.Type()
+
+	for {
+		switch tp.Kind() {
+		case reflect.Slice, reflect.Ptr:
 			tp = tp.Elem()
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64:
+			return true
 		default:
 			return false
 		}
