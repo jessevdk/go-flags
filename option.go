@@ -169,6 +169,11 @@ func (option *Option) Value() interface{} {
 	return option.value.Interface()
 }
 
+// Field returns the reflect struct field of the option.
+func (option *Option) Field() reflect.StructField {
+	return option.field
+}
+
 // IsSet returns true if option has been set
 func (option *Option) IsSet() bool {
 	return option.isSet
