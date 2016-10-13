@@ -215,28 +215,33 @@ func TestUnquoting(t *testing.T) {
 	}
 }
 
-// envRestorer keeps a copy of a set of env variables and can restore the env from them
-type envRestorer struct {
+// EnvRestorer keeps a copy of a set of env variables and can restore the env from them
+type EnvRestorer struct {
 	env map[string]string
 }
 
-func (r *envRestorer) Restore() {
+func (r *EnvRestorer) Restore() {
 	os.Clearenv()
+
 	for k, v := range r.env {
 		os.Setenv(k, v)
 	}
 }
 
 // EnvSnapshot returns a snapshot of the currently set env variables
-func EnvSnapshot() *envRestorer {
-	r := envRestorer{make(map[string]string)}
+func EnvSnapshot() *EnvRestorer {
+	r := EnvRestorer{make(map[string]string)}
+
 	for _, kv := range os.Environ() {
 		parts := strings.SplitN(kv, "=", 2)
+
 		if len(parts) != 2 {
 			panic("got a weird env variable: " + kv)
 		}
+
 		r.env[parts[0]] = parts[1]
 	}
+
 	return &r
 }
 
@@ -393,9 +398,30 @@ func TestOptionAsArgument(t *testing.T) {
 			args: []string{"-o", "-", "-"},
 			rest: []string{"-", "-"},
 		},
+		{
+			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			args: []string{"--int-slice", "-3"},
+		},
+		{
+			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			args: []string{"--int16", "-3"},
+		},
+		{
+			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			args: []string{"--float32", "-3.2"},
+		},
+		{
+			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			args: []string{"--float32ptr", "-3.2"},
+		},
 	}
+
 	var opts struct {
 		StringSlice []string `long:"string-slice"`
+		IntSlice    []int    `long:"int-slice"`
+		Int16       int16    `long:"int16"`
+		Float32     float32  `long:"float32"`
+		Float32Ptr  *float32 `long:"float32ptr"`
 		OtherOption bool     `long:"other-option" short:"o"`
 	}
 
@@ -494,7 +520,93 @@ func TestEmbedded(t *testing.T) {
 	}
 
 	assertParseSuccess(t, &opts, "-v")
+
 	if !opts.V {
 		t.Errorf("Expected V to be true")
 	}
+}
+
+type command struct {
+}
+
+func (c *command) Execute(args []string) error {
+	return nil
+}
+
+func TestCommandHandlerNoCommand(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+	}{}
+
+	parser := NewParser(&opts, Default&^PrintErrors)
+
+	var executedCommand Commander
+	var executedArgs []string
+
+	executed := false
+
+	parser.CommandHandler = func(command Commander, args []string) error {
+		executed = true
+
+		executedCommand = command
+		executedArgs = args
+
+		return nil
+	}
+
+	_, err := parser.ParseArgs([]string{"arg1", "arg2"})
+
+	if err != nil {
+		t.Fatalf("Unexpected parse error: %s", err)
+	}
+
+	if !executed {
+		t.Errorf("Expected command handler to be executed")
+	}
+
+	if executedCommand != nil {
+		t.Errorf("Did not exect an executed command")
+	}
+
+	assertStringArray(t, executedArgs, []string{"arg1", "arg2"})
+}
+
+func TestCommandHandler(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v"`
+
+		Command command `command:"cmd"`
+	}{}
+
+	parser := NewParser(&opts, Default&^PrintErrors)
+
+	var executedCommand Commander
+	var executedArgs []string
+
+	executed := false
+
+	parser.CommandHandler = func(command Commander, args []string) error {
+		executed = true
+
+		executedCommand = command
+		executedArgs = args
+
+		return nil
+	}
+
+	_, err := parser.ParseArgs([]string{"cmd", "arg1", "arg2"})
+
+	if err != nil {
+		t.Fatalf("Unexpected parse error: %s", err)
+	}
+
+	if !executed {
+		t.Errorf("Expected command handler to be executed")
+	}
+
+	if executedCommand == nil {
+		t.Errorf("Expected command handler to be executed")
+	}
+
+	assertStringArray(t, executedArgs, []string{"arg1", "arg2"})
 }
