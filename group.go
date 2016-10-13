@@ -212,6 +212,21 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			if err := g.scanStruct(fld, &field, handler); err != nil {
 				return err
 			}
+		} else if kind == reflect.Interface {
+			if fld.IsNil() {
+				continue
+			}
+			v := reflect.ValueOf(fld.Interface())
+			switch v.Kind() {
+			case reflect.Struct:
+				if err := g.scanStruct(v, &field, handler); err != nil {
+					return err
+				}
+			case reflect.Ptr:
+				if err := g.scanStruct(reflect.Indirect(v), &field, handler); err != nil {
+					return err
+				}
+			}
 		} else if kind == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct {
 			if fld.IsNil() {
 				fld.Set(reflect.New(fld.Type().Elem()))
