@@ -213,7 +213,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				return err
 			}
 		} else if kind == reflect.Interface {
-			if fld.IsNil() || mtag.Get("flag") == "" {
+			if fld.IsNil() {
 				continue
 			}
 			v := reflect.ValueOf(fld.Interface())
