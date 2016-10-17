@@ -87,7 +87,6 @@ func TestHelp(t *testing.T) {
 			expected = `Usage:
   TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <command>
 
-
 Application Options:
   /v, /verbose                              Show verbose debug information
   /c:                                       Call phone number
@@ -123,7 +122,8 @@ Help Options:
   /h, /help                                 Show this help message
 
 Arguments:
-  filename:                                 A filename
+  filename:                                 A filename with a long description
+                                            to trigger line wrapping
   num:                                      A number
 
 Available commands:
