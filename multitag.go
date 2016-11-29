@@ -25,7 +25,7 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		i := 0
 
 		// Skip whitespace
-		for i < len(v) && v[i] == ' ' {
+		for i < len(v) && (v[i] == ' ' || v[i] == '\t' || v[i] == '\n') {
 			i++
 		}
 
@@ -38,7 +38,7 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		// Scan to colon to find key
 		i = 0
 
-		for i < len(v) && v[i] != ' ' && v[i] != ':' && v[i] != '"' {
+		for i < len(v) && v[i] != ' ' && v[i] != '\t' && v[i] != '\n' && v[i] != ':' && v[i] != '"' {
 			i++
 		}
 
