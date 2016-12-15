@@ -79,3 +79,28 @@ func TestPointerGroup(t *testing.T) {
 		t.Errorf("Expected Group.Value to be true")
 	}
 }
+
+func TestDoNotChangeNonTaggedFields(t *testing.T) {
+	var opts struct {
+		A struct {
+			Pointer *int
+		}
+		B *struct {
+			Pointer *int
+		}
+	}
+
+	ret := assertParseSuccess(t, &opts)
+
+	assertStringArray(t, ret, []string{})
+
+	if opts.A.Pointer != nil {
+		t.Error("Expected A.Pointer to be nil")
+	}
+	if opts.B != nil {
+		t.Error("Expected B to be nil")
+	}
+	if opts.B != nil && opts.B.Pointer != nil {
+		t.Error("Expected B.Pointer to be nil")
+	}
+}
