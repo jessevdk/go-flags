@@ -39,8 +39,8 @@ func Example() {
 		// Example of a filename (useful for completion)
 		Filename Filename `long:"filename" description:"A filename"`
 
-		// Example of an interface
-		Interface interface{}
+		//// Example of an interface
+		//Interface interface{}
 
 		// Example of positional arguments
 		Args struct {
@@ -59,10 +59,10 @@ func Example() {
 		cmd.Process.Release()
 	}
 
-	// Set the value of interface
-	opts.Interface = struct {
-		Sub string `long:"sub-field" description:"An embedded interface field"`
-	}{}
+	//// Set the value of interface
+	//opts.Interface = struct {
+	//	Sub string `long:"sub-field" description:"An embedded interface field"`
+	//}{}
 
 	// Make some fake arguments to parse.
 	args := []string{
@@ -77,7 +77,7 @@ func Example() {
 		"--intmap", "a:1",
 		"--intmap", "b:5",
 		"--filename", "hello.go",
-		"--sub-field", "hello",
+		//"--sub-field", "hello",
 		"id",
 		"10",
 		"remaining1",
@@ -101,7 +101,7 @@ func Example() {
 	fmt.Printf("PtrSlice: [%v %v]\n", *opts.PtrSlice[0], *opts.PtrSlice[1])
 	fmt.Printf("IntMap: [a:%v b:%v]\n", opts.IntMap["a"], opts.IntMap["b"])
 	fmt.Printf("Filename: %v\n", opts.Filename)
-	fmt.Printf("Interface: %+v\n", opts.Interface)
+	//fmt.Printf("Interface: %+v\n", opts.Interface)
 	fmt.Printf("Args.ID: %s\n", opts.Args.ID)
 	fmt.Printf("Args.Num: %d\n", opts.Args.Num)
 	fmt.Printf("Args.Rest: %v\n", opts.Args.Rest)
@@ -114,7 +114,6 @@ func Example() {
 	// PtrSlice: [hello world]
 	// IntMap: [a:1 b:5]
 	// Filename: hello.go
-	// Interface: {Sub:hello}
 	// Args.ID: id
 	// Args.Num: 10
 	// Args.Rest: [remaining1 remaining2]
