@@ -185,6 +185,11 @@ func (p *Parser) Parse() ([]string, error) {
 	return p.ParseArgs(os.Args[1:])
 }
 
+func (p *Parser) Complete(match []string) []Completion {
+	comp := &completion{parser: p}
+	return comp.complete(match)
+}
+
 // ParseArgs parses the command line arguments according to the option groups that
 // were added to the parser. On successful parsing of the arguments, the
 // remaining, non-option, arguments (if any) are returned. The returned error
