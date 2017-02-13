@@ -268,7 +268,7 @@ func maxCommandLength(s []*Command) int {
 // option provides a convenient way to add a -h/--help option group to the
 // command line parser which will automatically show the help messages using
 // this method.
-func (p *Parser) WriteHelp(writer io.Writer) {
+func (p *Parser) WriteHelp(writer io.Writer, plural func(s string) string) {
 	if writer == nil {
 		return
 	}
@@ -456,28 +456,31 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		c = c.Active
 	}
 
-	scommands := cmd.sortedVisibleCommands()
+	for t, _ := range cmd.AllTypes {
 
-	if len(scommands) > 0 {
-		maxnamelen := maxCommandLength(scommands)
+		scommands := cmd.selectedVisibleCommands(t)
 
-		fmt.Fprintln(wr)
-		fmt.Fprintln(wr, "Available commands:")
-
-		for _, c := range scommands {
-			fmt.Fprintf(wr, "  %s", c.Name)
-
-			if len(c.ShortDescription) > 0 {
-				pad := strings.Repeat(" ", maxnamelen-len(c.Name))
-				fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
-
-				if len(c.Aliases) > 0 {
-					fmt.Fprintf(wr, " (aliases: %s)", strings.Join(c.Aliases, ", "))
-				}
-
-			}
+		if len(scommands) > 0 {
+			maxnamelen := maxCommandLength(scommands)
 
 			fmt.Fprintln(wr)
+			fmt.Fprintf(wr, "Available %s:\n", plural(t))
+
+			for _, c := range scommands {
+				fmt.Fprintf(wr, "  %s", c.Name)
+
+				if len(c.ShortDescription) > 0 {
+					pad := strings.Repeat(" ", maxnamelen - len(c.Name))
+					fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
+
+					if len(c.Aliases) > 0 {
+						fmt.Fprintf(wr, " (aliases: %s)", strings.Join(c.Aliases, ", "))
+					}
+
+				}
+
+				fmt.Fprintln(wr)
+			}
 		}
 	}
 

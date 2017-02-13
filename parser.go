@@ -52,6 +52,10 @@ type Parser struct {
 	// command to be executed when parsing has finished.
 	CommandHandler func(command Commander, args []string) error
 
+	// PluralHandler is a function gets called to handle the formation of
+	// plurals in the help screen. If not specified, it just appends an 's'.
+	PluralHandler func(s string) string
+
 	internalError error
 }
 
@@ -675,7 +679,14 @@ func (p *Parser) parseNonOption(s *parseState) error {
 func (p *Parser) showBuiltinHelp() error {
 	var b bytes.Buffer
 
-	p.WriteHelp(&b)
+	plural := func(s string) string {
+		return fmt.Sprintf("%ss",s)
+	}
+	if p.PluralHandler != nil {
+		plural = p.PluralHandler
+	}
+
+	p.WriteHelp(&b, plural)
 	return newError(ErrHelp, b.String())
 }
 

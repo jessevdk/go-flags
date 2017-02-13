@@ -19,6 +19,9 @@ type Command struct {
 	// The name by which the command can be invoked
 	Name string
 
+	// Commands can be classified by types
+	Type string
+
 	// The active sub command (set by parsing) or nil
 	Active *Command
 
@@ -34,6 +37,9 @@ type Command struct {
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 	args                []*Arg
+
+	// Histogram of valid Command types
+	AllTypes            map[string]int
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -147,10 +153,14 @@ func (c *Command) Args() []*Arg {
 }
 
 func newCommand(name string, shortDescription string, longDescription string, data interface{}) *Command {
-	return &Command{
+	ret:= &Command{
 		Group: newGroup(shortDescription, longDescription, data),
 		Name:  name,
+		Type:  "command",
+		AllTypes: make(map[string]int),
 	}
+	ret.AllTypes[ret.Type]++
+	return ret
 }
 
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
@@ -393,6 +403,20 @@ func (c commandList) Len() int {
 
 func (c commandList) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
+}
+
+// selectedVisibleCommands returns a list of commands that are of type 't' and visible.
+// if t is empty, it returns all visible commands
+func (c *Command) selectedVisibleCommands(t string) []*Command {
+	cmdList := commandList(c.sortedVisibleCommands())
+	var ret commandList
+	for _, cmd := range cmdList {
+		if t != "" && cmd.Type != t {
+			continue
+		}
+		ret = append(ret, cmd)
+	}
+	return []*Command(ret)
 }
 
 func (c *Command) sortedVisibleCommands() []*Command {
