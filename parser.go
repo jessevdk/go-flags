@@ -20,6 +20,9 @@ type Parser struct {
 	// Embedded, see Command for more information
 	*Command
 
+	// Histogram of valid Command types
+	AllTypes map[string]int
+
 	// A usage string to be displayed in the help message.
 	Usage string
 
@@ -175,12 +178,18 @@ func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
 		Command:            newCommand(appname, "", "", nil),
 		Options:            options,
+		AllTypes:           make(map[string]int),
 		NamespaceDelimiter: ".",
 	}
+	p.AddType(DefaultCommandType)
 
 	p.Command.parent = p
 
 	return p
+}
+
+func (p *Parser) AddType(s string) {
+	p.AllTypes[s]++
 }
 
 // Parse parses the command line arguments from os.Args using Parser.ParseArgs.

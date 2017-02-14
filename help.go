@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"unicode/utf8"
+	"sort"
 )
 
 type alignmentInfo struct {
@@ -455,8 +456,12 @@ func (p *Parser) WriteHelp(writer io.Writer, plural func(s string) string) {
 
 		c = c.Active
 	}
-
-	for t, _ := range cmd.AllTypes {
+	allTypes := make([]string, 0, len(p.AllTypes))
+	for t, _ := range p.AllTypes {
+		allTypes = append(allTypes, t)
+	}
+	sort.Strings(allTypes)
+	for _, t := range allTypes {
 
 		scommands := cmd.selectedVisibleCommands(t)
 

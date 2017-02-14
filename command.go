@@ -8,6 +8,8 @@ import (
 	"unsafe"
 )
 
+const DefaultCommandType = "command"
+
 // Command represents an application command. Commands can be added to the
 // parser (which itself is a command) and are selected/executed when its name
 // is specified on the command line. The Command type embeds a Group and
@@ -37,9 +39,6 @@ type Command struct {
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 	args                []*Arg
-
-	// Histogram of valid Command types
-	AllTypes            map[string]int
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -153,15 +152,13 @@ func (c *Command) Args() []*Arg {
 }
 
 func newCommand(name string, shortDescription string, longDescription string, data interface{}) *Command {
-	ret:= &Command{
+	return &Command{
 		Group: newGroup(shortDescription, longDescription, data),
 		Name:  name,
-		Type:  "command",
-		AllTypes: make(map[string]int),
+		Type:  DefaultCommandType,
 	}
-	ret.AllTypes[ret.Type]++
-	return ret
 }
+
 
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 	f := func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
