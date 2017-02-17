@@ -68,6 +68,9 @@ type Option struct {
 	// If true, the option is not displayed in the help or man page
 	Hidden bool
 
+	// mutex groups this option belongs to
+	MutexGroup []string
+
 	// The group which the option belongs to
 	group *Group
 

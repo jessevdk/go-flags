@@ -58,6 +58,9 @@ const (
 
 	// ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
 	ErrInvalidTag
+
+	// ErrDuplicateMutexOption indicates mutually exclusive options were provided
+	ErrDuplicateMutexOption
 )
 
 func (e ErrorType) String() string {
