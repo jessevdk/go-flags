@@ -16,7 +16,9 @@ type defaultOptions struct {
 	IntDefault int `long:"id" default:"1"`
 
 	Float64        float64 `long:"f"`
-	Float64Default float64 `long:"fd" default:"-3.14"`
+	Float64Default float64 `
+		long:"fd"
+		default:"-3.14"`
 
 	NumericFlag bool `short:"3"`
 

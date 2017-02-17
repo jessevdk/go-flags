@@ -1,8 +1,6 @@
 package flags
 
-import (
-	"strconv"
-)
+import "strconv"
 
 type multiTag struct {
 	value string
@@ -15,6 +13,10 @@ func newMultiTag(v string) multiTag {
 	}
 }
 
+func isSpace(b byte) bool {
+	return b == ' ' || b == '\n' || b == '\t'
+}
+
 func (x *multiTag) scan() (map[string][]string, error) {
 	v := x.value
 
@@ -25,7 +27,7 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		i := 0
 
 		// Skip whitespace
-		for i < len(v) && v[i] == ' ' {
+		for i < len(v) && isSpace(v[i]) {
 			i++
 		}
 
