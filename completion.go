@@ -101,7 +101,30 @@ func (c *completion) completeShortNames(s *parseState, prefix string, match stri
 		}
 	}
 
-	return c.completeOptionNames(s.lookup.shortNames, prefix, match)
+	var results []Completion
+	repeats := map[string]bool{}
+
+	for name, opt := range s.lookup.longNames {
+		if !opt.Hidden {
+			results = append(results, Completion{
+				Item:        "--" + name,
+				Description: opt.Description,
+			})
+
+			repeats[string(opt.ShortName)] = true
+		}
+	}
+
+	for name, opt := range s.lookup.shortNames {
+		if _, exist := repeats[name]; !exist && !opt.Hidden {
+			results = append(results, Completion{
+				Item:        "-" + name,
+				Description: opt.Description,
+			})
+		}
+	}
+
+	return results
 }
 
 func (c *completion) completeCommands(s *parseState, match string) []Completion {
