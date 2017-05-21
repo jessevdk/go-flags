@@ -36,8 +36,9 @@ type helpOptions struct {
 	} `group:"Hidden group" hidden:"yes"`
 
 	Group struct {
-		Opt               string `long:"opt" description:"This is a subgroup option"`
-		HiddenInsideGroup string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
+		Opt                  string `long:"opt" description:"This is a subgroup option"`
+		HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
+		NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group" hidden:"false"`
 
 		Group struct {
 			Opt string `long:"opt" description:"This is a subsubgroup option"`
@@ -113,6 +114,7 @@ Other Options:
 
 Subgroup:
       /sip.opt:                             This is a subgroup option
+      /sip.not-hidden-inside-group:         Not hidden inside group
 
 Subsubgroup:
       /sip.sap.opt:                         This is a subsubgroup option
@@ -159,6 +161,7 @@ Other Options:
 
 Subgroup:
       --sip.opt=                            This is a subgroup option
+      --sip.not-hidden-inside-group=        Not hidden inside group
 
 Subsubgroup:
       --sip.sap.opt=                        This is a subsubgroup option
@@ -261,6 +264,9 @@ A map from string to int
 .TP
 \fB\fB\-\-sip.opt\fR\fP
 This is a subgroup option
+.TP
+\fB\fB\-\-sip.not-hidden-inside-group\fR\fP
+Not hidden inside group
 .SS Subsubgroup
 .TP
 \fB\fB\-\-sip.sap.opt\fR\fP

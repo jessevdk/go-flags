@@ -93,6 +93,9 @@ int-map = b:3
 ; This is a subgroup option
 Opt =
 
+; Not hidden inside group
+NotHiddenInsideGroup =
+
 [Subsubgroup]
 ; This is a subsubgroup option
 Opt =
@@ -153,6 +156,9 @@ EnvDefault2 = env-def
 ; This is a subgroup option
 ; Opt =
 
+; Not hidden inside group
+; NotHiddenInsideGroup =
+
 [Subsubgroup]
 ; This is a subsubgroup option
 ; Opt =
@@ -210,6 +216,9 @@ EnvDefault2 = env-def
 [Subgroup]
 ; This is a subgroup option
 ; Opt =
+
+; Not hidden inside group
+; NotHiddenInsideGroup =
 
 [Subsubgroup]
 ; This is a subsubgroup option
