@@ -88,6 +88,13 @@ func init() {
 		},
 
 		{
+			// Short names full
+			[]string{"-i"},
+			[]string{"-i"},
+			false,
+		},
+
+		{
 			// Short names concatenated
 			[]string{"-dv"},
 			[]string{"-dv"},
