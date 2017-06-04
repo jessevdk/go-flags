@@ -1,10 +1,12 @@
 package flags
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -471,4 +473,66 @@ func TestWrapParagraph(t *testing.T) {
 `
 
 	assertDiff(t, got, expected, "wrapped paragraph")
+}
+
+func TestHelpDefaultMask(t *testing.T) {
+	var tests = []struct {
+		opts    interface{}
+		present string
+	}{
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" description:"V"`
+			}{},
+			present: "V (default: 123)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" default-mask:"abc" description:"V"`
+			}{},
+			present: "V (default: abc)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" default-mask:"-" description:"V"`
+			}{},
+			present: "V\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" description:"V"`
+			}{Value: "123"},
+			present: "V (default: 123)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default-mask:"abc" description:"V"`
+			}{Value: "123"},
+			present: "V (default: abc)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default-mask:"-" description:"V"`
+			}{Value: "123"},
+			present: "V\n",
+		},
+	}
+
+	for _, test := range tests {
+		p := NewParser(test.opts, HelpFlag)
+		_, err := p.ParseArgs([]string{"-h"})
+		if flagsErr, ok := err.(*Error); ok && flagsErr.Type == ErrHelp {
+			err = nil
+		}
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		h := &bytes.Buffer{}
+		w := bufio.NewWriter(h)
+		p.writeHelpOption(w, p.FindOptionByShortName('v'), p.getAlignmentInfo())
+		w.Flush()
+		if strings.Index(h.String(), test.present) < 0 {
+			t.Errorf("Not present %q\n%s", test.present, h.String())
+		}
+	}
 }
