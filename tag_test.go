@@ -36,3 +36,28 @@ something"`
 
 	assertParseFail(t, ErrTag, "unexpected newline in tag value `description' (in `long:\"verbose\" description:\"verbose\nsomething\"`)", &opts, "")
 }
+
+func TestTagMultiline(t *testing.T) {
+	type Opts struct {
+		Value int `
+			long:"value"
+			default:"41"
+			description:"value of something"`
+	}
+
+	{
+		var opts Opts
+		assertParseSuccess(t, &opts, "--value=42")
+		if opts.Value != 42 {
+			t.Fatal("expect value to be 42")
+		}
+	}
+
+	{
+		var opts Opts
+		assertParseSuccess(t, &opts, "")
+		if opts.Value != 41 {
+			t.Fatalf("expect value %d to be 41", opts.Value)
+		}
+	}
+}
