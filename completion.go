@@ -88,7 +88,7 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 	for name, opt := range s.lookup.longNames {
 		if strings.HasPrefix(name, match) && !opt.Hidden {
 			results = append(results, Completion{
-				Item:        "--" + name,
+				Item:        defaultLongOptDelimiter + name,
 				Description: opt.Description,
 			})
 
@@ -102,7 +102,7 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 		for name, opt := range s.lookup.shortNames {
 			if _, exist := repeats[name]; !exist && strings.HasPrefix(name, match) && !opt.Hidden {
 				results = append(results, Completion{
-					Item:        "-" + name,
+					Item:        string(defaultShortOptDelimiter) + name,
 					Description: opt.Description,
 				})
 			}
