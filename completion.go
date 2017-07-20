@@ -120,6 +120,9 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 }
 
 func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
+	if value.Kind() == reflect.Slice {
+		value = reflect.New(value.Type().Elem())
+	}
 	i := value.Interface()
 
 	var ret []Completion
@@ -137,16 +140,6 @@ func (c *completion) completeValue(value reflect.Value, prefix string, match str
 	}
 
 	return ret
-}
-
-func (c *completion) completeArg(arg *Arg, prefix string, match string) []Completion {
-	if arg.isRemaining() {
-		// For remaining positional args (that are parsed into a slice), complete
-		// based on the element type.
-		return c.completeValue(reflect.New(arg.value.Type().Elem()), prefix, match)
-	}
-
-	return c.completeValue(arg.value, prefix, match)
 }
 
 func (c *completion) complete(args []string) []Completion {
@@ -263,7 +256,7 @@ func (c *completion) complete(args []string) []Completion {
 		}
 	} else if len(s.positional) > 0 {
 		// Complete for positional argument
-		ret = c.completeArg(s.positional[0], "", lastarg)
+		ret = c.completeValue(s.positional[0].value, "", lastarg)
 	} else if len(s.command.commands) > 0 {
 		// Complete for command
 		ret = c.completeCommands(s, lastarg)

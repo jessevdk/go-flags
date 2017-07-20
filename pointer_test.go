@@ -62,6 +62,64 @@ func TestPointerMap(t *testing.T) {
 	}
 }
 
+type marshalledString string
+
+func (m *marshalledString) UnmarshalFlag(value string) error {
+	*m = marshalledString(value)
+	return nil
+}
+
+func (m marshalledString) MarshalFlag() (string, error) {
+	return string(m), nil
+}
+
+func TestPointerStringMarshalled(t *testing.T) {
+	var opts = struct {
+		Value *marshalledString `short:"v"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-v", "value")
+
+	assertStringArray(t, ret, []string{})
+
+	if opts.Value == nil {
+		t.Error("Expected value not to be nil")
+		return
+	}
+
+	assertString(t, string(*opts.Value), "value")
+}
+
+type marshalledStruct struct {
+	Value string
+}
+
+func (m *marshalledStruct) UnmarshalFlag(value string) error {
+	m.Value = value
+	return nil
+}
+
+func (m marshalledStruct) MarshalFlag() (string, error) {
+	return m.Value, nil
+}
+
+func TestPointerStructMarshalled(t *testing.T) {
+	var opts = struct {
+		Value *marshalledStruct `short:"v"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-v", "value")
+
+	assertStringArray(t, ret, []string{})
+
+	if opts.Value == nil {
+		t.Error("Expected value not to be nil")
+		return
+	}
+
+	assertString(t, opts.Value.Value, "value")
+}
+
 type PointerGroup struct {
 	Value bool `short:"v"`
 }
@@ -77,5 +135,30 @@ func TestPointerGroup(t *testing.T) {
 
 	if !opts.Group.Value {
 		t.Errorf("Expected Group.Value to be true")
+	}
+}
+
+func TestDoNotChangeNonTaggedFields(t *testing.T) {
+	var opts struct {
+		A struct {
+			Pointer *int
+		}
+		B *struct {
+			Pointer *int
+		}
+	}
+
+	ret := assertParseSuccess(t, &opts)
+
+	assertStringArray(t, ret, []string{})
+
+	if opts.A.Pointer != nil {
+		t.Error("Expected A.Pointer to be nil")
+	}
+	if opts.B != nil {
+		t.Error("Expected B to be nil")
+	}
+	if opts.B != nil && opts.B.Pointer != nil {
+		t.Error("Expected B.Pointer to be nil")
 	}
 }

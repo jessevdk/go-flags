@@ -1,10 +1,12 @@
 package flags
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -36,8 +38,9 @@ type helpOptions struct {
 	} `group:"Hidden group" hidden:"yes"`
 
 	Group struct {
-		Opt               string `long:"opt" description:"This is a subgroup option"`
-		HiddenInsideGroup string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
+		Opt                  string `long:"opt" description:"This is a subgroup option"`
+		HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
+		NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group" hidden:"false"`
 
 		Group struct {
 			Opt string `long:"opt" description:"This is a subsubgroup option"`
@@ -87,7 +90,6 @@ func TestHelp(t *testing.T) {
 			expected = `Usage:
   TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <command>
 
-
 Application Options:
   /v, /verbose                              Show verbose debug information
   /c:                                       Call phone number
@@ -114,6 +116,7 @@ Other Options:
 
 Subgroup:
       /sip.opt:                             This is a subgroup option
+      /sip.not-hidden-inside-group:         Not hidden inside group
 
 Subsubgroup:
       /sip.sap.opt:                         This is a subsubgroup option
@@ -123,7 +126,8 @@ Help Options:
   /h, /help                                 Show this help message
 
 Arguments:
-  filename:                                 A filename
+  filename:                                 A filename with a long description
+                                            to trigger line wrapping
   num:                                      A number
 
 Available commands:
@@ -159,6 +163,7 @@ Other Options:
 
 Subgroup:
       --sip.opt=                            This is a subgroup option
+      --sip.not-hidden-inside-group=        Not hidden inside group
 
 Subsubgroup:
       --sip.sap.opt=                        This is a subsubgroup option
@@ -261,6 +266,9 @@ A map from string to int
 .TP
 \fB\fB\-\-sip.opt\fR\fP
 This is a subgroup option
+.TP
+\fB\fB\-\-sip.not-hidden-inside-group\fR\fP
+Not hidden inside group
 .SS Subsubgroup
 .TP
 \fB\fB\-\-sip.sap.opt\fR\fP
@@ -465,4 +473,66 @@ func TestWrapParagraph(t *testing.T) {
 `
 
 	assertDiff(t, got, expected, "wrapped paragraph")
+}
+
+func TestHelpDefaultMask(t *testing.T) {
+	var tests = []struct {
+		opts    interface{}
+		present string
+	}{
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" description:"V"`
+			}{},
+			present: "V (default: 123)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" default-mask:"abc" description:"V"`
+			}{},
+			present: "V (default: abc)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" default-mask:"-" description:"V"`
+			}{},
+			present: "V\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" description:"V"`
+			}{Value: "123"},
+			present: "V (default: 123)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default-mask:"abc" description:"V"`
+			}{Value: "123"},
+			present: "V (default: abc)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default-mask:"-" description:"V"`
+			}{Value: "123"},
+			present: "V\n",
+		},
+	}
+
+	for _, test := range tests {
+		p := NewParser(test.opts, HelpFlag)
+		_, err := p.ParseArgs([]string{"-h"})
+		if flagsErr, ok := err.(*Error); ok && flagsErr.Type == ErrHelp {
+			err = nil
+		}
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		h := &bytes.Buffer{}
+		w := bufio.NewWriter(h)
+		p.writeHelpOption(w, p.FindOptionByShortName('v'), p.getAlignmentInfo())
+		w.Flush()
+		if strings.Index(h.String(), test.present) < 0 {
+			t.Errorf("Not present %q\n%s", test.present, h.String())
+		}
+	}
 }

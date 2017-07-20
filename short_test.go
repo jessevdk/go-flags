@@ -35,6 +35,22 @@ func TestShortRequired(t *testing.T) {
 	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts)
 }
 
+func TestShortRequiredFalsy1(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v" required:"false"`
+	}{}
+
+	assertParseSuccess(t, &opts)
+}
+
+func TestShortRequiredFalsy2(t *testing.T) {
+	var opts = struct {
+		Value bool `short:"v" required:"no"`
+	}{}
+
+	assertParseSuccess(t, &opts)
+}
+
 func TestShortMultiConcat(t *testing.T) {
 	var opts = struct {
 		V bool `short:"v"`
@@ -191,4 +207,28 @@ func TestShortOptional(t *testing.T) {
 
 	assertStringArray(t, ret, []string{"f"})
 	assertString(t, opts.Value, "value")
+}
+
+func TestShortOptionalFalsy1(t *testing.T) {
+	var opts = struct {
+		F     []bool `short:"f"`
+		Value string `short:"v" optional:"false" optional-value:"value"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-fv", "f")
+
+	assertStringArray(t, ret, []string{})
+	assertString(t, opts.Value, "f")
+}
+
+func TestShortOptionalFalsy2(t *testing.T) {
+	var opts = struct {
+		F     []bool `short:"f"`
+		Value string `short:"v" optional:"no" optional-value:"value"`
+	}{}
+
+	ret := assertParseSuccess(t, &opts, "-fv", "f")
+
+	assertStringArray(t, ret, []string{})
+	assertString(t, opts.Value, "f")
 }
