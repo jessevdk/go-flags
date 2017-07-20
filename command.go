@@ -159,7 +159,6 @@ func newCommand(name string, shortDescription string, longDescription string, da
 	}
 }
 
-
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 	f := func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag := newMultiTag(string(sfield.Tag))

@@ -690,7 +690,7 @@ func (p *Parser) showBuiltinHelp() error {
 	var b bytes.Buffer
 
 	plural := func(s string) string {
-		return fmt.Sprintf("%ss",s)
+		return fmt.Sprintf("%ss", s)
 	}
 	if p.PluralHandler != nil {
 		plural = p.PluralHandler

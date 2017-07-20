@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"io"
 	"runtime"
+	"sort"
 	"strings"
 	"unicode/utf8"
-	"sort"
 )
 
 type alignmentInfo struct {
@@ -481,7 +481,7 @@ func (p *Parser) WriteHelp(writer io.Writer, plural func(s string) string) {
 				fmt.Fprintf(wr, "  %s", c.Name)
 
 				if len(c.ShortDescription) > 0 {
-					pad := strings.Repeat(" ", maxnamelen - len(c.Name))
+					pad := strings.Repeat(" ", maxnamelen-len(c.Name))
 					fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
 
 					if len(c.Aliases) > 0 {
