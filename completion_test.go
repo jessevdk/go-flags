@@ -38,6 +38,7 @@ func (t *TestComplete) Complete(match string) []Completion {
 var completionTestOptions struct {
 	Verbose  bool `short:"v" long:"verbose" description:"Verbose messages"`
 	Debug    bool `short:"d" long:"debug" description:"Enable debug"`
+	Info     bool `short:"i" description:"Display info"`
 	Version  bool `long:"version" description:"Show version"`
 	Required bool `long:"required" required:"true" description:"This is required"`
 	Hidden   bool `long:"hidden" hidden:"true" description:"This is hidden"`
@@ -87,7 +88,14 @@ func init() {
 		{
 			// Short names
 			[]string{"-"},
-			[]string{"-d", "-v"},
+			[]string{"--debug", "--required", "--verbose", "--version", "-i"},
+			false,
+		},
+
+		{
+			// Short names full
+			[]string{"-i"},
+			[]string{"-i"},
 			false,
 		},
 
