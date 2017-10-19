@@ -176,7 +176,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 	return false, nil
 }
 
-func convert(val string, retval reflect.Value, options multiTag) error {
+func convert(val string, retval reflect.Value, options multiTag, valueDelim string) error {
 	if ok, err := convertUnmarshal(val, retval); ok {
 		return err
 	}
@@ -249,16 +249,27 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	case reflect.Slice:
 		elemtp := tp.Elem()
 
-		elemvalptr := reflect.New(elemtp)
-		elemval := reflect.Indirect(elemvalptr)
-
-		if err := convert(val, elemval, options); err != nil {
-			return err
+		parts := []string{val}
+		if valueDelim != "" {
+			parts = strings.Split(val, valueDelim)
 		}
 
-		retval.Set(reflect.Append(retval, elemval))
+		for _, p := range parts {
+			elemvalptr := reflect.New(elemtp)
+			elemval := reflect.Indirect(elemvalptr)
+
+			if err := convert(p, elemval, options, valueDelim); err != nil {
+				return err
+			}
+
+			retval.Set(reflect.Append(retval, elemval))
+		}
 	case reflect.Map:
-		parts := strings.SplitN(val, ":", 2)
+		delim := valueDelim
+		if delim == "" {
+			delim = ":"
+		}
+		parts := strings.SplitN(val, delim, 2)
 
 		key := parts[0]
 		var value string
@@ -270,14 +281,14 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		keytp := tp.Key()
 		keyval := reflect.New(keytp)
 
-		if err := convert(key, keyval, options); err != nil {
+		if err := convert(key, keyval, options, valueDelim); err != nil {
 			return err
 		}
 
 		valuetp := tp.Elem()
 		valueval := reflect.New(valuetp)
 
-		if err := convert(value, valueval, options); err != nil {
+		if err := convert(value, valueval, options, valueDelim); err != nil {
 			return err
 		}
 
@@ -291,10 +302,10 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 			retval.Set(reflect.New(retval.Type().Elem()))
 		}
 
-		return convert(val, reflect.Indirect(retval), options)
+		return convert(val, reflect.Indirect(retval), options, valueDelim)
 	case reflect.Interface:
 		if !retval.IsNil() {
-			return convert(val, retval.Elem(), options)
+			return convert(val, retval.Elem(), options, valueDelim)
 		}
 	}
 

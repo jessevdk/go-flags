@@ -36,6 +36,9 @@ type Option struct {
 	// The optional delimiter string for EnvDefaultKey values.
 	EnvDefaultDelim string
 
+	// The optional value delimiter for slices and maps
+	ValueDelim string
+
 	// If true, specifies that the argument to an option flag is optional.
 	// When no argument to the flag is specified on the command line, the
 	// value of OptionalValue will be set in the field this option represents.
@@ -223,10 +226,10 @@ func (option *Option) set(value *string) error {
 	if option.isFunc() {
 		return option.call(value)
 	} else if value != nil {
-		return convert(*value, option.value, option.tag)
+		return convert(*value, option.value, option.tag, option.ValueDelim)
 	}
 
-	return convert("", option.value, option.tag)
+	return convert("", option.value, option.tag, option.ValueDelim)
 }
 
 func (option *Option) canCli() bool {
@@ -310,7 +313,7 @@ func (option *Option) valueIsDefault() bool {
 
 	if len(option.Default) != 0 {
 		for _, v := range option.Default {
-			convert(v, checkval, option.tag)
+			convert(v, checkval, option.tag, option.ValueDelim)
 		}
 	}
 
@@ -388,7 +391,7 @@ func (option *Option) call(value *string) error {
 		val := reflect.New(tp)
 		val = reflect.Indirect(val)
 
-		if err := convert(*value, val, option.tag); err != nil {
+		if err := convert(*value, val, option.tag, option.ValueDelim); err != nil {
 			return err
 		}
 

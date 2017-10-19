@@ -270,6 +270,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			Default:          def,
 			EnvDefaultKey:    mtag.Get("env"),
 			EnvDefaultDelim:  mtag.Get("env-delim"),
+			ValueDelim:       mtag.Get("value-delim"),
 			OptionalArgument: optional,
 			OptionalValue:    optionalValue,
 			Required:         required,
