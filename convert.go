@@ -136,7 +136,11 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				return "", err
 			}
 
-			ret += keyitem + ":" + item
+			delim := options.Get("value-delim")
+			if delim == "" {
+				delim = ":"
+			}
+			ret += keyitem + delim + item
 		}
 
 		return ret + "}", nil
@@ -249,16 +253,28 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	case reflect.Slice:
 		elemtp := tp.Elem()
 
-		elemvalptr := reflect.New(elemtp)
-		elemval := reflect.Indirect(elemvalptr)
-
-		if err := convert(val, elemval, options); err != nil {
-			return err
+		parts := []string{val}
+		delim := options.Get("value-delim")
+		if delim != "" {
+			parts = strings.Split(val, delim)
 		}
 
-		retval.Set(reflect.Append(retval, elemval))
+		for _, p := range parts {
+			elemvalptr := reflect.New(elemtp)
+			elemval := reflect.Indirect(elemvalptr)
+
+			if err := convert(p, elemval, options); err != nil {
+				return err
+			}
+
+			retval.Set(reflect.Append(retval, elemval))
+		}
 	case reflect.Map:
-		parts := strings.SplitN(val, ":", 2)
+		delim := options.Get("value-delim")
+		if delim == "" {
+			delim = ":"
+		}
+		parts := strings.SplitN(val, delim, 2)
 
 		key := parts[0]
 		var value string

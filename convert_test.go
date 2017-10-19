@@ -41,8 +41,10 @@ func TestConvertToString(t *testing.T) {
 
 		Bool bool `long:"bool"`
 
-		IntSlice    []int           `long:"int-slice"`
-		IntFloatMap map[int]float64 `long:"int-float-map"`
+		IntSlice                 []int             `long:"int-slice"`
+		IntFloatMap              map[int]float64   `long:"int-float-map"`
+		StringStringMap          map[string]string `long:"string-string-map"`
+		StringStringMapWithDelim map[string]string `long:"string-string-map-with-delim" value-delim:"::"`
 
 		PtrBool   *bool       `long:"ptr-bool"`
 		Interface interface{} `long:"interface"`
@@ -72,7 +74,8 @@ func TestConvertToString(t *testing.T) {
 
 		[]int{-3, 4, -2},
 		map[int]float64{-2: 4.5},
-
+		map[string]string{"a": "b"},
+		map[string]string{"a:b": "c"},
 		new(bool),
 		float32(5.2),
 
@@ -105,6 +108,8 @@ func TestConvertToString(t *testing.T) {
 
 		"[-3, 4, -2]",
 		"{-2:4.5}",
+		"{a:b}",
+		"{a:b::c}",
 
 		"false",
 		"5.2",
