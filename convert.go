@@ -136,7 +136,11 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				return "", err
 			}
 
-			ret += keyitem + ":" + item
+			delim := options.Get("value-delim")
+			if delim == "" {
+				delim = ":"
+			}
+			ret += keyitem + delim + item
 		}
 
 		return ret + "}", nil
@@ -176,7 +180,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 	return false, nil
 }
 
-func convert(val string, retval reflect.Value, options multiTag, valueDelim string) error {
+func convert(val string, retval reflect.Value, options multiTag) error {
 	if ok, err := convertUnmarshal(val, retval); ok {
 		return err
 	}
@@ -250,22 +254,23 @@ func convert(val string, retval reflect.Value, options multiTag, valueDelim stri
 		elemtp := tp.Elem()
 
 		parts := []string{val}
-		if valueDelim != "" {
-			parts = strings.Split(val, valueDelim)
+		delim := options.Get("value-delim")
+		if delim != "" {
+			parts = strings.Split(val, delim)
 		}
 
 		for _, p := range parts {
 			elemvalptr := reflect.New(elemtp)
 			elemval := reflect.Indirect(elemvalptr)
 
-			if err := convert(p, elemval, options, valueDelim); err != nil {
+			if err := convert(p, elemval, options); err != nil {
 				return err
 			}
 
 			retval.Set(reflect.Append(retval, elemval))
 		}
 	case reflect.Map:
-		delim := valueDelim
+		delim := options.Get("value-delim")
 		if delim == "" {
 			delim = ":"
 		}
@@ -281,14 +286,14 @@ func convert(val string, retval reflect.Value, options multiTag, valueDelim stri
 		keytp := tp.Key()
 		keyval := reflect.New(keytp)
 
-		if err := convert(key, keyval, options, valueDelim); err != nil {
+		if err := convert(key, keyval, options); err != nil {
 			return err
 		}
 
 		valuetp := tp.Elem()
 		valueval := reflect.New(valuetp)
 
-		if err := convert(value, valueval, options, valueDelim); err != nil {
+		if err := convert(value, valueval, options); err != nil {
 			return err
 		}
 
@@ -302,10 +307,10 @@ func convert(val string, retval reflect.Value, options multiTag, valueDelim stri
 			retval.Set(reflect.New(retval.Type().Elem()))
 		}
 
-		return convert(val, reflect.Indirect(retval), options, valueDelim)
+		return convert(val, reflect.Indirect(retval), options)
 	case reflect.Interface:
 		if !retval.IsNil() {
-			return convert(val, retval.Elem(), options, valueDelim)
+			return convert(val, retval.Elem(), options)
 		}
 	}
 

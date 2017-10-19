@@ -109,7 +109,7 @@ func TestConvertToString(t *testing.T) {
 		"[-3, 4, -2]",
 		"{-2:4.5}",
 		"{a:b}",
-		"{a:b:c}",
+		"{a:b::c}",
 
 		"false",
 		"5.2",
