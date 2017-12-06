@@ -63,6 +63,7 @@ var completionTestOptions struct {
 	RemoveCommand struct {
 		Other bool     `short:"o"`
 		File  Filename `short:"f" long:"filename"`
+		Dir   Filepath `short:"d" long:"dir"`
 	} `command:"rm" description:"remove an item"`
 
 	RenameCommand struct {
@@ -83,6 +84,13 @@ func init() {
 	completionTestSourcedir := filepath.Join(filepath.SplitList(path.Dir(sourcefile))...)
 
 	completionTestFilename := []string{filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion_test.go")}
+
+	completionTestFilepath := []string{
+		filepath.Join(completionTestSourcedir, "examples/add.go"),
+		filepath.Join(completionTestSourcedir, "examples/bash-completion"),
+		filepath.Join(completionTestSourcedir, "examples/main.go"),
+		filepath.Join(completionTestSourcedir, "examples/rm.go"),
+	}
 
 	completionTests = []completionTest{
 		{
@@ -224,6 +232,20 @@ func init() {
 			// Flag long filename
 			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
+			false,
+		},
+
+		{
+			// Flag filepath file
+			[]string{"rm", "-d", path.Join(completionTestSourcedir, "completion")},
+			completionTestFilename,
+			false,
+		},
+
+		{
+			// Flag filepath dir
+			[]string{"rm", "-d", path.Join(completionTestSourcedir, "examples")},
+			completionTestFilepath,
 			false,
 		},
 
