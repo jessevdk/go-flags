@@ -34,6 +34,9 @@ type Group struct {
 	// The namespace of the group
 	Namespace string
 
+	// The environment namespace of the group
+	EnvNamespace string
+
 	// If true, the group is not displayed in the help or man page
 	Hidden bool
 
@@ -358,6 +361,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		}
 
 		group.Namespace = mtag.Get("namespace")
+		group.EnvNamespace = mtag.Get("env-namespace")
 		group.Hidden = mtag.Get("hidden") != ""
 
 		return true, nil
