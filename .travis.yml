@@ -14,8 +14,7 @@ install:
   - go build -v ./...
 
   # linting
-  - go get github.com/golang/lint
-  - go install github.com/golang/lint/golint
+  - go get github.com/golang/lint/golint
 
   # code coverage
   - go get golang.org/x/tools/cmd/cover
