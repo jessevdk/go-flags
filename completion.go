@@ -142,8 +142,8 @@ func (c *completion) completeValue(value reflect.Value, prefix string, match str
 	i := value.Interface()
 
 	var ret []Completion
-
 	if cmp, ok := i.(Completer); ok {
+
 		ret = cmp.Complete(match)
 	} else if value.CanAddr() {
 		if cmp, ok = value.Addr().Interface().(Completer); ok {

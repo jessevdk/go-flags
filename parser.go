@@ -20,6 +20,9 @@ type Parser struct {
 	// Embedded, see Command for more information
 	*Command
 
+	// Histogram of valid Command types
+	AllTypes map[string]int
+
 	// A usage string to be displayed in the help message.
 	Usage string
 
@@ -51,6 +54,10 @@ type Parser struct {
 	// The command passed into CommandHandler may be nil in case there is no
 	// command to be executed when parsing has finished.
 	CommandHandler func(command Commander, args []string) error
+
+	// PluralHandler is a function gets called to handle the formation of
+	// plurals in the help screen. If not specified, it just appends an 's'.
+	PluralHandler func(s string) string
 
 	internalError error
 }
@@ -172,18 +179,29 @@ func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
 		Command:            newCommand(appname, "", "", nil),
 		Options:            options,
+		AllTypes:           make(map[string]int),
 		NamespaceDelimiter: ".",
 	}
+	p.AddType(DefaultCommandType)
 
 	p.Command.parent = p
 
 	return p
 }
 
+func (p *Parser) AddType(s string) {
+	p.AllTypes[s]++
+}
+
 // Parse parses the command line arguments from os.Args using Parser.ParseArgs.
 // For more detailed information see ParseArgs.
 func (p *Parser) Parse() ([]string, error) {
 	return p.ParseArgs(os.Args[1:])
+}
+
+func (p *Parser) Complete(match []string) []Completion {
+	comp := &completion{parser: p}
+	return comp.complete(match)
 }
 
 // ParseArgs parses the command line arguments according to the option groups that
@@ -671,7 +689,14 @@ func (p *Parser) parseNonOption(s *parseState) error {
 func (p *Parser) showBuiltinHelp() error {
 	var b bytes.Buffer
 
-	p.WriteHelp(&b)
+	plural := func(s string) string {
+		return fmt.Sprintf("%ss", s)
+	}
+	if p.PluralHandler != nil {
+		plural = p.PluralHandler
+	}
+
+	p.WriteHelp(&b, plural)
 	return newError(ErrHelp, b.String())
 }
 

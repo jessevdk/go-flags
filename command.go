@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const DefaultCommandType = "command"
+
 // Command represents an application command. Commands can be added to the
 // parser (which itself is a command) and are selected/executed when its name
 // is specified on the command line. The Command type embeds a Group and
@@ -17,6 +19,9 @@ type Command struct {
 
 	// The name by which the command can be invoked
 	Name string
+
+	// Commands can be classified by types
+	Type string
 
 	// The active sub command (set by parsing) or nil
 	Active *Command
@@ -149,6 +154,7 @@ func newCommand(name string, shortDescription string, longDescription string, da
 	return &Command{
 		Group: newGroup(shortDescription, longDescription, data),
 		Name:  name,
+		Type:  DefaultCommandType,
 	}
 }
 
@@ -403,6 +409,20 @@ func (c commandList) Len() int {
 
 func (c commandList) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
+}
+
+// selectedVisibleCommands returns a list of commands that are of type 't' and visible.
+// if t is empty, it returns all visible commands
+func (c *Command) selectedVisibleCommands(t string) []*Command {
+	cmdList := commandList(c.sortedVisibleCommands())
+	var ret commandList
+	for _, cmd := range cmdList {
+		if t != "" && cmd.Type != t {
+			continue
+		}
+		ret = append(ret, cmd)
+	}
+	return []*Command(ret)
 }
 
 func (c *Command) sortedVisibleCommands() []*Command {
