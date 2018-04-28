@@ -49,9 +49,6 @@ type completion struct {
 // Filename is a string alias which provides filename completion.
 type Filename string
 
-// Filepath is a string alias which provides completion for file paths into subdirectories.
-type Filepath string
-
 func completionsWithoutDescriptions(items []string) []Completion {
 	ret := make([]Completion, len(items))
 
@@ -65,13 +62,6 @@ func completionsWithoutDescriptions(items []string) []Completion {
 // Complete returns a list of existing files with the given
 // prefix.
 func (f *Filename) Complete(match string) []Completion {
-	ret, _ := filepath.Glob(match + "*")
-	return completionsWithoutDescriptions(ret)
-}
-
-// Complete returns a list of existing files with the given prefix.
-// If it completes to a single directory, the contents of that directory are interrogated.
-func (f *Filepath) Complete(match string) []Completion {
 	ret, _ := filepath.Glob(match + "*")
 	if len(ret) == 1 {
 		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
