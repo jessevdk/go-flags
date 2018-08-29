@@ -61,6 +61,9 @@ var opts struct {
 	// Example of a required flag
 	Name string `short:"n" long:"name" description:"A name" required:"true"`
 
+	// Example of a flag restricted to a pre-defined set of strings
+	Name string `long:"animal" choice:"cat" choice:"dog"`
+
 	// Example of a value name
 	File string `short:"f" long:"file" description:"A file" value-name:"FILE"`
 
