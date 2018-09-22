@@ -26,6 +26,8 @@ type helpOptions struct {
 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
 	Hidden            string            `long:"hidden" description:"Hidden option" hidden:"yes"`
 
+	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name" hidden:"yes"`
+
 	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
 
 	Other struct {
@@ -46,6 +48,10 @@ type helpOptions struct {
 			Opt string `long:"opt" description:"This is a subsubgroup option"`
 		} `group:"Subsubgroup" namespace:"sap"`
 	} `group:"Subgroup" namespace:"sip"`
+
+	Bommand struct {
+		Hidden bool `long:"hidden" description:"A hidden option" hidden:"yes"`
+	} `command:"bommand" description:"A command with only hidden options"`
 
 	Command struct {
 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
@@ -88,7 +94,7 @@ func TestHelp(t *testing.T) {
 
 		if runtime.GOOS == "windows" {
 			expected = `Usage:
-  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <command>
+  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command>
 
 Application Options:
   /v, /verbose                              Show verbose debug information
@@ -131,11 +137,12 @@ Arguments:
   num:                                      A number
 
 Available commands:
+  bommand  A command with only hidden options
   command  A command (aliases: cm, cmd)
 `
 		} else {
 			expected = `Usage:
-  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <command>
+  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command>
 
 Application Options:
   -v, --verbose                             Show verbose debug information
@@ -177,6 +184,7 @@ Arguments:
   num:                                      A number
 
 Available commands:
+  bommand  A command with only hidden options
   command  A command (aliases: cm, cmd)
 `
 		}
@@ -196,7 +204,9 @@ func TestMan(t *testing.T) {
 	p.LongDescription = "This is a somewhat `longer' description of what this does"
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	p.Commands()[0].LongDescription = "Longer `command' description"
+	for _, cmd := range p.Commands() {
+		cmd.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
+	}
 
 	var buf bytes.Buffer
 	p.WriteManPage(&buf)
@@ -274,6 +284,10 @@ Not hidden inside group
 \fB\fB\-\-sip.sap.opt\fR\fP
 This is a subsubgroup option
 .SH COMMANDS
+.SS bommand
+A command with only hidden options
+
+Longer \fBbommand\fP description
 .SS command
 A command
 

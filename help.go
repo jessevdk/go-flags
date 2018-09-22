@@ -393,7 +393,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 
 			for _, info := range grp.options {
-				if !info.canCli() || info.Hidden {
+				if !info.canCli() {
 					continue
 				}
 

@@ -54,7 +54,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 		}
 
 		for _, opt := range group.options {
-			if !opt.canCli() || opt.Hidden {
+			if !opt.canCli() {
 				continue
 			}
 
