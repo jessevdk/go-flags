@@ -93,6 +93,9 @@ int-map = b:3
 ; This is a subgroup option
 Opt =
 
+; Not hidden inside group
+NotHiddenInsideGroup =
+
 [Subsubgroup]
 ; This is a subsubgroup option
 Opt =
@@ -153,6 +156,9 @@ EnvDefault2 = env-def
 ; This is a subgroup option
 ; Opt =
 
+; Not hidden inside group
+; NotHiddenInsideGroup =
+
 [Subsubgroup]
 ; This is a subsubgroup option
 ; Opt =
@@ -210,6 +216,9 @@ EnvDefault2 = env-def
 [Subgroup]
 ; This is a subgroup option
 ; Opt =
+
+; Not hidden inside group
+; NotHiddenInsideGroup =
 
 [Subsubgroup]
 ; This is a subsubgroup option
@@ -844,6 +853,29 @@ func TestIniOverrides(t *testing.T) {
 
 	assertString(t, opts.ValueWithDefault, "ini-value")
 	assertString(t, opts.ValueWithDefaultOverrideCli, "cli-value")
+}
+
+func TestIniRequired(t *testing.T) {
+	var opts struct {
+		Required string               `short:"r" required:"yes" description:"required"`
+		Config   func(s string) error `long:"config" default:"no-ini-file" no-ini:"true"`
+	}
+
+	p := NewParser(&opts, Default)
+
+	opts.Config = func(s string) error {
+		inip := NewIniParser(p)
+		inip.ParseAsDefaults = true
+		return inip.Parse(strings.NewReader("Required = ini-value\n"))
+	}
+
+	_, err := p.ParseArgs([]string{"-r", "cli-value"})
+
+	if err != nil {
+		t.Fatalf("Failed to parse arguments: %s", err)
+	}
+
+	assertString(t, opts.Required, "cli-value")
 }
 
 func TestWriteFile(t *testing.T) {

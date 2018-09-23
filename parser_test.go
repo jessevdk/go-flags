@@ -245,11 +245,16 @@ func EnvSnapshot() *EnvRestorer {
 	return &r
 }
 
+type envNestedOptions struct {
+	Foo string `long:"foo" default:"z" env:"FOO"`
+}
+
 type envDefaultOptions struct {
-	Int   int            `long:"i" default:"1" env:"TEST_I"`
-	Time  time.Duration  `long:"t" default:"1m" env:"TEST_T"`
-	Map   map[string]int `long:"m" default:"a:1" env:"TEST_M" env-delim:";"`
-	Slice []int          `long:"s" default:"1" default:"2" env:"TEST_S"  env-delim:","`
+	Int    int              `long:"i" default:"1" env:"TEST_I"`
+	Time   time.Duration    `long:"t" default:"1m" env:"TEST_T"`
+	Map    map[string]int   `long:"m" default:"a:1" env:"TEST_M" env-delim:";"`
+	Slice  []int            `long:"s" default:"1" default:"2" env:"TEST_S"  env-delim:","`
+	Nested envNestedOptions `group:"nested" namespace:"nested" env-namespace:"NESTED"`
 }
 
 func TestEnvDefaults(t *testing.T) {
@@ -267,6 +272,9 @@ func TestEnvDefaults(t *testing.T) {
 				Time:  time.Minute,
 				Map:   map[string]int{"a": 1},
 				Slice: []int{1, 2},
+				Nested: envNestedOptions{
+					Foo: "z",
+				},
 			},
 		},
 		{
@@ -277,44 +285,56 @@ func TestEnvDefaults(t *testing.T) {
 				Time:  2 * time.Minute,
 				Map:   map[string]int{"a": 2, "b": 3},
 				Slice: []int{4, 5, 6},
+				Nested: envNestedOptions{
+					Foo: "a",
+				},
 			},
 			env: map[string]string{
-				"TEST_I": "2",
-				"TEST_T": "2m",
-				"TEST_M": "a:2;b:3",
-				"TEST_S": "4,5,6",
+				"TEST_I":     "2",
+				"TEST_T":     "2m",
+				"TEST_M":     "a:2;b:3",
+				"TEST_S":     "4,5,6",
+				"NESTED_FOO": "a",
 			},
 		},
 		{
 			msg:  "non-zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=3", "--t=3ms", "--m=c:3", "--s=3"},
+			args: []string{"--i=3", "--t=3ms", "--m=c:3", "--s=3", "--nested.foo=\"p\""},
 			expected: envDefaultOptions{
 				Int:   3,
 				Time:  3 * time.Millisecond,
 				Map:   map[string]int{"c": 3},
 				Slice: []int{3},
+				Nested: envNestedOptions{
+					Foo: "p",
+				},
 			},
 			env: map[string]string{
-				"TEST_I": "2",
-				"TEST_T": "2m",
-				"TEST_M": "a:2;b:3",
-				"TEST_S": "4,5,6",
+				"TEST_I":     "2",
+				"TEST_T":     "2m",
+				"TEST_M":     "a:2;b:3",
+				"TEST_S":     "4,5,6",
+				"NESTED_FOO": "a",
 			},
 		},
 		{
 			msg:  "zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=0", "--t=0ms", "--m=:0", "--s=0"},
+			args: []string{"--i=0", "--t=0ms", "--m=:0", "--s=0", "--nested.foo=\"\""},
 			expected: envDefaultOptions{
 				Int:   0,
 				Time:  0,
 				Map:   map[string]int{"": 0},
 				Slice: []int{0},
+				Nested: envNestedOptions{
+					Foo: "",
+				},
 			},
 			env: map[string]string{
-				"TEST_I": "2",
-				"TEST_T": "2m",
-				"TEST_M": "a:2;b:3",
-				"TEST_S": "4,5,6",
+				"TEST_I":     "2",
+				"TEST_T":     "2m",
+				"TEST_M":     "a:2;b:3",
+				"TEST_S":     "4,5,6",
+				"NESTED_FOO": "a",
 			},
 		},
 	}

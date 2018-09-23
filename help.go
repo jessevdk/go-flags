@@ -216,19 +216,21 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 		var def string
 
-		if len(option.DefaultMask) != 0 && option.DefaultMask != "-" {
-			def = option.DefaultMask
+		if len(option.DefaultMask) != 0 {
+			if option.DefaultMask != "-" {
+				def = option.DefaultMask
+			}
 		} else {
 			def = option.defaultLiteral
 		}
 
 		var envDef string
-		if option.EnvDefaultKey != "" {
+		if option.EnvKeyWithNamespace() != "" {
 			var envPrintable string
 			if runtime.GOOS == "windows" {
-				envPrintable = "%" + option.EnvDefaultKey + "%"
+				envPrintable = "%" + option.EnvKeyWithNamespace() + "%"
 			} else {
-				envPrintable = "$" + option.EnvDefaultKey
+				envPrintable = "$" + option.EnvKeyWithNamespace()
 			}
 			envDef = fmt.Sprintf(" [%s]", envPrintable)
 		}
@@ -486,4 +488,24 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	}
 
 	wr.Flush()
+}
+
+// WroteHelp is a helper to test the error from ParseArgs() to
+// determine if the help message was written. It is safe to
+// call without first checking that error is nil.
+func WroteHelp(err error) bool {
+	if err == nil { // No error
+		return false
+	}
+
+	flagError, ok := err.(*Error)
+	if !ok { // Not a go-flag error
+		return false
+	}
+
+	if flagError.Type != ErrHelp { // Did not print the help message
+		return false
+	}
+
+	return true
 }

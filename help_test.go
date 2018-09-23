@@ -1,10 +1,13 @@
 package flags
 
 import (
+	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -36,8 +39,9 @@ type helpOptions struct {
 	} `group:"Hidden group" hidden:"yes"`
 
 	Group struct {
-		Opt               string `long:"opt" description:"This is a subgroup option"`
-		HiddenInsideGroup string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
+		Opt                  string `long:"opt" description:"This is a subgroup option"`
+		HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
+		NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group" hidden:"false"`
 
 		Group struct {
 			Opt string `long:"opt" description:"This is a subsubgroup option"`
@@ -113,6 +117,7 @@ Other Options:
 
 Subgroup:
       /sip.opt:                             This is a subgroup option
+      /sip.not-hidden-inside-group:         Not hidden inside group
 
 Subsubgroup:
       /sip.sap.opt:                         This is a subsubgroup option
@@ -159,6 +164,7 @@ Other Options:
 
 Subgroup:
       --sip.opt=                            This is a subgroup option
+      --sip.not-hidden-inside-group=        Not hidden inside group
 
 Subsubgroup:
       --sip.sap.opt=                        This is a subsubgroup option
@@ -261,6 +267,9 @@ A map from string to int
 .TP
 \fB\fB\-\-sip.opt\fR\fP
 This is a subgroup option
+.TP
+\fB\fB\-\-sip.not-hidden-inside-group\fR\fP
+Not hidden inside group
 .SS Subsubgroup
 .TP
 \fB\fB\-\-sip.sap.opt\fR\fP
@@ -465,4 +474,88 @@ func TestWrapParagraph(t *testing.T) {
 `
 
 	assertDiff(t, got, expected, "wrapped paragraph")
+}
+
+func TestHelpDefaultMask(t *testing.T) {
+	var tests = []struct {
+		opts    interface{}
+		present string
+	}{
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" description:"V"`
+			}{},
+			present: "V (default: 123)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" default-mask:"abc" description:"V"`
+			}{},
+			present: "V (default: abc)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default:"123" default-mask:"-" description:"V"`
+			}{},
+			present: "V\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" description:"V"`
+			}{Value: "123"},
+			present: "V (default: 123)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default-mask:"abc" description:"V"`
+			}{Value: "123"},
+			present: "V (default: abc)\n",
+		},
+		{
+			opts: &struct {
+				Value string `short:"v" default-mask:"-" description:"V"`
+			}{Value: "123"},
+			present: "V\n",
+		},
+	}
+
+	for _, test := range tests {
+		p := NewParser(test.opts, HelpFlag)
+		_, err := p.ParseArgs([]string{"-h"})
+		if flagsErr, ok := err.(*Error); ok && flagsErr.Type == ErrHelp {
+			err = nil
+		}
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		h := &bytes.Buffer{}
+		w := bufio.NewWriter(h)
+		p.writeHelpOption(w, p.FindOptionByShortName('v'), p.getAlignmentInfo())
+		w.Flush()
+		if strings.Index(h.String(), test.present) < 0 {
+			t.Errorf("Not present %q\n%s", test.present, h.String())
+		}
+	}
+}
+
+func TestWroteHelp(t *testing.T) {
+	type testInfo struct {
+		value  error
+		isHelp bool
+	}
+	tests := map[string]testInfo{
+		"No error":    testInfo{value: nil, isHelp: false},
+		"Plain error": testInfo{value: errors.New("an error"), isHelp: false},
+		"ErrUnknown":  testInfo{value: newError(ErrUnknown, "an error"), isHelp: false},
+		"ErrHelp":     testInfo{value: newError(ErrHelp, "an error"), isHelp: true},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			res := WroteHelp(test.value)
+			if test.isHelp != res {
+				t.Errorf("Expected %t, got %t", test.isHelp, res)
+			}
+		})
+	}
 }

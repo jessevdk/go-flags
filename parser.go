@@ -29,6 +29,9 @@ type Parser struct {
 	// NamespaceDelimiter separates group namespaces and option long names
 	NamespaceDelimiter string
 
+	// EnvNamespaceDelimiter separates group env namespaces and env keys
+	EnvNamespaceDelimiter string
+
 	// UnknownOptionsHandler is a function which gets called when the parser
 	// encounters an unknown option. The function receives the unknown option
 	// name, a SplitArgument which specifies its value if set with an argument
@@ -170,9 +173,10 @@ func NewParser(data interface{}, options Options) *Parser {
 // be added to this parser by using AddGroup and AddCommand.
 func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
-		Command:            newCommand(appname, "", "", nil),
-		Options:            options,
-		NamespaceDelimiter: ".",
+		Command:               newCommand(appname, "", "", nil),
+		Options:               options,
+		NamespaceDelimiter:    ".",
+		EnvNamespaceDelimiter: "_",
 	}
 
 	p.Command.parent = p
@@ -487,7 +491,7 @@ func (p *parseState) estimateCommand() error {
 			msg = fmt.Sprintf("%s. You should use the %s command",
 				msg,
 				cmdnames[0])
-		} else {
+		} else if len(cmdnames) > 1 {
 			msg = fmt.Sprintf("%s. Please specify one command of: %s or %s",
 				msg,
 				strings.Join(cmdnames[:len(cmdnames)-1], ", "),
@@ -498,7 +502,7 @@ func (p *parseState) estimateCommand() error {
 
 		if len(cmdnames) == 1 {
 			msg = fmt.Sprintf("Please specify the %s command", cmdnames[0])
-		} else {
+		} else if len(cmdnames) > 1 {
 			msg = fmt.Sprintf("Please specify one command of: %s or %s",
 				strings.Join(cmdnames[:len(cmdnames)-1], ", "),
 				cmdnames[len(cmdnames)-1])
