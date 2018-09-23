@@ -280,8 +280,8 @@ func (option *Option) set(value *string) error {
 	return convert("", option.value, option.tag)
 }
 
-func (option *Option) canCli() bool {
-	return option.ShortName != 0 || len(option.LongName) != 0
+func (option *Option) showInHelp() bool {
+	return !option.Hidden && (option.ShortName != 0 || len(option.LongName) != 0)
 }
 
 func (option *Option) canArgument() bool {
