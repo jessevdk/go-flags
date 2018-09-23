@@ -54,7 +54,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 		}
 
 		for _, opt := range group.options {
-			if !opt.canCli() {
+			if !opt.showInHelp() {
 				continue
 			}
 
@@ -148,12 +148,12 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 	var usage string
 	if us, ok := command.data.(Usage); ok {
 		usage = us.Usage()
-	} else if command.hasCliOptions() {
+	} else if command.hasHelpOptions() {
 		usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
 	}
 
 	var pre string
-	if root.hasCliOptions() {
+	if root.hasHelpOptions() {
 		pre = fmt.Sprintf("%s [OPTIONS] %s", root.Name, command.Name)
 	} else {
 		pre = fmt.Sprintf("%s %s", root.Name, command.Name)

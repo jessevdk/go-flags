@@ -79,7 +79,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		}
 
 		for _, info := range grp.options {
-			if !info.canCli() {
+			if !info.showInHelp() {
 				continue
 			}
 
@@ -305,7 +305,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 				}
 			} else if us, ok := allcmd.data.(Usage); ok {
 				usage = us.Usage()
-			} else if allcmd.hasCliOptions() {
+			} else if allcmd.hasHelpOptions() {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
 			}
 
@@ -393,7 +393,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 
 			for _, info := range grp.options {
-				if !info.canCli() {
+				if !info.showInHelp() {
 					continue
 				}
 
