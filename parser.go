@@ -258,9 +258,14 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 				if err = s.addArgs(s.arg); err != nil {
 					break
 				}
-				s.addArgs(s.args...)
+
+				if err = s.addArgs(s.args...); err != nil {
+					break
+				}
+
 				break
 			}
+
 			// Note: this also sets s.err, so we can just check for
 			// nil here and use s.err later
 			if p.parseNonOption(s) != nil {
