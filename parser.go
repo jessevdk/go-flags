@@ -241,6 +241,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	p.fillParseState(s)
 
 	for !s.eof() {
+		var err error
 		arg := s.pop()
 
 		// When PassDoubleDash is set and we encounter a --, then
@@ -251,6 +252,20 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		if !argumentIsOption(arg) {
+			if (p.Options & PassAfterNonOption) != None {
+				// If PassAfterNonOption is set then all remaining arguments
+				// are considered positional
+				if err = s.addArgs(s.arg); err != nil {
+					break
+				}
+
+				if err = s.addArgs(s.args...); err != nil {
+					break
+				}
+
+				break
+			}
+
 			// Note: this also sets s.err, so we can just check for
 			// nil here and use s.err later
 			if p.parseNonOption(s) != nil {
@@ -259,8 +274,6 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 			continue
 		}
-
-		var err error
 
 		prefix, optname, islong := stripOptionPrefix(arg)
 		optname, _, argument := splitOption(prefix, optname, islong)
@@ -653,23 +666,7 @@ func (p *Parser) parseNonOption(s *parseState) error {
 		}
 	}
 
-	if (p.Options & PassAfterNonOption) != None {
-		// If PassAfterNonOption is set then all remaining arguments
-		// are considered positional
-		if err := s.addArgs(s.arg); err != nil {
-			return err
-		}
-
-		if err := s.addArgs(s.args...); err != nil {
-			return err
-		}
-
-		s.args = []string{}
-	} else {
-		return s.addArgs(s.arg)
-	}
-
-	return nil
+	return s.addArgs(s.arg)
 }
 
 func (p *Parser) showBuiltinHelp() error {
