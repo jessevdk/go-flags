@@ -65,7 +65,7 @@ func (f *Filename) Complete(match string) []Completion {
 	ret, _ := filepath.Glob(match + "*")
 	if len(ret) == 1 {
 		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
-			ret, _ = filepath.Glob(ret[0] + "/*")
+			return f.Complete(ret[0] + "/")
 		}
 	}
 	return completionsWithoutDescriptions(ret)
