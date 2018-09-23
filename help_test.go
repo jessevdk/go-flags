@@ -3,6 +3,7 @@ package flags
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -534,5 +535,27 @@ func TestHelpDefaultMask(t *testing.T) {
 		if strings.Index(h.String(), test.present) < 0 {
 			t.Errorf("Not present %q\n%s", test.present, h.String())
 		}
+	}
+}
+
+func TestWroteHelp(t *testing.T) {
+	type testInfo struct {
+		value  error
+		isHelp bool
+	}
+	tests := map[string]testInfo{
+		"No error":    testInfo{value: nil, isHelp: false},
+		"Plain error": testInfo{value: errors.New("an error"), isHelp: false},
+		"ErrUnknown":  testInfo{value: newError(ErrUnknown, "an error"), isHelp: false},
+		"ErrHelp":     testInfo{value: newError(ErrHelp, "an error"), isHelp: true},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			res := WroteHelp(test.value)
+			if test.isHelp != res {
+				t.Errorf("Expected %t, got %t", test.isHelp, res)
+			}
+		})
 	}
 }
