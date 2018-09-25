@@ -40,6 +40,10 @@ type helpOptions struct {
 		InsideHiddenGroup string `long:"inside-hidden-group" description:"Inside hidden group"`
 	} `group:"Hidden group" hidden:"yes"`
 
+	GroupWithOnlyHiddenOptions struct {
+		SecretFlag bool `long:"secret" description:"Hidden flag in a non-hidden group" hidden:"yes"`
+	} `group:"Non-hidden group with only hidden options"`
+
 	Group struct {
 		Opt                  string `long:"opt" description:"This is a subgroup option"`
 		HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
