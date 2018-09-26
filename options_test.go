@@ -80,6 +80,39 @@ func TestPassAfterNonOptionWithCommand(t *testing.T) {
 	assertStringArray(t, opts.Foo.args, []string{"bar", "-v", "-g"})
 }
 
+type barCmd struct {
+	fooCmd
+	Positional struct {
+		Args []string
+	} `positional-args:"yes"`
+}
+
+func TestPassAfterNonOptionWithCommandWithPositional(t *testing.T) {
+	var opts = struct {
+		Value bool   `short:"v"`
+		Bar   barCmd `command:"bar"`
+	}{}
+	p := NewParser(&opts, PassAfterNonOption)
+	ret, err := p.ParseArgs([]string{"-v", "bar", "-f", "baz", "-v", "-g"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+		return
+	}
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Bar.Flag {
+		t.Errorf("Expected Bar.Flag to be true")
+	}
+
+	assertStringArray(t, ret, []string{})
+	assertStringArray(t, opts.Bar.args, []string{})
+	assertStringArray(t, opts.Bar.Positional.Args, []string{"baz", "-v", "-g"})
+}
+
 func TestPassAfterNonOptionWithPositional(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
