@@ -45,6 +45,41 @@ func TestPassAfterNonOption(t *testing.T) {
 	assertStringArray(t, ret, []string{"arg", "-v", "-g"})
 }
 
+type fooCmd struct {
+	Flag bool `short:"f"`
+	args []string
+}
+
+func (foo *fooCmd) Execute(s []string) error {
+	foo.args = s
+	return nil
+}
+
+func TestPassAfterNonOptionWithCommand(t *testing.T) {
+	var opts = struct {
+		Value bool   `short:"v"`
+		Foo   fooCmd `command:"foo"`
+	}{}
+	p := NewParser(&opts, PassAfterNonOption)
+	ret, err := p.ParseArgs([]string{"-v", "foo", "-f", "bar", "-v", "-g"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+		return
+	}
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Foo.Flag {
+		t.Errorf("Expected Foo.Flag to be true")
+	}
+
+	assertStringArray(t, ret, []string{"bar", "-v", "-g"})
+	assertStringArray(t, opts.Foo.args, []string{"bar", "-v", "-g"})
+}
+
 func TestPassAfterNonOptionWithPositional(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
