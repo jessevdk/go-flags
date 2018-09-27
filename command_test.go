@@ -580,3 +580,71 @@ func TestSubCommandFindOptionByShortFlag(t *testing.T) {
 		t.Errorf("Expected 'o', but got %v", opt.ShortName)
 	}
 }
+
+type fooCmd struct {
+	Flag bool `short:"f"`
+	args []string
+}
+
+func (foo *fooCmd) Execute(s []string) error {
+	foo.args = s
+	return nil
+}
+
+func TestCommandPassAfterNonOption(t *testing.T) {
+	var opts = struct {
+		Value bool   `short:"v"`
+		Foo   fooCmd `command:"foo"`
+	}{}
+	p := NewParser(&opts, PassAfterNonOption)
+	ret, err := p.ParseArgs([]string{"-v", "foo", "-f", "bar", "-v", "-g"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+		return
+	}
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Foo.Flag {
+		t.Errorf("Expected Foo.Flag to be true")
+	}
+
+	assertStringArray(t, ret, []string{"bar", "-v", "-g"})
+	assertStringArray(t, opts.Foo.args, []string{"bar", "-v", "-g"})
+}
+
+type barCmd struct {
+	fooCmd
+	Positional struct {
+		Args []string
+	} `positional-args:"yes"`
+}
+
+func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
+	var opts = struct {
+		Value bool   `short:"v"`
+		Bar   barCmd `command:"bar"`
+	}{}
+	p := NewParser(&opts, PassAfterNonOption)
+	ret, err := p.ParseArgs([]string{"-v", "bar", "-f", "baz", "-v", "-g"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+		return
+	}
+
+	if !opts.Value {
+		t.Errorf("Expected Value to be true")
+	}
+
+	if !opts.Bar.Flag {
+		t.Errorf("Expected Bar.Flag to be true")
+	}
+
+	assertStringArray(t, ret, []string{})
+	assertStringArray(t, opts.Bar.args, []string{})
+	assertStringArray(t, opts.Bar.Positional.Args, []string{"baz", "-v", "-g"})
+}

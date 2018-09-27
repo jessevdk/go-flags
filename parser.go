@@ -252,7 +252,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		}
 
 		if !argumentIsOption(arg) {
-			if (p.Options & PassAfterNonOption) != None {
+			if (p.Options&PassAfterNonOption) != None && s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments
 				// are considered positional
 				if err = s.addArgs(s.arg); err != nil {
