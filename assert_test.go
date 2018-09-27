@@ -103,7 +103,7 @@ func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string
 
 func assertError(t *testing.T, err error, typ ErrorType, msg string) {
 	if err == nil {
-		assertFatalf(t, "Expected error: %s", msg)
+		assertFatalf(t, "Expected error: \"%s\", but no error occurred", msg)
 		return
 	}
 
