@@ -38,6 +38,7 @@ type helpOptions struct {
 
 	HiddenGroup struct {
 		InsideHiddenGroup string `long:"inside-hidden-group" description:"Inside hidden group"`
+		Padder            bool   `long:"this-option-in-a-hidden-group-has-a-ridiculously-long-name"`
 	} `group:"Hidden group" hidden:"yes"`
 
 	GroupWithOnlyHiddenOptions struct {
