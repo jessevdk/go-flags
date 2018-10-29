@@ -182,7 +182,7 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 		sde, err := strconv.ParseInt(source_date_epoch, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("Invalid SOURCE_DATE_EPOCH: %s", err))
-        }
+		}
 		t = time.Unix(sde, 0)
 	}
 
