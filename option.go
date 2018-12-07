@@ -68,6 +68,10 @@ type Option struct {
 	// If true, the option is not displayed in the help or man page
 	Hidden bool
 
+	// Current value depends on following values.
+	Depends []string
+	DependsOptions []*Option
+
 	// The group which the option belongs to
 	group *Group
 
