@@ -277,6 +277,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		required := !isStringFalsy(mtag.Get("required"))
 		choices := mtag.GetMany("choice")
 		hidden := !isStringFalsy(mtag.Get("hidden"))
+		depends := mtag.GetMany("depends")
 
 		option := &Option{
 			Description:      description,
@@ -292,6 +293,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			DefaultMask:      defaultMask,
 			Choices:          choices,
 			Hidden:           hidden,
+			Depends:          depends,
 
 			group: g,
 
@@ -302,11 +304,44 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 
 		if option.isBool() && option.Default != nil {
 			return newErrorf(ErrInvalidTag,
-				"boolean flag `%s' may not have default values, they always default to `false' and can only be turned on",
+				"boolean flag '%s' may not have default values, they always default to `false' and can only be turned on",
 				option.shortAndLongName())
 		}
 
 		g.options = append(g.options, option)
+	}
+
+	// Find dependencies, traverse options
+	for _, option := range g.options {
+		// For each option, check dependencies
+		for _, dependency := range option.Depends {
+			// found dependent option, traverse options and the field it points to
+			found := false
+			for _, field := range g.options {
+				// Check for short name, specified name is short
+				if 1 == len(dependency) {
+					opt, _ := utf8.DecodeRuneInString(dependency)
+					if field.ShortName == opt {
+						found = true
+						option.DependsOptions = append(option.DependsOptions, field)
+						break
+					}
+					// We didnt find it within short names, check for long names
+				}
+
+				if field.LongName == dependency {
+					found = true
+					option.DependsOptions = append(option.DependsOptions, field)
+					break
+				}
+			}
+
+			if !found {
+				// We didnt find the field, error in configuration
+				return newErrorf(ErrInvalidTag,
+					"flag '%s' dependency '%s' is pointing to non existent flag", convertOptionToLog(option), dependency)
+			}
+		}
 	}
 
 	return nil
