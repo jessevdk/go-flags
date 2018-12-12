@@ -346,3 +346,16 @@ func unquoteIfPossible(s string) (string, error) {
 
 	return strconv.Unquote(s)
 }
+
+func convertOptionToLog(option *Option) string {
+
+	if 0 != len(string(option.ShortName)) && (0 != len(option.LongName)) {
+		return fmt.Sprintf("-%s (--%s), ", string(option.ShortName), option.LongName)
+	}
+
+	if 0 != len(option.LongName) {
+		return fmt.Sprintf("-%s, ", option.LongName)
+	}
+
+	return fmt.Sprintf("-%s, ", string(option.ShortName))
+}
