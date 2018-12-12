@@ -387,7 +387,7 @@ func (p *parseState) checkDependent(parser *Parser) error {
 				if option.isSet && !option.isSetDefault {
 					required := ""
 					for _, dependent := range option.DependsOptions {
-						if !dependent.isSet && !option.isSetDefault{
+						if !dependent.isSet && !option.isSetDefault {
 							missing = true
 							required += fmt.Sprintf("%s, ", convertOptionToLog(dependent))
 						}
