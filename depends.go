@@ -10,7 +10,14 @@ func gatherOptions(group *Group, options *[]*Option) {
 	}
 }
 
-func verifyDependencies(p *Parser) *Error {
+func addDependsOption(option *Option, depends *Option) {
+	if nil == option.DependsOptions {
+		option.DependsOptions = make([]*Option, 0)
+	}
+
+	option.DependsOptions = append(option.DependsOptions, depends)
+}
+func verifyDependencies(p *Parser) error {
 	options := make([]*Option, 0 )
 	gatherOptions(p.groups[0], &options)
 
@@ -25,7 +32,7 @@ func verifyDependencies(p *Parser) *Error {
 					opt, _ := utf8.DecodeRuneInString(dependency)
 					if field.ShortName == opt {
 						found = true
-						option.DependsOptions = append(option.DependsOptions, field)
+						addDependsOption(option, field)
 						break
 					}
 					// We didnt find it within short names, check for long names
@@ -33,7 +40,7 @@ func verifyDependencies(p *Parser) *Error {
 
 				if field.LongName == dependency {
 					found = true
-					option.DependsOptions = append(option.DependsOptions, field)
+					addDependsOption(option, field)
 					break
 				}
 			}
