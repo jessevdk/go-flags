@@ -165,6 +165,11 @@ func NewParser(data interface{}, options Options) *Parser {
 		p.internalError = err
 	}
 
+	// if there was no error, check for dependent options
+	if nil == p.internalError {
+		p.internalError = verifyDependencies(p)
+	}
+
 	return p
 }
 
