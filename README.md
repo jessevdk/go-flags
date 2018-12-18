@@ -62,7 +62,7 @@ var opts struct {
 	Name string `short:"n" long:"name" description:"A name" required:"true"`
 
 	// Example of a flag restricted to a pre-defined set of strings
-	Name string `long:"animal" choice:"cat" choice:"dog"`
+	Animal string `long:"animal" choice:"cat" choice:"dog"`
 
 	// Example of a value name
 	File string `short:"f" long:"file" description:"A file" value-name:"FILE"`
@@ -94,6 +94,7 @@ args := []string{
 	"-vv",
 	"--offset=5",
 	"-n", "Me",
+	"--animal", "dog",
 	"-p", "3",
 	"-s", "hello",
 	"-s", "world",
@@ -118,6 +119,7 @@ if err != nil {
 fmt.Printf("Verbosity: %v\n", opts.Verbose)
 fmt.Printf("Offset: %d\n", opts.Offset)
 fmt.Printf("Name: %s\n", opts.Name)
+fmt.Printf("Animal: %s\n", opts.Animal)
 fmt.Printf("Ptr: %d\n", *opts.Ptr)
 fmt.Printf("StringSlice: %v\n", opts.StringSlice)
 fmt.Printf("PtrSlice: [%v %v]\n", *opts.PtrSlice[0], *opts.PtrSlice[1])
