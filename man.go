@@ -3,7 +3,9 @@ package flags
 import (
 	"fmt"
 	"io"
+	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -175,6 +177,14 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 // writer.
 func (p *Parser) WriteManPage(wr io.Writer) {
 	t := time.Now()
+	source_date_epoch := os.Getenv("SOURCE_DATE_EPOCH")
+	if source_date_epoch != "" {
+		sde, err := strconv.ParseInt(source_date_epoch, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("Invalid SOURCE_DATE_EPOCH: %s", err))
+		}
+		t = time.Unix(sde, 0)
+	}
 
 	fmt.Fprintf(wr, ".TH %s 1 \"%s\"\n", manQuote(p.Name), t.Format("2 January 2006"))
 	fmt.Fprintln(wr, ".SH NAME")
