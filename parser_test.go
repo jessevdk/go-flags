@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -363,6 +364,22 @@ func TestEnvDefaults(t *testing.T) {
 	}
 }
 
+type CustomFlag struct {
+	Value string
+}
+
+func (c *CustomFlag) UnmarshalFlag(s string) error {
+	c.Value = s
+	return nil
+}
+
+func (c *CustomFlag) IsValidValue(s string) error {
+	if !(s == "-1" || s == "-foo") {
+		return errors.New("invalid flag value")
+	}
+	return nil
+}
+
 func TestOptionAsArgument(t *testing.T) {
 	var tests = []struct {
 		args        []string
@@ -419,30 +436,46 @@ func TestOptionAsArgument(t *testing.T) {
 			rest: []string{"-", "-"},
 		},
 		{
-			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--int-slice", "-3"},
 		},
 		{
-			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--int16", "-3"},
 		},
 		{
-			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--float32", "-3.2"},
 		},
 		{
-			// Accept arguments which start with '-' if the next character is a digit, for number options only
+			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--float32ptr", "-3.2"},
+		},
+		{
+			// Accept arguments for values that pass the IsValidValue fuction for value validators
+			args: []string{"--custom-flag", "-foo"},
+		},
+		{
+			// Accept arguments for values that pass the IsValidValue fuction for value validators
+			args: []string{"--custom-flag", "-1"},
+		},
+		{
+			// Rejects arguments for values that fail the IsValidValue fuction for value validators
+			args:        []string{"--custom-flag", "-2"},
+			expectError: true,
+			errType:     ErrExpectedArgument,
+			errMsg:      "invalid flag value",
 		},
 	}
 
 	var opts struct {
-		StringSlice []string `long:"string-slice"`
-		IntSlice    []int    `long:"int-slice"`
-		Int16       int16    `long:"int16"`
-		Float32     float32  `long:"float32"`
-		Float32Ptr  *float32 `long:"float32ptr"`
-		OtherOption bool     `long:"other-option" short:"o"`
+		StringSlice []string   `long:"string-slice"`
+		IntSlice    []int      `long:"int-slice"`
+		Int16       int16      `long:"int16"`
+		Float32     float32    `long:"float32"`
+		Float32Ptr  *float32   `long:"float32ptr"`
+		OtherOption bool       `long:"other-option" short:"o"`
+		Custom      CustomFlag `long:"custom-flag" short:"c"`
 	}
 
 	for _, test := range tests {
