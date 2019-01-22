@@ -329,7 +329,7 @@ This is a parent command option
 .SS parent sub
 A sub command
 
-\fBUsage\fP: parent [OPTIONS] sub [sub-OPTIONS]
+\fBUsage\fP: TestMan [OPTIONS] parent [parent-OPTIONS] sub [sub-OPTIONS]
 .TP
 .TP
 \fB\fB\-\-opt\fR\fP
