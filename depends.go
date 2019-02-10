@@ -1,12 +1,14 @@
 package flags
+
 import "unicode/utf8"
+
 func gatherOptions(group *Group, options *[]*Option) {
 	for _, opt := range group.options {
 		*options = append(*options, opt)
 	}
 
 	for _, child := range group.groups {
-		gatherOptions(child, options )
+		gatherOptions(child, options)
 	}
 }
 
@@ -18,7 +20,7 @@ func addDependsOption(option *Option, depends *Option) {
 	option.DependsOptions = append(option.DependsOptions, depends)
 }
 func verifyDependencies(p *Parser) error {
-	options := make([]*Option, 0 )
+	options := make([]*Option, 0)
 	gatherOptions(p.groups[0], &options)
 
 	for _, option := range options {
