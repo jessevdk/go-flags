@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -251,5 +252,21 @@ func TestFindOptionByShortFlagInSubGroup(t *testing.T) {
 
 	if opt.ShortName != 't' {
 		t.Errorf("Expected 't', but got %v", opt.ShortName)
+	}
+}
+
+func TestAddOptionNonOptional(t *testing.T) {
+	var opts struct {
+		Test bool
+	}
+	p := NewParser(&opts, Default)
+	p.AddOption(&Option{
+		LongName: "test",
+	}, reflect.ValueOf(&opts.Test))
+	_, err := p.ParseArgs([]string{"--test"})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	} else if !opts.Test {
+		t.Errorf("option not set")
 	}
 }
