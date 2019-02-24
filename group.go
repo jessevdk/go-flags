@@ -74,8 +74,8 @@ func (g *Group) AddGroup(shortDescription string, longDescription string, data i
 }
 
 // AddOption adds a new option to this group.
-func (g *Group) AddOption(option *Option, value reflect.Value) {
-	option.value = value
+func (g *Group) AddOption(option *Option, data interface{}) {
+	option.value = reflect.ValueOf(data)
 	option.group = g
 	g.options = append(g.options, option)
 }

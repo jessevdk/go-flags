@@ -1,7 +1,6 @@
 package flags
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -262,7 +261,7 @@ func TestAddOptionNonOptional(t *testing.T) {
 	p := NewParser(&opts, Default)
 	p.AddOption(&Option{
 		LongName: "test",
-	}, reflect.ValueOf(&opts.Test))
+	}, &opts.Test)
 	_, err := p.ParseArgs([]string{"--test"})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
