@@ -572,7 +572,7 @@ func (i *IniParser) parse(ini *ini) error {
 				}
 			}
 
-			if err := opt.set(pval); err != nil {
+			if err := opt.Set(pval); err != nil {
 				return &IniError{
 					Message:    err.Error(),
 					File:       ini.File,
