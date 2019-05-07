@@ -526,7 +526,13 @@ func (i *IniParser) parse(ini *ini) error {
 			}
 
 			if opt == nil {
-				if (p.Options & IgnoreUnknown) == None {
+				if (p.Options&IniUnknownOptionHandler) != None && p.UnknownOptionHandler != nil {
+					_, err := p.UnknownOptionHandler(inival.Name, strArgument{&inival.Value}, nil)
+
+					if err != nil {
+						return err
+					}
+				} else if (p.Options & IgnoreUnknown) == None {
 					return &IniError{
 						Message:    fmt.Sprintf("unknown option: %s", inival.Name),
 						File:       ini.File,

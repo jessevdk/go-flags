@@ -1051,3 +1051,76 @@ func TestIniOverwriteOptions(t *testing.T) {
 
 	}
 }
+
+func TestIniUnknownFlagHandler(t *testing.T) {
+	var opts struct {
+		Flag1 string `long:"flag1"`
+		Flag2 string `long:"flag2"`
+	}
+
+	p := NewNamedParser("TestIni", IniUnknownOptionHandler)
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	inip := NewIniParser(p)
+
+	inic := `
+flag1  = stuff
+unknownFlag1 = blah
+unknownFlag2 =
+unknownFlag3 = baz
+flag2  = foo
+`
+	var unknownFlag1 string
+	var unknownFlag2 bool
+	var unknownFlag3 string
+
+	// Set up a callback to intercept unknown options during parsing
+	p.UnknownOptionHandler = func(option string, arg SplitArgument, args []string) ([]string, error) {
+		if option == "unknownFlag1" {
+			if argValue, ok := arg.Value(); ok {
+				unknownFlag1 = argValue
+				return args, nil
+			}
+		} else if option == "unknownFlag2" {
+			// treat this one as a bool switch, don't consume any args
+			unknownFlag2 = true
+			return args, nil
+		} else if option == "unknownFlag3" {
+			if argValue, ok := arg.Value(); ok {
+				unknownFlag3 = argValue
+				return args, nil
+			}
+		}
+
+		return args, fmt.Errorf("Unknown flag: %v", option)
+	}
+
+	b := strings.NewReader(inic)
+	err := inip.Parse(b)
+
+	if err != nil {
+		assertErrorf(t, "Parser returned unexpected error %v", err)
+	}
+
+	assertString(t, opts.Flag1, "stuff")
+	assertString(t, opts.Flag2, "foo")
+	assertString(t, unknownFlag1, "blah")
+	assertString(t, unknownFlag3, "baz")
+
+	if !unknownFlag2 {
+		assertErrorf(t, "Flag should have been set by unknown handler, but had value: %v", unknownFlag2)
+	}
+
+	// Parse args with unknown flags that callback doesn't handle, verify it returns error
+	inic = `
+flag1  = stuff
+unknownFlagX = blah
+flag2  = foo
+`
+	b = strings.NewReader(inic)
+	err = inip.Parse(b)
+
+	if err == nil {
+		assertErrorf(t, "Parser should have returned error, but returned nil")
+	}
+}

@@ -112,6 +112,15 @@ const (
 	// POSIX processing.
 	PassAfterNonOption
 
+	// IniUnknownOptionHandler invokes the UnknownOptionHandler when an unknown
+	// ini option is parsed. When UnknownOptionHandler is invoked with an unknown
+	// ini option, the function will recieve the ini option name, the ini value
+	// as a SplitArgument and the last argment will always be nil. With this
+	// option is specified, you must ensure your UnknownOptionHandler can handle
+	// both a slice of remaining arguments, as used with an unknown argument, and
+	// nil, as used with an unknown ini option.
+	IniUnknownOptionHandler
+
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
 	Default = HelpFlag | PrintErrors | PassDoubleDash
