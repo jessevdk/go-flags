@@ -16,3 +16,5 @@ echo '# freebsd'
 GOARCH=amd64 GOOS=freebsd go build
 echo '# aix ppc64'
 GOARCH=ppc64 GOOS=aix go build
+echo '# solaris amd64'
+GOARCH=amd64 GOOS=solaris go build
