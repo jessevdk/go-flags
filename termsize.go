@@ -1,4 +1,4 @@
-// +build !windows,!plan9,!solaris,!appengine,!wasm
+// +build !safe,!windows,!plan9,!solaris,!appengine,!wasm
 
 package flags
 
