@@ -249,16 +249,16 @@ func (option *Option) set(value *string) error {
 	option.preventDefault = true
 
 	if len(option.Choices) != 0 {
-		found := false
+		foundIndex := -1
 
-		for _, choice := range option.Choices {
+		for i, choice := range option.Choices {
 			if choice == *value {
-				found = true
+				foundIndex = i
 				break
 			}
 		}
 
-		if !found {
+		if foundIndex < 0 {
 			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
 
 			if len(option.Choices) > 1 {
@@ -268,6 +268,12 @@ func (option *Option) set(value *string) error {
 			return newErrorf(ErrInvalidChoice,
 				"Invalid value `%s' for option `%s'. Allowed values are: %s",
 				*value, option, allowed)
+		} else if option.isSignedNumber() {
+			option.value.SetInt(int64(foundIndex))
+			return nil
+		} else if option.isUnsignedNumber() {
+			option.value.SetUint(uint64(foundIndex))
+			return nil
 		}
 	}
 
@@ -438,6 +444,21 @@ func (option *Option) isSignedNumber() bool {
 		case reflect.Slice, reflect.Ptr:
 			tp = tp.Elem()
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64:
+			return true
+		default:
+			return false
+		}
+	}
+}
+
+func (option *Option) isUnsignedNumber() bool {
+	tp := option.value.Type()
+
+	for {
+		switch tp.Kind() {
+		case reflect.Slice, reflect.Ptr:
+			tp = tp.Elem()
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			return true
 		default:
 			return false

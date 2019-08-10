@@ -564,6 +564,49 @@ func TestChoices(t *testing.T) {
 	assertString(t, opts.Choice, "v2")
 }
 
+func TestChoicesBySignedIndex(t *testing.T) {
+	var opts struct {
+		Choice int `long:"choose" choice:"v1" choice:"v2"`
+	}
+
+	assertParseFail(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
+	assertParseSuccess(t, &opts, "--choose", "v2")
+	if opts.Choice != 1 {
+		t.Errorf("Expected Value to be 1")
+	}
+}
+
+func TestChoicesByUnsignedIndex(t *testing.T) {
+	var opts struct {
+		Choice uint `long:"choose" choice:"v1" choice:"v2"`
+	}
+
+	assertParseFail(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
+	assertParseSuccess(t, &opts, "--choose", "v2")
+	if opts.Choice != 1 {
+		t.Errorf("Expected Value to be 1")
+	}
+}
+
+type choiceType int
+
+const (
+	vee1 choiceType = iota
+	vee2
+)
+
+func TestChoicesBySignedIndexEnum(t *testing.T) {
+	var opts struct {
+		Choice choiceType `long:"choose" choice:"v1" choice:"v2"`
+	}
+
+	assertParseFail(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
+	assertParseSuccess(t, &opts, "--choose", "v2")
+	if opts.Choice != vee2 {
+		t.Errorf("Expected Value to be vee2")
+	}
+}
+
 func TestEmbedded(t *testing.T) {
 	type embedded struct {
 		V bool `short:"v"`
