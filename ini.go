@@ -498,7 +498,9 @@ func (i *IniParser) matchingGroups(name string) []*Group {
 
 func (i *IniParser) parse(ini *ini) error {
 	p := i.parser
-
+	p.eachOption(func(c *Command, g *Group, o *Option) {
+		o.isProcessingIni = true
+	})
 	var quotesLookup = make(map[*Option]bool)
 
 	for name, section := range ini.Sections {
@@ -579,6 +581,7 @@ func (i *IniParser) parse(ini *ini) error {
 					LineNumber: inival.LineNumber,
 				}
 			}
+			opt.setFromIni = true
 
 			// either all INI values are quoted or only values who need quoting
 			if _, ok := quotesLookup[opt]; !inival.Quoted || !ok {

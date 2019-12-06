@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -207,7 +208,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	p.eachOption(func(c *Command, g *Group, option *Option) {
-		option.isSet = false
+		option.isProcessingIni = false
+		if !(option.value.Kind() == reflect.Slice || option.value.Kind() == reflect.Map) {
+			option.isSet = false
+		}
 		option.isSetDefault = false
 		option.updateDefaultLiteral()
 	})

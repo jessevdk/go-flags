@@ -257,6 +257,31 @@ EnvDefault2 = env-def
 	}
 }
 
+func TestIniRequiredSlice_ShouldNotNeedToBeSpecifiedOnCli(t *testing.T) {
+	type options struct {
+		Items []string `long:"item" required:"true"`
+	}
+	var opts options
+	ini := `
+[Application Options]
+item=abc`
+	args := []string{}
+
+	parser := NewParser(&opts, Default)
+	inip := NewIniParser(parser)
+
+	inip.Parse(strings.NewReader(ini))
+	inip.ParseAsDefaults = false
+	_, err := parser.ParseArgs(args)
+	if err != nil {
+		t.Fatalf("Unexpected failure: %v", err)
+	}
+	if opts.Items[0] != "abc" {
+		t.Fatalf("Expected first option to be abc, but was %v", opts.Items[0])
+	}
+
+}
+
 func TestReadIni_flagEquivalent(t *testing.T) {
 	type options struct {
 		Opt1 bool `long:"opt1"`

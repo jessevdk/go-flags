@@ -86,6 +86,9 @@ type Option struct {
 	preventDefault bool
 
 	defaultLiteral string
+
+	isProcessingIni bool
+	setFromIni      bool
 }
 
 // LongNameWithNamespace returns the option's long name with the group namespaces
@@ -241,8 +244,9 @@ func (option *Option) IsSetDefault() bool {
 func (option *Option) set(value *string) error {
 	kind := option.value.Type().Kind()
 
-	if (kind == reflect.Map || kind == reflect.Slice) && !option.isSet {
+	if (kind == reflect.Map || kind == reflect.Slice) && (!option.isSet || (!option.isProcessingIni && option.setFromIni)) {
 		option.empty()
+		option.setFromIni = false
 	}
 
 	option.isSet = true
