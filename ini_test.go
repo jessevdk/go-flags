@@ -49,6 +49,9 @@ int-map = b:3
 verbose = true
 verbose = true
 
+; Call phone number
+call =
+
 ; A slice of pointers to string
 ; PtrSlice =
 
@@ -113,6 +116,9 @@ Opt =
 ; Show verbose debug information
 ; verbose =
 
+; Call phone number
+; call =
+
 ; A slice of pointers to string
 ; PtrSlice =
 
@@ -175,6 +181,9 @@ EnvDefault2 = env-def
 			`[Application Options]
 ; Show verbose debug information
 ; verbose =
+
+; Call phone number
+; call =
 
 ; A slice of pointers to string
 ; PtrSlice =
