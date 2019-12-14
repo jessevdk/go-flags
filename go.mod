@@ -1,3 +1,3 @@
-module github.com/jessevdk/go-flags
+module github.com/umputun/go-flags
 
 go 1.12
