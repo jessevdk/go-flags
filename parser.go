@@ -314,7 +314,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 				return
 			}
 
-			option.clearDefault()
+			err := option.clearDefault()
+			if err != nil {
+				s.err = err
+			}
 		})
 
 		s.checkRequired(p)
