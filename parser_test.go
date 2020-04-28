@@ -358,7 +358,7 @@ func TestEnvDefaults(t *testing.T) {
 		for envKey, envValue := range test.env {
 			os.Setenv(envKey, envValue)
 		}
-		_, err := ParseArgs(&opts, test.args)
+		_, err := NewParser(&opts, None).ParseArgs(test.args)
 		if test.expectedErr != "" {
 			if err == nil {
 				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)

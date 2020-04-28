@@ -316,6 +316,12 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 			err := option.clearDefault()
 			if err != nil {
+				if _, ok := err.(*Error); !ok {
+					err = newErrorf(ErrMarshal, "invalid argument for flag `%s' (expected %s): %s",
+						option,
+						option.value.Type(),
+						err.Error())
+				}
 				s.err = err
 			}
 		})
