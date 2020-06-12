@@ -30,6 +30,9 @@ type Command struct {
 	// Whether positional arguments are required
 	ArgsRequired bool
 
+	// Parser Options
+	ParserOptions Options
+
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 	args                []*Arg
@@ -66,7 +69,7 @@ type lookup struct {
 // options are in the command. The provided data can implement the Command and
 // Usage interfaces.
 func (c *Command) AddCommand(command string, shortDescription string, longDescription string, data interface{}) (*Command, error) {
-	cmd := newCommand(command, shortDescription, longDescription, data)
+	cmd := newCommand(command, shortDescription, longDescription, data, c.ParserOptions)
 
 	cmd.parent = c
 
@@ -85,6 +88,7 @@ func (c *Command) AddGroup(shortDescription string, longDescription string, data
 	group := newGroup(shortDescription, longDescription, data)
 
 	group.parent = c
+	group.ParserOptions = c.ParserOptions
 
 	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
 		return nil, err
@@ -145,10 +149,11 @@ func (c *Command) Args() []*Arg {
 	return ret
 }
 
-func newCommand(name string, shortDescription string, longDescription string, data interface{}) *Command {
+func newCommand(name string, shortDescription string, longDescription string, data interface{}, parserOptions Options) *Command {
 	return &Command{
-		Group: newGroup(shortDescription, longDescription, data),
-		Name:  name,
+		Group:         newGroup(shortDescription, longDescription, data),
+		Name:          name,
+		ParserOptions: parserOptions,
 	}
 }
 

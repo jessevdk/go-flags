@@ -112,9 +112,21 @@ const (
 	// POSIX processing.
 	PassAfterNonOption
 
+	// AutoGenerateLong if long is not specified as an option it will be
+	// auto generated based on the struct field name
+	AutoGenerateLong
+
+	// AutoGenerateEnv if env is not specified as an option it will be
+	// auto generated based on the struct field name
+	AutoGenerateEnv
+
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
 	Default = HelpFlag | PrintErrors | PassDoubleDash
+
+	// Auto is a conenient value that combines Default with the auto
+	// generating flags
+	Auto = Default | AutoGenerateLong | AutoGenerateEnv
 )
 
 type parseState struct {
@@ -173,7 +185,7 @@ func NewParser(data interface{}, options Options) *Parser {
 // be added to this parser by using AddGroup and AddCommand.
 func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
-		Command:               newCommand(appname, "", "", nil),
+		Command:               newCommand(appname, "", "", nil, options),
 		Options:               options,
 		NamespaceDelimiter:    ".",
 		EnvNamespaceDelimiter: "_",
