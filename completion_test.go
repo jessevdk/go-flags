@@ -68,6 +68,9 @@ var completionTestOptions struct {
 	RenameCommand struct {
 		Completed TestComplete `short:"c" long:"completed"`
 	} `command:"rename" description:"rename an item"`
+
+	HiddenCommand struct {
+	} `command:"hidden" description:"hidden command" hidden:"true"`
 }
 
 type completionTest struct {
