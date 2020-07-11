@@ -67,6 +67,13 @@ type helpOptions struct {
 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
 	} `command:"hidden-command" description:"A hidden command" hidden:"yes"`
 
+	ParentCommand struct {
+		Opt        string `long:"opt" description:"This is a parent command option"`
+		SubCommand struct {
+			Opt string `long:"opt" description:"This is a sub command option"`
+		} `command:"sub" description:"A sub command"`
+	} `command:"parent" description:"A parent command"`
+
 	Args struct {
 		Filename     string  `positional-arg-name:"filename" description:"A filename with a long description to trigger line wrapping"`
 		Number       int     `positional-arg-name:"num" description:"A number"`
@@ -100,7 +107,7 @@ func TestHelp(t *testing.T) {
 
 		if runtime.GOOS == "windows" {
 			expected = `Usage:
-  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command>
+  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command | parent>
 
 Application Options:
   /v, /verbose                              Show verbose debug information
@@ -145,10 +152,11 @@ Arguments:
 Available commands:
   bommand  A command with only hidden options
   command  A command (aliases: cm, cmd)
+  parent   A command with a sub command
 `
 		} else {
 			expected = `Usage:
-  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command>
+  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command | parent>
 
 Application Options:
   -v, --verbose                             Show verbose debug information
@@ -192,6 +200,7 @@ Arguments:
 Available commands:
   bommand  A command with only hidden options
   command  A command (aliases: cm, cmd)
+  parent   A parent command
 `
 		}
 
@@ -307,6 +316,24 @@ Longer \fBcommand\fP description
 .TP
 \fB\fB\-\-extra-verbose\fR\fP
 Use for extra verbosity
+.SS parent
+A parent command
+
+Longer \fBparent\fP description
+
+\fBUsage\fP: TestMan [OPTIONS] parent [parent-OPTIONS]
+.TP
+.TP
+\fB\fB\-\-opt\fR\fP
+This is a parent command option
+.SS parent sub
+A sub command
+
+\fBUsage\fP: TestMan [OPTIONS] parent [parent-OPTIONS] sub [sub-OPTIONS]
+.TP
+.TP
+\fB\fB\-\-opt\fR\fP
+This is a sub command option
 `, tt.Format("2 January 2006"), envDefaultName)
 
 	assertDiff(t, got, expected, "man page")

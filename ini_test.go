@@ -104,6 +104,14 @@ Opt =
 ; Use for extra verbosity
 ; ExtraVerbose =
 
+[parent]
+; This is a parent command option
+Opt =
+
+[parent.sub]
+; This is a sub command option
+Opt =
+
 `,
 		},
 		{
@@ -167,6 +175,14 @@ EnvDefault2 = env-def
 ; Use for extra verbosity
 ; ExtraVerbose =
 
+[parent]
+; This is a parent command option
+; Opt =
+
+[parent.sub]
+; This is a sub command option
+; Opt =
+
 `,
 		},
 		{
@@ -227,6 +243,38 @@ EnvDefault2 = env-def
 [command]
 ; Use for extra verbosity
 ; ExtraVerbose =
+
+[parent]
+; This is a parent command option
+; Opt =
+
+[parent.sub]
+; This is a sub command option
+; Opt =
+
+`,
+		},
+		{
+			[]string{"-vv", "filename", "0", "3.14", "parent", "--opt=p", "sub", "--opt=s"},
+			IniDefault,
+			`[Application Options]
+; Show verbose debug information
+verbose = true
+verbose = true
+
+; Test env-default1 value
+EnvDefault1 = env-def
+
+; Test env-default2 value
+EnvDefault2 = env-def
+
+[parent]
+; This is a parent command option
+Opt = p
+
+[parent.sub]
+; This is a sub command option
+Opt = s
 
 `,
 		},

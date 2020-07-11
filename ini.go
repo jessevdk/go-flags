@@ -325,19 +325,19 @@ func writeCommandIni(command *Command, namespace string, writer io.Writer, optio
 	})
 
 	for _, c := range command.commands {
-		var nns string
+		var fqn string
 
 		if c.Hidden {
 			continue
 		}
 
 		if len(namespace) != 0 {
-			nns = c.Name + "." + nns
+			fqn = namespace + "." + c.Name
 		} else {
-			nns = c.Name
+			fqn = c.Name
 		}
 
-		writeCommandIni(c, nns, writer, options)
+		writeCommandIni(c, fqn, writer, options)
 	}
 }
 

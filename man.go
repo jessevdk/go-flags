@@ -107,7 +107,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 	})
 }
 
-func writeManPageSubcommands(wr io.Writer, name string, root *Command) {
+func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, root *Command) {
 	commands := root.sortedVisibleCommands()
 
 	for _, c := range commands {
@@ -123,11 +123,11 @@ func writeManPageSubcommands(wr io.Writer, name string, root *Command) {
 			nn = c.Name
 		}
 
-		writeManPageCommand(wr, nn, root, c)
+		writeManPageCommand(wr, nn, usagePrefix, c)
 	}
 }
 
-func writeManPageCommand(wr io.Writer, name string, root *Command, command *Command) {
+func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command *Command) {
 	fmt.Fprintf(wr, ".SS %s\n", name)
 	fmt.Fprintln(wr, command.ShortDescription)
 
@@ -147,6 +147,8 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 		}
 	}
 
+	var pre = usagePrefix + " " + command.Name
+
 	var usage string
 	if us, ok := command.data.(Usage); ok {
 		usage = us.Usage()
@@ -154,15 +156,10 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 		usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
 	}
 
-	var pre string
-	if root.hasHelpOptions() {
-		pre = fmt.Sprintf("%s [OPTIONS] %s", root.Name, command.Name)
-	} else {
-		pre = fmt.Sprintf("%s %s", root.Name, command.Name)
-	}
-
+	var nextPrefix = pre
 	if len(usage) > 0 {
 		fmt.Fprintf(wr, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
+		nextPrefix = pre + " " + usage
 	}
 
 	if len(command.Aliases) > 0 {
@@ -170,7 +167,7 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 	}
 
 	writeManPageOptions(wr, command.Group)
-	writeManPageSubcommands(wr, name, command)
+	writeManPageSubcommands(wr, name, nextPrefix, command)
 }
 
 // WriteManPage writes a basic man page in groff format to the specified
@@ -210,6 +207,6 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 	if len(p.visibleCommands()) > 0 {
 		fmt.Fprintln(wr, ".SH COMMANDS")
 
-		writeManPageSubcommands(wr, "", p.Command)
+		writeManPageSubcommands(wr, "", p.Name+" "+usage, p.Command)
 	}
 }
