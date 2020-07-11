@@ -260,10 +260,11 @@ type envDefaultOptions struct {
 
 func TestEnvDefaults(t *testing.T) {
 	var tests = []struct {
-		msg      string
-		args     []string
-		expected envDefaultOptions
-		env      map[string]string
+		msg         string
+		args        []string
+		expected    envDefaultOptions
+		expectedErr string
+		env         map[string]string
 	}{
 		{
 			msg:  "no arguments, no env, expecting default values",
@@ -296,6 +297,14 @@ func TestEnvDefaults(t *testing.T) {
 				"TEST_M":     "a:2;b:3",
 				"TEST_S":     "4,5,6",
 				"NESTED_FOO": "a",
+			},
+		},
+		{
+			msg:         "no arguments, malformed env defaults, expecting parse error",
+			args:        []string{},
+			expectedErr: `parsing "two": invalid syntax`,
+			env: map[string]string{
+				"TEST_I": "two",
 			},
 		},
 		{
@@ -349,17 +358,25 @@ func TestEnvDefaults(t *testing.T) {
 		for envKey, envValue := range test.env {
 			os.Setenv(envKey, envValue)
 		}
-		_, err := ParseArgs(&opts, test.args)
-		if err != nil {
-			t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
-		}
+		_, err := NewParser(&opts, None).ParseArgs(test.args)
+		if test.expectedErr != "" {
+			if err == nil {
+				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)
+			} else if !strings.Contains(err.Error(), test.expectedErr) {
+				t.Errorf("%s:\nExpected error %q to contain substring %q", test.msg, err, test.expectedErr)
+			}
+		} else {
+			if err != nil {
+				t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
+			}
 
-		if opts.Slice == nil {
-			opts.Slice = []int{}
-		}
+			if opts.Slice == nil {
+				opts.Slice = []int{}
+			}
 
-		if !reflect.DeepEqual(opts, test.expected) {
-			t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
+			if !reflect.DeepEqual(opts, test.expected) {
+				t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
+			}
 		}
 	}
 }

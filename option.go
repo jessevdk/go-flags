@@ -308,7 +308,7 @@ func (option *Option) empty() {
 	}
 }
 
-func (option *Option) clearDefault() {
+func (option *Option) clearDefault() error {
 	usedDefault := option.Default
 
 	if envKey := option.EnvKeyWithNamespace(); envKey != "" {
@@ -327,7 +327,10 @@ func (option *Option) clearDefault() {
 		option.empty()
 
 		for _, d := range usedDefault {
-			option.set(&d)
+			err := option.set(&d)
+			if err != nil {
+				return err
+			}
 			option.isSetDefault = true
 		}
 	} else {
@@ -344,6 +347,8 @@ func (option *Option) clearDefault() {
 			}
 		}
 	}
+
+	return nil
 }
 
 func (option *Option) valueIsDefault() bool {
