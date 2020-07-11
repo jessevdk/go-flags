@@ -1,4 +1,4 @@
-// +build plan9 solaris appengine wasm
+// +build plan9 appengine wasm
 
 package flags
 
