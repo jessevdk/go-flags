@@ -253,3 +253,19 @@ func TestFindOptionByShortFlagInSubGroup(t *testing.T) {
 		t.Errorf("Expected 't', but got %v", opt.ShortName)
 	}
 }
+
+func TestAddOptionNonOptional(t *testing.T) {
+	var opts struct {
+		Test bool
+	}
+	p := NewParser(&opts, Default)
+	p.AddOption(&Option{
+		LongName: "test",
+	}, &opts.Test)
+	_, err := p.ParseArgs([]string{"--test"})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	} else if !opts.Test {
+		t.Errorf("option not set")
+	}
+}

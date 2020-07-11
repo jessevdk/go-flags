@@ -73,6 +73,13 @@ func (g *Group) AddGroup(shortDescription string, longDescription string, data i
 	return group, nil
 }
 
+// AddOption adds a new option to this group.
+func (g *Group) AddOption(option *Option, data interface{}) {
+	option.value = reflect.ValueOf(data)
+	option.group = g
+	g.options = append(g.options, option)
+}
+
 // Groups returns the list of groups embedded in this group.
 func (g *Group) Groups() []*Group {
 	return g.groups
