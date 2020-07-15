@@ -334,7 +334,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 				}
 
 				if !allcmd.ArgsRequired {
-					fmt.Fprintf(wr, "[%s]", name)
+					if arg.Required > 0 {
+						fmt.Fprintf(wr, "%s", name)
+				    } else {
+						fmt.Fprintf(wr, "[%s]", name)
+				    }
 				} else {
 					fmt.Fprintf(wr, "%s", name)
 				}
