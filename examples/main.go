@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/jessevdk/go-flags"
 )
 
 type EditorOptions struct {
@@ -66,7 +67,7 @@ type Options struct {
 
 var options Options
 
-var parser = flags.NewParser(&options, flags.Default)
+var parser = flags.NewParser(&options, flags.Default).WithNamespaceDelimiter("_")
 
 func main() {
 	if _, err := parser.Parse(); err != nil {
