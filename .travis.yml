@@ -11,12 +11,15 @@ go:
   - 1.x
   - 1.9.x
   - 1.10.x
+  - tip
   
 ###to Exclude failed test cases
-matrix:
-	  allow_failures:
-	    - go: 1.9.x
-        - go: 1.10.x
+matrix: 
+   allow_failures:
+    - go: 1.9.x
+    - go: 1.10.x
+   
+
         
 
 install:
