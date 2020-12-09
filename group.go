@@ -135,6 +135,11 @@ func (g *Group) FindOptionByShortName(shortName rune) *Option {
 	})
 }
 
+// AddOption adds a new option to this group.
+func (g *Group) AddOption(option *Option) {
+	g.options = append(g.options, option)
+}
+
 func newGroup(shortDescription string, longDescription string, data interface{}) *Group {
 	return &Group{
 		ShortDescription: shortDescription,
