@@ -525,7 +525,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 			return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)
 		}
 
-		err = option.set(nil)
+		err = option.Set(nil)
 	} else if argument != nil || (canarg && !s.eof()) {
 		var arg string
 
@@ -546,13 +546,13 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		}
 
 		if err == nil {
-			err = option.set(&arg)
+			err = option.Set(&arg)
 		}
 	} else if option.OptionalArgument {
 		option.empty()
 
 		for _, v := range option.OptionalValue {
-			err = option.set(&v)
+			err = option.Set(&v)
 
 			if err != nil {
 				break

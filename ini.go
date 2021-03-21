@@ -584,7 +584,7 @@ func (i *IniParser) parse(ini *ini) error {
 			if i.ParseAsDefaults {
 				err = opt.setDefault(pval)
 			} else {
-				err = opt.set(pval)
+				err = opt.Set(pval)
 			}
 
 			if err != nil {
