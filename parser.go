@@ -311,10 +311,6 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 	if s.err == nil {
 		p.eachOption(func(c *Command, g *Group, option *Option) {
-			if option.preventDefault {
-				return
-			}
-
 			err := option.clearDefault()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {

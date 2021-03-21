@@ -280,6 +280,17 @@ func (option *Option) set(value *string) error {
 	return convert("", option.value, option.tag)
 }
 
+func (option *Option) setDefault(value *string) error {
+	if err := option.set(value); err != nil {
+		return err
+	}
+
+	option.isSetDefault = true
+	option.preventDefault = false
+
+	return nil
+}
+
 func (option *Option) showInHelp() bool {
 	return !option.Hidden && (option.ShortName != 0 || len(option.LongName) != 0)
 }
@@ -309,6 +320,10 @@ func (option *Option) empty() {
 }
 
 func (option *Option) clearDefault() error {
+	if option.preventDefault {
+		return nil
+	}
+
 	usedDefault := option.Default
 
 	if envKey := option.EnvKeyWithNamespace(); envKey != "" {
@@ -327,11 +342,11 @@ func (option *Option) clearDefault() error {
 		option.empty()
 
 		for _, d := range usedDefault {
-			err := option.set(&d)
+			err := option.setDefault(&d)
+
 			if err != nil {
 				return err
 			}
-			option.isSetDefault = true
 		}
 	} else {
 		tp := option.value.Type()
