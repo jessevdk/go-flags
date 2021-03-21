@@ -4,6 +4,10 @@ os:
   - linux
   - osx
 
+arch:
+    - amd64
+    - ppc64le
+
 go:
   - 1.16.x
 
