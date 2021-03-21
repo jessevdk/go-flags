@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -317,10 +318,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			err := option.clearDefault()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {
-					err = newErrorf(ErrMarshal, "invalid argument for flag `%s' (expected %s): %s",
-						option,
-						option.value.Type(),
-						err.Error())
+					err = p.marshalError(option, err)
 				}
 				s.err = err
 			}
@@ -571,14 +569,35 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 
 	if err != nil {
 		if _, ok := err.(*Error); !ok {
-			err = newErrorf(ErrMarshal, "invalid argument for flag `%s' (expected %s): %s",
-				option,
-				option.value.Type(),
-				err.Error())
+			err = p.marshalError(option, err)
 		}
 	}
 
 	return err
+}
+
+func (p *Parser) marshalError(option *Option, err error) *Error {
+	s := "invalid argument for flag `%s'"
+
+	expected := p.expectedType(option)
+
+	if expected != "" {
+		s = s + " (expected " + expected + ")"
+	}
+
+	return newErrorf(ErrMarshal, s+": %s",
+		option,
+		err.Error())
+}
+
+func (p *Parser) expectedType(option *Option) string {
+	valueType := option.value.Type()
+
+	if valueType.Kind() == reflect.Func {
+		return ""
+	}
+
+	return valueType.String()
 }
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
