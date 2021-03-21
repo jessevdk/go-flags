@@ -69,10 +69,16 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		ret.terminalColumns = 80
 	}
 
+	isCmd := map[*Group]bool{}
+	p.eachCommand(func(cmd *Command) {
+		// TODO: have (*Command).showInHelp() to consider hidden vs active
+		isCmd[cmd.Group] = true
+	}, true)
+
 	var prevcmd *Command
 
 	p.eachActiveGroup(func(c *Command, grp *Group) {
-		if !grp.showInHelp() {
+		if !(isCmd[grp] || grp.showInHelp()) {
 			return
 		}
 		if c != prevcmd {

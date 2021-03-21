@@ -606,3 +606,15 @@ func TestWroteHelp(t *testing.T) {
 		})
 	}
 }
+
+func TestOnlyPositional(t *testing.T) {
+	type options struct {
+		Positional struct {
+			Bar string `description:"bar"`
+		} `positional-args:"yes"`
+	}
+
+	var buf bytes.Buffer
+	NewParser(&options{}, 0).WriteHelp(&buf)
+	// just checking for no panic, at this point
+}
