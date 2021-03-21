@@ -590,10 +590,10 @@ func TestWroteHelp(t *testing.T) {
 		isHelp bool
 	}
 	tests := map[string]testInfo{
-		"No error":    testInfo{value: nil, isHelp: false},
-		"Plain error": testInfo{value: errors.New("an error"), isHelp: false},
-		"ErrUnknown":  testInfo{value: newError(ErrUnknown, "an error"), isHelp: false},
-		"ErrHelp":     testInfo{value: newError(ErrHelp, "an error"), isHelp: true},
+		"No error":    {value: nil, isHelp: false},
+		"Plain error": {value: errors.New("an error"), isHelp: false},
+		"ErrUnknown":  {value: newError(ErrUnknown, "an error"), isHelp: false},
+		"ErrHelp":     {value: newError(ErrHelp, "an error"), isHelp: true},
 	}
 
 	for name, test := range tests {

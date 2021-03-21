@@ -82,7 +82,7 @@ func (c *completion) skipPositional(s *parseState, n int) {
 func (c *completion) completeOptionNames(s *parseState, prefix string, match string, short bool) []Completion {
 	if short && len(match) != 0 {
 		return []Completion{
-			Completion{
+			{
 				Item: prefix + match,
 			},
 		}
