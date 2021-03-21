@@ -971,6 +971,30 @@ func TestIniRequired(t *testing.T) {
 	assertString(t, opts.Required, "cli-value")
 }
 
+func TestIniRequiredSlice_ShouldNotNeedToBeSpecifiedOnCli(t *testing.T) {
+	type options struct {
+		Items []string `long:"item" required:"true"`
+	}
+	var opts options
+	ini := `
+[Application Options]
+item=abc`
+	args := []string{}
+
+	parser := NewParser(&opts, Default)
+	inip := NewIniParser(parser)
+
+	inip.Parse(strings.NewReader(ini))
+
+	_, err := parser.ParseArgs(args)
+
+	if err != nil {
+		t.Fatalf("Unexpected failure: %v", err)
+	}
+
+	assertString(t, opts.Items[0], "abc")
+}
+
 func TestWriteFile(t *testing.T) {
 	file, err := ioutil.TempFile("", "")
 	if err != nil {

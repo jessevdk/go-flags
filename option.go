@@ -80,10 +80,11 @@ type Option struct {
 	// Determines if the option will be always quoted in the INI output
 	iniQuote bool
 
-	tag            multiTag
-	isSet          bool
-	isSetDefault   bool
-	preventDefault bool
+	tag                     multiTag
+	isSet                   bool
+	isSetDefault            bool
+	preventDefault          bool
+	clearReferenceBeforeSet bool
 
 	defaultLiteral string
 }
@@ -241,12 +242,13 @@ func (option *Option) IsSetDefault() bool {
 func (option *Option) set(value *string) error {
 	kind := option.value.Type().Kind()
 
-	if (kind == reflect.Map || kind == reflect.Slice) && !option.isSet {
+	if (kind == reflect.Map || kind == reflect.Slice) && option.clearReferenceBeforeSet {
 		option.empty()
 	}
 
 	option.isSet = true
 	option.preventDefault = true
+	option.clearReferenceBeforeSet = false
 
 	if len(option.Choices) != 0 {
 		found := false
@@ -281,6 +283,10 @@ func (option *Option) set(value *string) error {
 }
 
 func (option *Option) setDefault(value *string) error {
+	if option.preventDefault {
+		return nil
+	}
+
 	if err := option.set(value); err != nil {
 		return err
 	}

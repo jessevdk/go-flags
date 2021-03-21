@@ -499,6 +499,10 @@ func (i *IniParser) matchingGroups(name string) []*Group {
 func (i *IniParser) parse(ini *ini) error {
 	p := i.parser
 
+	p.eachOption(func(cmd *Command, group *Group, option *Option) {
+		option.clearReferenceBeforeSet = true
+	})
+
 	var quotesLookup = make(map[*Option]bool)
 
 	for name, section := range ini.Sections {

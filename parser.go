@@ -208,8 +208,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	p.eachOption(func(c *Command, g *Group, option *Option) {
-		option.isSet = false
-		option.isSetDefault = false
+		option.clearReferenceBeforeSet = true
 		option.updateDefaultLiteral()
 	})
 
@@ -712,14 +711,4 @@ func (p *Parser) printError(err error) error {
 	}
 
 	return err
-}
-
-func (p *Parser) clearIsSet() {
-	p.eachCommand(func(c *Command) {
-		c.eachGroup(func(g *Group) {
-			for _, option := range g.options {
-				option.isSet = false
-			}
-		})
-	}, true)
 }
