@@ -53,7 +53,7 @@ func getBase(options multiTag, base int) (int, error) {
 
 func convertMarshal(val reflect.Value) (bool, string, error) {
 	// Check first for the Marshaler interface
-	if val.Type().NumMethod() > 0 && val.CanInterface() {
+	if val.IsValid() && val.Type().NumMethod() > 0 && val.CanInterface() {
 		if marshaler, ok := val.Interface().(Marshaler); ok {
 			ret, err := marshaler.MarshalFlag()
 			return true, ret, err
@@ -66,6 +66,10 @@ func convertMarshal(val reflect.Value) (bool, string, error) {
 func convertToString(val reflect.Value, options multiTag) (string, error) {
 	if ok, ret, err := convertMarshal(val); ok {
 		return ret, err
+	}
+
+	if !val.IsValid() {
+		return "", nil
 	}
 
 	tp := val.Type()
