@@ -216,7 +216,7 @@ func TestMan(t *testing.T) {
 	var opts helpOptions
 	p := NewNamedParser("TestMan", HelpFlag)
 	p.ShortDescription = "Test manpage generation"
-	p.LongDescription = "This is a somewhat `longer' description of what this does"
+	p.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
 	p.AddGroup("Application Options", "The application options", &opts)
 
 	for _, cmd := range p.Commands() {
@@ -244,7 +244,8 @@ TestMan \- Test manpage generation
 .SH SYNOPSIS
 \fBTestMan\fP [OPTIONS]
 .SH DESCRIPTION
-This is a somewhat \fBlonger\fP description of what this does
+This is a somewhat \fBlonger\fP description of what this does.
+With multiple lines.
 .SH OPTIONS
 .SS Application Options
 The application options
