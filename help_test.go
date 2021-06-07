@@ -107,7 +107,7 @@ func TestHelp(t *testing.T) {
 
 		if runtime.GOOS == "windows" {
 			expected = `Usage:
-  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command | parent>
+  TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
   /v, /verbose                              Show verbose debug information
@@ -156,7 +156,7 @@ Available commands:
 `
 		} else {
 			expected = `Usage:
-  TestHelp [OPTIONS] [filename] [num] [hidden-in-help] <bommand | command | parent>
+  TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
   -v, --verbose                             Show verbose debug information
