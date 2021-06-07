@@ -7,6 +7,7 @@ package flags
 import (
 	"errors"
 	"reflect"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -15,6 +16,12 @@ import (
 // a pointer to a struct. Only pointers to structs are valid data containers
 // for options.
 var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct")
+
+// gattherRegexp used to find camel case words in the field names
+var gatherRegexp = regexp.MustCompile("([^A-Z]+|[A-Z]+[^A-Z0-9]+|[A-Z]+|[0-9]+)")
+
+// acronymRegexp used to identify acronyms in the field names
+var acronymRegexp = regexp.MustCompile("([A-Z]+)([A-Z][^A-Z]+)")
 
 // Group represents an option group. Option groups can be used to logically
 // group options together under a description. Groups are only used to provide
@@ -40,6 +47,9 @@ type Group struct {
 	// If true, the group is not displayed in the help or man page
 	Hidden bool
 
+	// Pay forward the parser options
+	ParserOptions Options
+
 	// The parent of the group or nil if it has no parent
 	parent interface{}
 
@@ -57,6 +67,29 @@ type Group struct {
 
 type scanHandler func(reflect.Value, *reflect.StructField) (bool, error)
 
+func splitWords(name, sep string) string {
+
+	// If already split then accept it
+	if strings.Index(name, "_") != -1 {
+		return name
+	}
+
+	words := gatherRegexp.FindAllStringSubmatch(name, -1)
+	if len(words) == 0 {
+		return name
+	}
+
+	var key []string
+	for _, words := range words {
+		if m := acronymRegexp.FindStringSubmatch(words[0]); len(m) == 3 {
+			key = append(key, m[1], m[2])
+		} else {
+			key = append(key, words[0])
+		}
+	}
+	return strings.Join(key, sep)
+}
+
 // AddGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
@@ -64,6 +97,7 @@ func (g *Group) AddGroup(shortDescription string, longDescription string, data i
 	group := newGroup(shortDescription, longDescription, data)
 
 	group.parent = g
+	group.ParserOptions = g.ParserOptions
 
 	if err := group.scan(); err != nil {
 		return nil, err
@@ -256,6 +290,10 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		longname := mtag.Get("long")
 		shortname := mtag.Get("short")
 
+		if longname == "" && g.ParserOptions&AutoGenerateLong != 0 {
+			longname = strings.ToLower(splitWords(field.Name, "_"))
+		}
+
 		// Need at least either a short or long name
 		if longname == "" && shortname == "" && mtag.Get("ini-name") == "" {
 			continue
@@ -284,13 +322,17 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		required := !isStringFalsy(mtag.Get("required"))
 		choices := mtag.GetMany("choice")
 		hidden := !isStringFalsy(mtag.Get("hidden"))
+		env := mtag.Get("env")
+		if env == "" && g.ParserOptions&AutoGenerateEnv != 0 {
+			env = strings.ToUpper(longname)
+		}
 
 		option := &Option{
 			Description:      description,
 			ShortName:        short,
 			LongName:         longname,
 			Default:          def,
-			EnvDefaultKey:    mtag.Get("env"),
+			EnvDefaultKey:    env,
 			EnvDefaultDelim:  mtag.Get("env-delim"),
 			OptionalArgument: optional,
 			OptionalValue:    optionalValue,
