@@ -58,6 +58,9 @@ const (
 
 	// ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
 	ErrInvalidTag
+
+	// ErrDependent indicates that dependent parameter was not specified
+	ErrDependent
 )
 
 func (e ErrorType) String() string {
@@ -92,6 +95,8 @@ func (e ErrorType) String() string {
 		return "invalid choice"
 	case ErrInvalidTag:
 		return "invalid tag"
+	case ErrDependent:
+		return "dependent parameter not specified"
 	}
 
 	return "unrecognized error type"

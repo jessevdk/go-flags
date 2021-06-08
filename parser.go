@@ -166,6 +166,11 @@ func NewParser(data interface{}, options Options) *Parser {
 		p.internalError = err
 	}
 
+	// if there was no error, check for dependent options
+	if nil == p.internalError {
+		p.internalError = verifyDependencies(p)
+	}
+
 	return p
 }
 
@@ -320,6 +325,8 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		})
 
 		s.checkRequired(p)
+
+		s.checkDependent(p)
 	}
 
 	var reterr error
@@ -374,6 +381,42 @@ func (p *parseState) peek() string {
 	}
 
 	return p.args[0]
+}
+
+func (p *parseState) checkDependent(parser *Parser) error {
+	c := parser.Command
+
+	missing := false
+
+	for c != nil {
+		c.eachGroup(func(g *Group) {
+			for _, option := range g.options {
+				if option.isSet && !option.isSetDefault {
+					required := ""
+					for _, dependent := range option.DependsOptions {
+						if !dependent.isSet && !option.isSetDefault {
+							missing = true
+							required += fmt.Sprintf("%s, ", convertOptionToLog(dependent))
+						}
+					}
+
+					if 0 != len(required) {
+						required = strings.Trim(required, ", ")
+
+						fmt.Printf("argument %s specified but missing dependent argument(s): %s\n", convertOptionToLog(option), required)
+					}
+				}
+			}
+		})
+
+		c = c.Active
+	}
+
+	if missing {
+		p.err = newError(ErrDependent, "the dependent argument(s) not provided")
+	}
+
+	return p.err
 }
 
 func (p *parseState) checkRequired(parser *Parser) error {

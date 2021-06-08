@@ -284,6 +284,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		required := !isStringFalsy(mtag.Get("required"))
 		choices := mtag.GetMany("choice")
 		hidden := !isStringFalsy(mtag.Get("hidden"))
+		depends := mtag.GetMany("depends")
 
 		option := &Option{
 			Description:      description,
@@ -299,6 +300,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			DefaultMask:      defaultMask,
 			Choices:          choices,
 			Hidden:           hidden,
+			Depends:          depends,
 
 			group: g,
 
@@ -309,7 +311,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 
 		if option.isBool() && option.Default != nil {
 			return newErrorf(ErrInvalidTag,
-				"boolean flag `%s' may not have default values, they always default to `false' and can only be turned on",
+				"boolean flag '%s' may not have default values, they always default to `false' and can only be turned on",
 				option.shortAndLongName())
 		}
 
