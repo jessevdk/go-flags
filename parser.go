@@ -673,22 +673,19 @@ func (p *parseState) addArgs(args ...string) error {
 }
 
 func (p *Parser) parseNonOption(s *parseState) error {
-	if len(s.positional) > 0 {
-		return s.addArgs(s.arg)
-	}
-
 	if len(s.command.commands) > 0 && len(s.retargs) == 0 {
 		if cmd := s.lookup.commands[s.arg]; cmd != nil {
 			s.command.Active = cmd
 			cmd.fillParseState(s)
 
 			return nil
+		} else if len(s.positional) > 0 {
+			return s.addArgs(s.arg)
 		} else if !s.command.SubcommandsOptional {
 			s.addArgs(s.arg)
 			return newErrorf(ErrUnknownCommand, "Unknown command `%s'", s.arg)
 		}
 	}
-
 	return s.addArgs(s.arg)
 }
 
