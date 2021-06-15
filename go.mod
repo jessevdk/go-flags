@@ -1,4 +1,4 @@
-module github.com/hbollon/go-flags
+module github.com/jessevdk/go-flags
 
 go 1.15
 

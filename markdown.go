@@ -22,13 +22,14 @@ func markdownQuoteLines(s string) string {
 }
 
 func markdownQuote(s string) string {
-	return strings.Replace(s, "\\", "```", -1)
+	return strings.Replace(s, "\\", "\\\\", -1)
 }
 
 func formatForMarkdown(wr io.Writer, s string, quoter func(s string) string) {
 	for {
 		idx := strings.IndexRune(s, '`')
 
+		fmt.Fprint(wr, " ")
 		if idx < 0 {
 			fmt.Fprintf(wr, "%s", quoter(s))
 			break
@@ -74,7 +75,7 @@ func writeMarkdownPageOptions(wr io.Writer, grp *Group) {
 			fmt.Fprintf(wr, "- ")
 
 			if opt.ShortName != 0 {
-				fmt.Fprintf(wr, "**-%c**", opt.ShortName)
+				fmt.Fprintf(wr, "`-%c`", opt.ShortName)
 			}
 
 			if len(opt.LongName) != 0 {
@@ -82,7 +83,7 @@ func writeMarkdownPageOptions(wr io.Writer, grp *Group) {
 					fmt.Fprintf(wr, ", ")
 				}
 
-				fmt.Fprintf(wr, "**\\--%s\\**", markdownQuote(opt.LongNameWithNamespace()))
+				fmt.Fprintf(wr, "`--%s`", markdownQuote(opt.LongNameWithNamespace()))
 			}
 
 			if len(opt.ValueName) != 0 || opt.OptionalArgument {
@@ -94,12 +95,12 @@ func writeMarkdownPageOptions(wr io.Writer, grp *Group) {
 			}
 
 			if len(opt.Default) != 0 {
-				fmt.Fprintf(wr, " <default: *%s*> ", markdownQuote(strings.Join(quoteV(opt.Default), ", ")))
+				fmt.Fprintf(wr, " <default: *%s*>", markdownQuote(strings.Join(quoteV(opt.Default), ", ")))
 			} else if len(opt.EnvKeyWithNamespace()) != 0 {
 				if runtime.GOOS == "windows" {
-					fmt.Fprintf(wr, " <default: *%%%s%%*> ", markdownQuote(opt.EnvKeyWithNamespace()))
+					fmt.Fprintf(wr, " <default: *%%%s%%*>", markdownQuote(opt.EnvKeyWithNamespace()))
 				} else {
-					fmt.Fprintf(wr, " <default: *$%s*> ", markdownQuote(opt.EnvKeyWithNamespace()))
+					fmt.Fprintf(wr, " <default: *$%s*>", markdownQuote(opt.EnvKeyWithNamespace()))
 				}
 			}
 
@@ -193,7 +194,7 @@ func (p *Parser) WriteMarkdownPage(wr io.Writer) {
 
 	fmt.Fprintf(wr, "# %s 1 \"%s\"\n", markdownQuote(p.Name), t.Format("2 January 2006"))
 	fmt.Fprintln(wr, "## NAME")
-	fmt.Fprintf(wr, "%s \\- %s\n", markdownQuote(p.Name), markdownQuoteLines(p.ShortDescription))
+	fmt.Fprintf(wr, "### %s \n> %s\n", markdownQuote(p.Name), markdownQuoteLines(p.ShortDescription))
 	fmt.Fprintln(wr, "## SYNOPSIS")
 
 	usage := p.Usage
@@ -202,7 +203,7 @@ func (p *Parser) WriteMarkdownPage(wr io.Writer) {
 		usage = "[OPTIONS]"
 	}
 
-	fmt.Fprintf(wr, "**%s** %s\n", markdownQuote(p.Name), markdownQuote(usage))
+	fmt.Fprintf(wr, "**`%s %s`**\n", markdownQuote(p.Name), markdownQuote(usage))
 	fmt.Fprintln(wr, "## DESCRIPTION")
 
 	formatForMarkdown(wr, p.LongDescription, markdownQuoteLines)
