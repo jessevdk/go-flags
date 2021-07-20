@@ -113,6 +113,10 @@ const (
 	// POSIX processing.
 	PassAfterNonOption
 
+	// AllowBoolValues allows a user to assign true/false to a boolean value
+	// rather than raising an error stating it cannot have an argument.
+	AllowBoolValues
+
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
 	Default = HelpFlag | PrintErrors | PassDoubleDash
@@ -521,11 +525,10 @@ func (p *parseState) estimateCommand() error {
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
 	if !option.canArgument() {
-		if argument != nil {
+		if argument != nil && (p.Options&AllowBoolValues) == None {
 			return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)
 		}
-
-		err = option.Set(nil)
+		err = option.Set(argument)
 	} else if argument != nil || (canarg && !s.eof()) {
 		var arg string
 
