@@ -37,9 +37,10 @@ type defaultOptions struct {
 
 func TestDefaults(t *testing.T) {
 	var tests = []struct {
-		msg      string
-		args     []string
-		expected defaultOptions
+		msg         string
+		args        []string
+		expected    defaultOptions
+		expectedErr string
 	}{
 		{
 			msg:  "no arguments, expecting default values",
@@ -92,6 +93,11 @@ func TestDefaults(t *testing.T) {
 			},
 		},
 		{
+			msg:         "non-zero value arguments, expecting overwritten arguments",
+			args:        []string{"-3=true"},
+			expectedErr: "bool flag `-3' cannot have an argument",
+		},
+		{
 			msg:  "zero value arguments, expecting overwritten arguments",
 			args: []string{"--i=0", "--id=0", "--f=0", "--fd=0", "--str", "", "--strd=\"\"", "--t=0ms", "--td=0s", "--m=:0", "--md=:0", "--s=0", "--sd=0"},
 			expected: defaultOptions{
@@ -120,16 +126,24 @@ func TestDefaults(t *testing.T) {
 		var opts defaultOptions
 
 		_, err := ParseArgs(&opts, test.args)
-		if err != nil {
-			t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
-		}
+		if test.expectedErr != "" {
+			if err == nil {
+				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)
+			} else if !strings.Contains(err.Error(), test.expectedErr) {
+				t.Errorf("%s:\nExpected error %q to contain substring %q", test.msg, err, test.expectedErr)
+			}
+		} else {
+			if err != nil {
+				t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
+			}
 
-		if opts.Slice == nil {
-			opts.Slice = []int{}
-		}
+			if opts.Slice == nil {
+				opts.Slice = []int{}
+			}
 
-		if !reflect.DeepEqual(opts, test.expected) {
-			t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
+			if !reflect.DeepEqual(opts, test.expected) {
+				t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
+			}
 		}
 	}
 }
@@ -679,4 +693,70 @@ func TestCommandHandler(t *testing.T) {
 	}
 
 	assertStringArray(t, executedArgs, []string{"arg1", "arg2"})
+}
+
+func TestAllowBoolValues(t *testing.T) {
+	var tests = []struct {
+		msg                string
+		args               []string
+		expectedErr        string
+		expected           bool
+		expectedNonOptArgs []string
+	}{
+		{
+			msg:      "no value",
+			args:     []string{"-v"},
+			expected: true,
+		},
+		{
+			msg:      "true value",
+			args:     []string{"-v=true"},
+			expected: true,
+		},
+		{
+			msg:      "false value",
+			args:     []string{"-v=false"},
+			expected: false,
+		},
+		{
+			msg:         "bad value",
+			args:        []string{"-v=badvalue"},
+			expectedErr: `parsing "badvalue": invalid syntax`,
+		},
+		{
+			// this test is to ensure flag values can only be specified as --flag=value and not "--flag value".
+			// if "--flag value" was supported it's not clear if value should be a non-optional argument
+			// or the value for the flag.
+			msg:                "validate flags can only be set with a value immediately following an assignment operator (=)",
+			args:               []string{"-v", "false"},
+			expected:           true,
+			expectedNonOptArgs: []string{"false"},
+		},
+	}
+
+	for _, test := range tests {
+		var opts = struct {
+			Value bool `short:"v"`
+		}{}
+		parser := NewParser(&opts, AllowBoolValues)
+		nonOptArgs, err := parser.ParseArgs(test.args)
+
+		if test.expectedErr == "" {
+			if err != nil {
+				t.Fatalf("%s:\nUnexpected parse error: %s", test.msg, err)
+			}
+			if opts.Value != test.expected {
+				t.Errorf("%s:\nExpected %v; got %v", test.msg, test.expected, opts.Value)
+			}
+			if len(test.expectedNonOptArgs) != len(nonOptArgs) && !reflect.DeepEqual(test.expectedNonOptArgs, nonOptArgs) {
+				t.Errorf("%s:\nUnexpected non-argument options\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.expectedNonOptArgs, nonOptArgs)
+			}
+		} else {
+			if err == nil {
+				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)
+			} else if !strings.Contains(err.Error(), test.expectedErr) {
+				t.Errorf("%s:\nExpected error %q to contain substring %q", test.msg, err, test.expectedErr)
+			}
+		}
+	}
 }
