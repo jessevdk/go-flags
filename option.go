@@ -286,6 +286,10 @@ func (option *Option) setDefault(value *string) error {
 	if option.preventDefault {
 		return nil
 	}
+	
+	if option.valueIsDefault() {
+		return nil
+	}
 
 	if err := option.Set(value); err != nil {
 		return err
