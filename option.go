@@ -286,10 +286,12 @@ func (option *Option) setDefault(value *string) error {
 	if option.preventDefault {
 		return nil
 	}
-	
-	if option.valueIsDefault() {
+
+	if !option.value.IsZero() {
 		return nil
 	}
+
+	option.empty()
 
 	if err := option.Set(value); err != nil {
 		return err
@@ -349,8 +351,6 @@ func (option *Option) clearDefault() error {
 	option.isSetDefault = true
 
 	if len(usedDefault) > 0 {
-		option.empty()
-
 		for _, d := range usedDefault {
 			err := option.setDefault(&d)
 
