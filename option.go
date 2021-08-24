@@ -338,7 +338,6 @@ func (option *Option) clearDefault() error {
 	usedDefault := option.Default
 
 	if envKey := option.EnvKeyWithNamespace(); envKey != "" {
-		fmt.Println(envKey)
 		if value, ok := os.LookupEnv(envKey); ok {
 			if option.EnvDefaultDelim != "" {
 				usedDefault = strings.Split(value, option.EnvDefaultDelim)

@@ -193,20 +193,34 @@ func (p *Parser) Parse() ([]string, error) {
 	return p.ParseArgs(os.Args[1:])
 }
 
-// ParseArgs parses the command line arguments according to the option groups that
-// were added to the parser. On successful parsing of the arguments, the
-// remaining, non-option, arguments (if any) are returned. The returned error
-// indicates a parsing error and can be used with PrintError to display
-// contextual information on where the error occurred exactly.
-//
-// When the common help group has been added (AddHelp) and either -h or --help
-// was specified in the command line arguments, a help message will be
-// automatically printed if the PrintErrors option is enabled.
-// Furthermore, the special error type ErrHelp is returned.
-// It is up to the caller to exit the program if so desired.
-func (p *Parser) ParseArgs(args []string) ([]string, error) {
+func (p *Parser) ParseFlags() (error) {
+	return p.ParseFlagsArgs(os.Args[1:])
+}
+
+func (p *Parser) handleCompletion(args []string) (bool) {
+	compval := os.Getenv("GO_FLAGS_COMPLETION")
+
+	// FIXME should stop executing in new setup
+	if len(compval) != 0 {
+		comp := &completion{parser: p}
+		items := comp.complete(args)
+
+		if p.CompletionHandler != nil {
+			p.CompletionHandler(items)
+		} else {
+			comp.print(items, compval == "verbose")
+			os.Exit(0)
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func (p *Parser) ParseFlagsArgs(args []string) (error) {
 	if p.internalError != nil {
-		return nil, p.internalError
+		return p.internalError
 	}
 
 	p.eachOption(func(c *Command, g *Group, option *Option) {
@@ -219,21 +233,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
 
-	compval := os.Getenv("GO_FLAGS_COMPLETION")
-
-	if len(compval) != 0 {
-		comp := &completion{parser: p}
-		items := comp.complete(args)
-
-		if p.CompletionHandler != nil {
-			p.CompletionHandler(items)
-		} else {
-			comp.print(items, compval == "verbose")
-			os.Exit(0)
-		}
-
-		return nil, nil
-	}
+	// TODO Figure out if handleCompletion is required here
 
 	p.state = &parseState{
 		args:    args,
@@ -324,7 +324,32 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		p.state.checkRequired(p)
 	}
 
-	return nil, p.state.err
+	return nil
+}
+
+// ParseArgs parses the command line arguments according to the option groups that
+// were added to the parser. On successful parsing of the arguments, the
+// remaining, non-option, arguments (if any) are returned. The returned error
+// indicates a parsing error and can be used with PrintError to display
+// contextual information on where the error occurred exactly.
+//
+// When the common help group has been added (AddHelp) and either -h or --help
+// was specified in the command line arguments, a help message will be
+// automatically printed if the PrintErrors option is enabled.
+// Furthermore, the special error type ErrHelp is returned.
+// It is up to the caller to exit the program if so desired.
+func (p *Parser) ParseArgs(args []string) ([]string, error) {
+	err := p.ParseFlagsArgs(args)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if p.handleCompletion(args) {
+		return nil, nil
+	}
+
+	return p.Execute()
 }
 
 func (p *Parser) Execute() ([]string, error) {
@@ -357,8 +382,6 @@ func (p *Parser) Execute() ([]string, error) {
 	}
 
 	return p.state.retargs, nil
-
-	// return nil, nil
 }
 
 func (p *parseState) eof() bool {
