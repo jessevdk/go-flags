@@ -287,12 +287,6 @@ func (option *Option) setDefault(value *string) error {
 		return nil
 	}
 
-	if !option.value.IsZero() {
-		return nil
-	}
-
-	option.empty()
-
 	if err := option.Set(value); err != nil {
 		return err
 	}
@@ -336,9 +330,15 @@ func (option *Option) clearDefault() error {
 		return nil
 	}
 
+	// Only clear defaults which isn't zero values
+	if !option.value.IsZero() {
+		return nil
+	}
+
 	usedDefault := option.Default
 
 	if envKey := option.EnvKeyWithNamespace(); envKey != "" {
+		fmt.Println(envKey)
 		if value, ok := os.LookupEnv(envKey); ok {
 			if option.EnvDefaultDelim != "" {
 				usedDefault = strings.Split(value, option.EnvDefaultDelim)
@@ -351,6 +351,7 @@ func (option *Option) clearDefault() error {
 	option.isSetDefault = true
 
 	if len(usedDefault) > 0 {
+		option.empty()
 		for _, d := range usedDefault {
 			err := option.setDefault(&d)
 
