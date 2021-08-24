@@ -57,6 +57,8 @@ type Parser struct {
 	CommandHandler func(command Commander, args []string) error
 
 	internalError error
+
+	state *parseState
 }
 
 // SplitArgument represents the argument value of an option that was passed using
@@ -233,33 +235,33 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		return nil, nil
 	}
 
-	s := &parseState{
+	p.state = &parseState{
 		args:    args,
 		retargs: make([]string, 0, len(args)),
 	}
 
-	p.fillParseState(s)
+	p.fillParseState(p.state)
 
-	for !s.eof() {
+	for !p.state.eof() {
 		var err error
-		arg := s.pop()
+		arg := p.state.pop()
 
 		// When PassDoubleDash is set and we encounter a --, then
 		// simply append all the rest as arguments and break out
 		if (p.Options&PassDoubleDash) != None && arg == "--" {
-			s.addArgs(s.args...)
+			p.state.addArgs(p.state.args...)
 			break
 		}
 
 		if !argumentIsOption(arg) {
-			if (p.Options&PassAfterNonOption) != None && s.lookup.commands[arg] == nil {
+			if (p.Options&PassAfterNonOption) != None && p.state.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments
 				// are considered positional
-				if err = s.addArgs(s.arg); err != nil {
+				if err = p.state.addArgs(p.state.arg); err != nil {
 					break
 				}
 
-				if err = s.addArgs(s.args...); err != nil {
+				if err = p.state.addArgs(p.state.args...); err != nil {
 					break
 				}
 
@@ -268,7 +270,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 			// Note: this also sets s.err, so we can just check for
 			// nil here and use s.err later
-			if p.parseNonOption(s) != nil {
+			if p.parseNonOption(p.state) != nil {
 				break
 			}
 
@@ -279,9 +281,9 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 		optname, _, argument := splitOption(prefix, optname, islong)
 
 		if islong {
-			err = p.parseLong(s, optname, argument)
+			err = p.parseLong(p.state, optname, argument)
 		} else {
-			err = p.parseShort(s, optname, argument)
+			err = p.parseShort(p.state, optname, argument)
 		}
 
 		if err != nil {
@@ -289,68 +291,74 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			parseErr := wrapError(err)
 
 			if parseErr.Type != ErrUnknownFlag || (!ignoreUnknown && p.UnknownOptionHandler == nil) {
-				s.err = parseErr
+				p.state.err = parseErr
 				break
 			}
 
 			if ignoreUnknown {
-				s.addArgs(arg)
+				p.state.addArgs(arg)
 			} else if p.UnknownOptionHandler != nil {
-				modifiedArgs, err := p.UnknownOptionHandler(optname, strArgument{argument}, s.args)
+				modifiedArgs, err := p.UnknownOptionHandler(optname, strArgument{argument}, p.state.args)
 
 				if err != nil {
-					s.err = err
+					p.state.err = err
 					break
 				}
 
-				s.args = modifiedArgs
+				p.state.args = modifiedArgs
 			}
 		}
 	}
 
-	if s.err == nil {
+	if p.state.err == nil {
 		p.eachOption(func(c *Command, g *Group, option *Option) {
 			err := option.clearDefault()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {
 					err = p.marshalError(option, err)
 				}
-				s.err = err
+				p.state.err = err
 			}
 		})
 
-		s.checkRequired(p)
+		p.state.checkRequired(p)
 	}
 
+	return nil, p.state.err
+}
+
+func (p *Parser) Execute() ([]string, error) {
 	var reterr error
 
-	if s.err != nil {
-		reterr = s.err
-	} else if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
-		reterr = s.estimateCommand()
-	} else if cmd, ok := s.command.data.(Commander); ok {
+	if p.state.err != nil {
+		reterr = p.state.err
+	} else if len(p.state.command.commands) != 0 && !p.state.command.SubcommandsOptional {
+		reterr = p.state.estimateCommand()
+	} else if cmd, ok := p.state.command.data.(Commander); ok {
 		if p.CommandHandler != nil {
-			reterr = p.CommandHandler(cmd, s.retargs)
+			reterr = p.CommandHandler(cmd, p.state.retargs)
 		} else {
-			reterr = cmd.Execute(s.retargs)
+			reterr = cmd.Execute(p.state.retargs)
 		}
 	} else if p.CommandHandler != nil {
-		reterr = p.CommandHandler(nil, s.retargs)
+		reterr = p.CommandHandler(nil, p.state.retargs)
 	}
 
 	if reterr != nil {
 		var retargs []string
 
 		if ourErr, ok := reterr.(*Error); !ok || ourErr.Type != ErrHelp {
-			retargs = append([]string{s.arg}, s.args...)
+			retargs = append([]string{p.state.arg}, p.state.args...)
 		} else {
-			retargs = s.args
+			retargs = p.state.args
 		}
 
 		return retargs, p.printError(reterr)
 	}
 
-	return s.retargs, nil
+	return p.state.retargs, nil
+
+	// return nil, nil
 }
 
 func (p *parseState) eof() bool {
