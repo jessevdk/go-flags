@@ -78,6 +78,9 @@ var opts struct {
 
 	// Example of a map
 	IntMap map[string]int `long:"intmap" description:"A map from string to int"`
+	
+	// Example of env variable
+	Thresholds  []int     `long:"thresholds" default:"1" default:"2" env:"THRESHOLD_VALUES"  env-delim:","`
 }
 
 // Callback which will invoke callto:<argument> to call a number.
