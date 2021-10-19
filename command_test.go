@@ -427,20 +427,6 @@ func TestRequiredAllOnCommand(t *testing.T) {
 	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", defaultLongOptDelimiter, defaultShortOptDelimiter), &opts, "cmd")
 }
 
-func TestDefaultOnCommand(t *testing.T) {
-	var opts = struct {
-		Command struct {
-			G string `short:"g" default:"value"`
-		} `command:"cmd"`
-	}{}
-
-	assertParseSuccess(t, &opts, "cmd")
-
-	if opts.Command.G != "value" {
-		t.Errorf("Expected G to be \"value\"")
-	}
-}
-
 func TestAfterNonCommand(t *testing.T) {
 	var opts = struct {
 		Value bool `short:"v"`
@@ -513,10 +499,6 @@ func TestCommandAlias(t *testing.T) {
 	}{}
 
 	assertParseSuccess(t, &opts, "cm")
-
-	if opts.Command.G != "value" {
-		t.Errorf("Expected G to be \"value\"")
-	}
 }
 
 func TestSubCommandFindOptionByLongFlag(t *testing.T) {

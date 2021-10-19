@@ -3,7 +3,6 @@ package flags
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 	"unicode/utf8"
@@ -29,12 +28,6 @@ type Option struct {
 
 	// The default value of the option.
 	Default []string
-
-	// The optional environment default value key name.
-	EnvDefaultKey string
-
-	// The optional delimiter string for EnvDefaultKey values.
-	EnvDefaultDelim string
 
 	// If true, specifies that the argument to an option flag is optional.
 	// When no argument to the flag is specified on the command line, the
@@ -140,57 +133,6 @@ func (option *Option) LongNameWithNamespace() string {
 	return longName
 }
 
-// EnvKeyWithNamespace returns the option's env key with the group namespaces
-// prepended by walking up the option's group tree. Namespaces and the env key
-// itself are separated by the parser's namespace delimiter. If the env key is
-// empty an empty string is returned.
-func (option *Option) EnvKeyWithNamespace() string {
-	if len(option.EnvDefaultKey) == 0 {
-		return ""
-	}
-
-	// fetch the namespace delimiter from the parser which is always at the
-	// end of the group hierarchy
-	namespaceDelimiter := ""
-	g := option.group
-
-	for {
-		if p, ok := g.parent.(*Parser); ok {
-			namespaceDelimiter = p.EnvNamespaceDelimiter
-
-			break
-		}
-
-		switch i := g.parent.(type) {
-		case *Command:
-			g = i.Group
-		case *Group:
-			g = i
-		}
-	}
-
-	// concatenate long name with namespace
-	key := option.EnvDefaultKey
-	g = option.group
-
-	for g != nil {
-		if g.EnvNamespace != "" {
-			key = g.EnvNamespace + namespaceDelimiter + key
-		}
-
-		switch i := g.parent.(type) {
-		case *Command:
-			g = i.Group
-		case *Group:
-			g = i
-		case *Parser:
-			g = nil
-		}
-	}
-
-	return key
-}
-
 // String converts an option to a human friendly readable string describing the
 // option.
 func (option *Option) String() string {
@@ -282,21 +224,6 @@ func (option *Option) Set(value *string) error {
 	return convert("", option.value, option.tag)
 }
 
-func (option *Option) setDefault(value *string) error {
-	if option.preventDefault {
-		return nil
-	}
-
-	if err := option.Set(value); err != nil {
-		return err
-	}
-
-	option.isSetDefault = true
-	option.preventDefault = false
-
-	return nil
-}
-
 func (option *Option) showInHelp() bool {
 	return !option.Hidden && (option.ShortName != 0 || len(option.LongName) != 0)
 }
@@ -323,76 +250,6 @@ func (option *Option) empty() {
 	if !option.isFunc() {
 		option.value.Set(option.emptyValue())
 	}
-}
-
-func (option *Option) clearDefault() error {
-	if option.preventDefault {
-		return nil
-	}
-
-	// Only clear defaults which isn't zero values
-	if !option.value.IsZero() {
-		return nil
-	}
-
-	usedDefault := option.Default
-
-	if envKey := option.EnvKeyWithNamespace(); envKey != "" {
-		if value, ok := os.LookupEnv(envKey); ok {
-			if option.EnvDefaultDelim != "" {
-				usedDefault = strings.Split(value, option.EnvDefaultDelim)
-			} else {
-				usedDefault = []string{value}
-			}
-		}
-	}
-
-	option.isSetDefault = true
-
-	if len(usedDefault) > 0 {
-		option.empty()
-		for _, d := range usedDefault {
-			err := option.setDefault(&d)
-
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		tp := option.value.Type()
-
-		switch tp.Kind() {
-		case reflect.Map:
-			if option.value.IsNil() {
-				option.empty()
-			}
-		case reflect.Slice:
-			if option.value.IsNil() {
-				option.empty()
-			}
-		}
-	}
-
-	return nil
-}
-
-func (option *Option) valueIsDefault() bool {
-	// Check if the value of the option corresponds to its
-	// default value
-	emptyval := option.emptyValue()
-
-	checkvalptr := reflect.New(emptyval.Type())
-	checkval := reflect.Indirect(checkvalptr)
-
-	checkval.Set(emptyval)
-
-	if len(option.Default) != 0 {
-		for _, v := range option.Default {
-			convert(v, checkval, option.tag)
-		}
-	}
-
-	return reflect.DeepEqual(option.value.Interface(), checkval.Interface())
 }
 
 func (option *Option) isUnmarshaler() Unmarshaler {

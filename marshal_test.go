@@ -47,20 +47,6 @@ func TestUnmarshal(t *testing.T) {
 	}
 }
 
-func TestUnmarshalDefault(t *testing.T) {
-	var opts = struct {
-		Value marshalled `short:"v" default:"yes"`
-	}{}
-
-	ret := assertParseSuccess(t, &opts)
-
-	assertStringArray(t, ret, []string{})
-
-	if opts.Value != "true" {
-		t.Errorf("Expected Value to be \"true\"")
-	}
-}
-
 func TestUnmarshalOptional(t *testing.T) {
 	var opts = struct {
 		Value marshalled `short:"v" optional:"yes" optional-value:"yes"`

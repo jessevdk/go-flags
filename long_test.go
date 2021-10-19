@@ -40,17 +40,6 @@ func TestLongArgEqual(t *testing.T) {
 	assertString(t, opts.Value, "value")
 }
 
-func TestLongDefault(t *testing.T) {
-	var opts = struct {
-		Value string `long:"value" default:"value"`
-	}{}
-
-	ret := assertParseSuccess(t, &opts)
-
-	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
-}
-
 func TestLongOptional(t *testing.T) {
 	var opts = struct {
 		Value string `long:"value" optional:"yes" optional-value:"value"`

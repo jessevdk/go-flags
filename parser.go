@@ -193,11 +193,11 @@ func (p *Parser) Parse() ([]string, error) {
 	return p.ParseArgs(os.Args[1:])
 }
 
-func (p *Parser) ParseFlags() (error) {
+func (p *Parser) ParseFlags() error {
 	return p.ParseFlagsArgs(os.Args[1:])
 }
 
-func (p *Parser) handleCompletion(args []string) (bool) {
+func (p *Parser) handleCompletion(args []string) bool {
 	compval := os.Getenv("GO_FLAGS_COMPLETION")
 
 	// FIXME should stop executing in new setup
@@ -218,7 +218,7 @@ func (p *Parser) handleCompletion(args []string) (bool) {
 	return false
 }
 
-func (p *Parser) ParseFlagsArgs(args []string) (error) {
+func (p *Parser) ParseFlagsArgs(args []string) error {
 	if p.internalError != nil {
 		return p.internalError
 	}
@@ -311,16 +311,6 @@ func (p *Parser) ParseFlagsArgs(args []string) (error) {
 	}
 
 	if p.state.err == nil {
-		p.eachOption(func(c *Command, g *Group, option *Option) {
-			err := option.clearDefault()
-			if err != nil {
-				if _, ok := err.(*Error); !ok {
-					err = p.marshalError(option, err)
-				}
-				p.state.err = err
-			}
-		})
-
 		p.state.checkRequired(p)
 	}
 
