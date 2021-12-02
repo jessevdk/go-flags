@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -229,6 +230,14 @@ func TestMan(t *testing.T) {
 	got := buf.String()
 
 	tt := time.Now()
+	source_date_epoch := os.Getenv("SOURCE_DATE_EPOCH")
+	if source_date_epoch != "" {
+		sde, err := strconv.ParseInt(source_date_epoch, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("Invalid SOURCE_DATE_EPOCH: %s", err))
+		}
+		tt = time.Unix(sde, 0)
+	}
 
 	var envDefaultName string
 
