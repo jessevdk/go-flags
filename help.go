@@ -213,38 +213,41 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	written := line.Len()
 	line.WriteTo(writer)
 
-	if option.Description != "" {
-		dw := descstart - written
-		writer.WriteString(strings.Repeat(" ", dw))
+	// start out with just the description
+	desc := option.Description
 
-		var def string
+	// if we have a default value, add that
+	if option.defaultLiteral != "" {
+		def := option.defaultLiteral
 
-		if len(option.DefaultMask) != 0 {
-			if option.DefaultMask != "-" {
-				def = option.DefaultMask
-			}
-		} else {
-			def = option.defaultLiteral
+		// nothing should be displayed for the default value
+		if option.DefaultMask == "-" {
+			def = ""
+		} else if len(option.DefaultMask) != 0 {
+			def = option.DefaultMask
 		}
-
-		var envDef string
-		if option.EnvKeyWithNamespace() != "" {
-			var envPrintable string
-			if runtime.GOOS == "windows" {
-				envPrintable = "%" + option.EnvKeyWithNamespace() + "%"
-			} else {
-				envPrintable = "$" + option.EnvKeyWithNamespace()
-			}
-			envDef = fmt.Sprintf(" [%s]", envPrintable)
-		}
-
-		var desc string
 
 		if def != "" {
-			desc = fmt.Sprintf("%s (default: %v)%s", option.Description, def, envDef)
-		} else {
-			desc = option.Description + envDef
+			desc += fmt.Sprintf(" (default: %s)", def)
 		}
+	}
+
+	// if we have env vars, add that
+	if option.EnvKeyWithNamespace() != "" {
+		var envPrintable string
+		if runtime.GOOS == "windows" {
+			envPrintable = "%" + option.EnvKeyWithNamespace() + "%"
+		} else {
+			envPrintable = "$" + option.EnvKeyWithNamespace()
+		}
+		desc += fmt.Sprintf(" [%s]", envPrintable)
+	}
+
+	// lastly, write the actual string
+	if desc != "" {
+		// but first, apply padding
+		dw := descstart - written
+		writer.WriteString(strings.Repeat(" ", dw))
 
 		writer.WriteString(wrapText(desc,
 			info.terminalColumns-descstart,

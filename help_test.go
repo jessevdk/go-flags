@@ -485,6 +485,7 @@ func TestHelpDefaults(t *testing.T) {
 Application Options:
       /with-default:               With default (default: default-value)
       /without-default:            Without default
+      /without-default-with-env=   [%WITH_ENV%]
       /with-programmatic-default:  With programmatic default (default:
                                    default-value)
 
@@ -499,6 +500,7 @@ Help Options:
 Application Options:
       --with-default=              With default (default: default-value)
       --without-default=           Without default
+      --without-default-with-env=  [$WITH_ENV]
       --with-programmatic-default= With programmatic default (default:
                                    default-value)
 
@@ -525,6 +527,7 @@ Help Options:
 		var opts struct {
 			WithDefault             string `long:"with-default" default:"default-value" description:"With default"`
 			WithoutDefault          string `long:"without-default" description:"Without default"`
+			WithoutDefaultWithEnv   string `long:"without-default-with-env" env:"WITH_ENV"`
 			WithProgrammaticDefault string `long:"with-programmatic-default" description:"With programmatic default"`
 		}
 
