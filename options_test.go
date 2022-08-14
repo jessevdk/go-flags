@@ -115,12 +115,12 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 	}{
 		{
 			[]string{"-v", "notint1", "notint2", "notint3"},
-			"notint1",
+			"notint1\": invalid syntax",
 			[]string{"notint1", "notint2", "notint3"},
 		},
 		{
 			[]string{"-v", "1", "notint2", "notint3"},
-			"notint2",
+			"notint2\": invalid syntax",
 			[]string{"1", "notint2", "notint3"},
 		},
 	}
@@ -134,10 +134,64 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 			return
 		}
 
-		if !strings.Contains(err.Error(), test.errContains) {
+		if !strings.HasSuffix(err.Error(), test.errContains) {
 			assertErrorf(t, "Expected the first illegal argument in the error")
 		}
 
 		assertStringArray(t, ret, test.ret)
+	}
+}
+
+func TestPassNoChoice(t *testing.T) {
+	var opts = struct {
+		Value string `short:"v" choice:"val"`
+	}{}
+
+	p := NewParser(&opts, PassAfterNonOption)
+	_, err := p.ParseArgs([]string{"-v"})
+
+	if err == nil {
+		assertErrorf(t, "Expected error")
+		return
+	}
+
+	if !strings.HasSuffix(err.Error(), "expected argument for flag `-v'") {
+		assertErrorf(t, "Expected list of allowed values in the error")
+	}
+}
+
+func TestPassInvalidSingleChoice(t *testing.T) {
+	var opts = struct {
+		Value string `short:"v" choice:"val"`
+	}{}
+
+	p := NewParser(&opts, PassAfterNonOption)
+	_, err := p.ParseArgs([]string{"-v"})
+
+	if err == nil {
+		assertErrorf(t, "Expected error")
+		return
+	}
+
+	if !strings.HasSuffix(err.Error(), "expected argument for flag `-v'") {
+		assertErrorf(t, "Expected list of allowed values in the error")
+	}
+}
+
+func TestPassInvalidChoice(t *testing.T) {
+	var opts = struct {
+		Value string `short:"v" choice:"val1" choice:"val2" choice:"val3"`
+	}{}
+
+	p := NewParser(&opts, PassAfterNonOption)
+	_, err := p.ParseArgs([]string{"-v", "v"})
+
+	if err == nil {
+		assertErrorf(t, "Expected error")
+		return
+	}
+
+	if !strings.HasSuffix(err.Error(), "Allowed values are: val1, val2 or val3") {
+		assertErrorf(t, "Expected list of allowed values in the error")
 	}
 }

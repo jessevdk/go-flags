@@ -261,10 +261,12 @@ func (option *Option) Set(value *string) error {
 		}
 
 		if !found {
-			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
-
+			var allowed string
 			if len(option.Choices) > 1 {
+				allowed = strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
 				allowed += " or " + option.Choices[len(option.Choices)-1]
+			} else {
+				allowed = option.Choices[0]
 			}
 
 			return newErrorf(ErrInvalidChoice,
