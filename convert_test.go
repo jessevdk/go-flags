@@ -157,3 +157,22 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 
 	assertError(t, err, ErrMarshal, "strconv.ParseInt: parsing \"no\": invalid syntax")
 }
+
+func TestConvertToMapWithDelimiter(t *testing.T) {
+	var opts = struct {
+		StringStringMap map[string]string `long:"string-string-map" key-value-delimiter:"="`
+	}{}
+
+	p := NewNamedParser("test", Default)
+	grp, _ := p.AddGroup("test group", "", &opts)
+	o := grp.Options()[0]
+
+	err := convert("key=value", o.value, o.tag)
+
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+		return
+	}
+
+	assertString(t, opts.StringStringMap["key"], "value")
+}
