@@ -271,7 +271,12 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 		retval.Set(reflect.Append(retval, elemval))
 	case reflect.Map:
-		parts := strings.SplitN(val, ":", 2)
+		keyValueDelimiter := options.Get("key-value-delimiter")
+		if keyValueDelimiter == "" {
+			keyValueDelimiter = ":"
+		}
+
+		parts := strings.SplitN(val, keyValueDelimiter, 2)
 
 		key := parts[0]
 		var value string
