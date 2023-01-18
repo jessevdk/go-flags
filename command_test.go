@@ -648,3 +648,118 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 	assertStringArray(t, opts.Bar.args, []string{})
 	assertStringArray(t, opts.Bar.Positional.Args, []string{"baz", "-v", "-g"})
 }
+
+type cmdLocalPassAfterNonOptionMix struct {
+	FlagA bool `short:"a"`
+	Cmd1  struct {
+		FlagB      bool `short:"b"`
+		Positional struct {
+			Args []string
+		} `positional-args:"yes"`
+	} `command:"cmd1" pass-after-non-option:"yes"`
+	Cmd2 struct {
+		FlagB      bool `short:"b"`
+		Positional struct {
+			Args []string
+		} `positional-args:"yes"`
+	} `command:"cmd2"`
+}
+
+func TestCommandLocalPassAfterNonOptionMixCmd1(t *testing.T) {
+	var opts cmdLocalPassAfterNonOptionMix
+
+	assertParseSuccess(t, &opts, "cmd1", "-b", "arg1", "-a", "arg2", "-x")
+
+	if opts.FlagA {
+		t.Errorf("Expected FlagA to be false")
+	}
+
+	if !opts.Cmd1.FlagB {
+		t.Errorf("Expected Cmd1.FlagB to be true")
+	}
+
+	assertStringArray(t, opts.Cmd1.Positional.Args, []string{"arg1", "-a", "arg2", "-x"})
+}
+
+func TestCommandLocalPassAfterNonOptionMixCmd2(t *testing.T) {
+	var opts cmdLocalPassAfterNonOptionMix
+
+	assertParseSuccess(t, &opts, "cmd2", "-b", "arg1", "-a", "arg2")
+
+	if !opts.FlagA {
+		t.Errorf("Expected FlagA to be true")
+	}
+
+	if !opts.Cmd2.FlagB {
+		t.Errorf("Expected Cmd2.FlagB to be true")
+	}
+
+	assertStringArray(t, opts.Cmd2.Positional.Args, []string{"arg1", "arg2"})
+}
+
+func TestCommandLocalPassAfterNonOptionMixCmd2UnkownFlag(t *testing.T) {
+	var opts cmdLocalPassAfterNonOptionMix
+
+	assertParseFail(t, ErrUnknownFlag, "unknown flag `x'", &opts, "cmd2", "-b", "arg1", "-a", "arg2", "-x")
+}
+
+type cmdLocalPassAfterNonOptionNest struct {
+	FlagA bool `short:"a"`
+	Cmd1  struct {
+		FlagB bool `short:"b"`
+		Cmd2  struct {
+			FlagC bool `short:"c"`
+			Cmd3  struct {
+				FlagD bool `short:"d"`
+			} `command:"cmd3"`
+		} `command:"cmd2" subcommands-optional:"yes" pass-after-non-option:"yes"`
+	} `command:"cmd1"`
+}
+
+func TestCommandLocalPassAfterNonOptionNest1(t *testing.T) {
+	var opts cmdLocalPassAfterNonOptionNest
+
+	ret := assertParseSuccess(t, &opts, "cmd1", "cmd2", "-a", "x", "-b", "cmd3", "-c", "-d")
+
+	if !opts.FlagA {
+		t.Errorf("Expected FlagA to be true")
+	}
+
+	if opts.Cmd1.FlagB {
+		t.Errorf("Expected Cmd1.FlagB to be false")
+	}
+
+	if opts.Cmd1.Cmd2.FlagC {
+		t.Errorf("Expected Cmd1.Cmd2.FlagC to be false")
+	}
+
+	if opts.Cmd1.Cmd2.Cmd3.FlagD {
+		t.Errorf("Expected Cmd1.Cmd2.Cmd3.FlagD to be false")
+	}
+
+	assertStringArray(t, ret, []string{"x", "-b", "cmd3", "-c", "-d"})
+}
+
+func TestCommandLocalPassAfterNonOptionNest2(t *testing.T) {
+	var opts cmdLocalPassAfterNonOptionNest
+
+	ret := assertParseSuccess(t, &opts, "cmd1", "cmd2", "cmd3", "-a", "x", "-b", "-c", "-d")
+
+	if !opts.FlagA {
+		t.Errorf("Expected FlagA to be true")
+	}
+
+	if !opts.Cmd1.FlagB {
+		t.Errorf("Expected Cmd1.FlagB to be true")
+	}
+
+	if !opts.Cmd1.Cmd2.FlagC {
+		t.Errorf("Expected Cmd1.Cmd2.FlagC to be true")
+	}
+
+	if !opts.Cmd1.Cmd2.Cmd3.FlagD {
+		t.Errorf("Expected Cmd1.Cmd2.Cmd3.FlagD to be true")
+	}
+
+	assertStringArray(t, ret, []string{"x"})
+}
