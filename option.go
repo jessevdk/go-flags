@@ -68,6 +68,26 @@ type Option struct {
 	// If true, the option is not displayed in the help or man page
 	Hidden bool
 
+	// If not "", the option will accept a list of arguments (as a slice)
+	// until the terminator string is found as an argument, or until the end
+	// of the argument list. To allow the same terminated option multiple
+	// times, use a slice of slices.
+	//
+	// Inspired by "find -exec" (which uses a ';' terminator), this supports
+	// additional arguments after the terminator, for example:
+	//
+	//  $ program [options] --terminated-opt v --w=x -- "y z" \; [more-options]
+	//
+	// In this example, --terminated-opt will receive {"v", "--w=x", "--", "y z"}.
+	// As with "find -exec", when using ';' as a terminator at the shell, it
+	// must be backslash-escaped to avoid the ';' being treated as a command
+	// separator by the shell.
+	//
+	// As shown, "--" between the option and the terminator won't trigger
+	// double-dash handling (if PassDoubleDash is set), but after the
+	// terminator it will.
+	Terminator string
+
 	// The group which the option belongs to
 	group *Group
 
@@ -280,6 +300,60 @@ func (option *Option) Set(value *string) error {
 	}
 
 	return convert("", option.value, option.tag)
+}
+
+// SetTerminated sets the value of a "terminated" option to the specified value.
+// An error will be returned if the specified value could not be
+// converted to the corresponding option value type.
+// If the option value is a slice of slices, each element in the parameter list
+// (excluding the terminator) is converted and the resulting list is appended to the option value.
+// Otherwise, each element is converted and the option value is set to
+// the resulting list.
+func (option *Option) SetTerminated(value []string) error {
+	tp := option.value.Type()
+
+	if tp.Kind() != reflect.Slice {
+		return newErrorf(ErrInvalidTag,
+			"terminated flag `%s' must be a slice or slice of slices",
+			option.shortAndLongName())
+	}
+
+	if option.clearReferenceBeforeSet {
+		option.empty()
+	}
+
+	option.isSet = true
+	option.preventDefault = true
+	option.clearReferenceBeforeSet = false
+
+	elemTp := tp.Elem()
+
+	if elemTp.Kind() == reflect.Slice {
+		var elemVal reflect.Value
+
+		if len(value) > 0 {
+			elemVal = reflect.Indirect(reflect.New(elemTp))
+			for _, val := range value {
+				if err := convert(val, elemVal, option.tag); err != nil {
+					return err
+				}
+			}
+		} else {
+			elemVal = reflect.MakeSlice(elemTp, 0, 0)
+		}
+
+		option.value.Set(reflect.Append(option.value, elemVal))
+	} else {
+		option.empty()
+
+		for _, val := range value {
+			if err := convert(val, option.value, option.tag); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (option *Option) setDefault(value *string) error {
@@ -566,4 +640,8 @@ func (option *Option) isValidValue(arg string) error {
 		return fmt.Errorf("expected argument for flag `%s', but got option `%s'", option, arg)
 	}
 	return nil
+}
+
+func (option *Option) isTerminated() bool {
+	return option.Terminator != ""
 }

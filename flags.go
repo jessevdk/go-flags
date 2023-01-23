@@ -112,6 +112,10 @@ The following is a list of tags for struct fields supported by go-flags:
                     Repeat this tag once for each allowable value.
                     e.g. `long:"animal" choice:"cat" choice:"dog"`
     hidden:         if non-empty, the option is not visible in the help or man page.
+    terminator:     when specified, the option will accept a list of arguments (as a slice)
+                    until the terminator string is found as an argument, or until the end
+                    of the argument list. To allow the same terminated option multiple
+                    times, use a slice of slices.
 
     base: a base (radix) used to convert strings to integer values, the
           default base is 10 (i.e. decimal) (optional)
