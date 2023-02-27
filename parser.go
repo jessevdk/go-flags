@@ -526,6 +526,20 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		}
 
 		err = option.Set(nil)
+	} else if option.isTerminated() {
+		var args []string
+
+		if argument != nil {
+			return newErrorf(ErrInvalidTag, "terminated option's flag `%s' cannot use `='", option)
+		}
+		for !s.eof() {
+			arg := s.pop()
+			if arg == option.Terminator {
+				break
+			}
+			args = append(args, arg)
+		}
+		err = option.SetTerminated(args)
 	} else if argument != nil || (canarg && !s.eof()) {
 		var arg string
 

@@ -285,6 +285,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		choices := mtag.GetMany("choice")
 		hidden := !isStringFalsy(mtag.Get("hidden"))
 
+		terminator := mtag.Get("terminator")
+
 		option := &Option{
 			Description:      description,
 			ShortName:        short,
@@ -299,6 +301,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			DefaultMask:      defaultMask,
 			Choices:          choices,
 			Hidden:           hidden,
+			Terminator:       terminator,
 
 			group: g,
 
@@ -310,6 +313,12 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		if option.isBool() && option.Default != nil {
 			return newErrorf(ErrInvalidTag,
 				"boolean flag `%s' may not have default values, they always default to `false' and can only be turned on",
+				option.shortAndLongName())
+		}
+
+		if option.isTerminated() && option.value.Kind() != reflect.Slice {
+			return newErrorf(ErrInvalidTag,
+				"terminated flag `%s' must be a slice or slice of slices",
 				option.shortAndLongName())
 		}
 
