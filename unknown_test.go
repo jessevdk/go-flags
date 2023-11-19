@@ -65,16 +65,20 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 	}
 }
 
-func TestUnknownFlagsStacked(t *testing.T) {
+func TestIgnoreUnknownStacked(t *testing.T) {
 	var opts = struct {
 		First  bool `short:"f" long:"first"`
 		Second bool `short:"s" long:"second"`
 	}{}
 
-	args := []string{"-afs"}
+	args := []string{"-fas"}
 
 	p := NewParser(&opts, IgnoreUnknown)
 	args, err := p.ParseArgs(args)
+
+	exargs := []string{
+		"-fas",
+	}
 
 	if !opts.First {
 		t.Fatal("First arguement not recognized")
@@ -85,6 +89,21 @@ func TestUnknownFlagsStacked(t *testing.T) {
 	}
 
 	if err != nil {
-		t.Fatal("Expected error for unknown argument")
+		t.Fatal("Should not receive an error")
+	}
+
+	issame := (len(args) == len(exargs))
+
+	if issame {
+		for i := 0; i < len(args); i++ {
+			if args[i] != exargs[i] {
+				issame = false
+				break
+			}
+		}
+	}
+
+	if !issame {
+		t.Fatalf("Expected %v but got %v", exargs, args)
 	}
 }
