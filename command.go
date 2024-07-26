@@ -39,6 +39,7 @@ type Command struct {
 	commands            []*Command
 	hasBuiltinHelpGroup bool
 	args                []*Arg
+	flagTags            *FlagTags
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -72,9 +73,15 @@ type lookup struct {
 // options are in the command. The provided data can implement the Command and
 // Usage interfaces.
 func (c *Command) AddCommand(command string, shortDescription string, longDescription string, data interface{}) (*Command, error) {
+	return c.AddCommandWithCustomFlagTags(command, shortDescription, longDescription, data, c.flagTags)
+}
+
+func (c *Command) AddCommandWithCustomFlagTags(command string, shortDescription string, longDescription string, data interface{}, flagTags *FlagTags) (*Command, error) {
 	cmd := newCommand(command, shortDescription, longDescription, data)
 
 	cmd.parent = c
+	cmd.flagTags = flagTags
+	cmd.Group.flagTags = flagTags
 
 	if err := cmd.scan(); err != nil {
 		return nil, err
@@ -88,9 +95,14 @@ func (c *Command) AddCommand(command string, shortDescription string, longDescri
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
 func (c *Command) AddGroup(shortDescription string, longDescription string, data interface{}) (*Group, error) {
+	return c.AddGroupWithCustomFlagTags(shortDescription, longDescription, data, c.flagTags)
+}
+
+func (c *Command) AddGroupWithCustomFlagTags(shortDescription string, longDescription string, data interface{}, flagTags *FlagTags) (*Group, error) {
 	group := newGroup(shortDescription, longDescription, data)
 
 	group.parent = c
+	group.flagTags = flagTags
 
 	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
 		return nil, err
@@ -166,7 +178,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, err
 		}
 
-		positional := mtag.Get("positional-args")
+		positional := mtag.Get(c.flagTags.PositionalArgs)
 
 		if len(positional) != 0 {
 			stype := realval.Type()
@@ -180,7 +192,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					return true, err
 				}
 
-				name := m.Get("positional-arg-name")
+				name := m.Get(c.flagTags.PositionalArgName)
 
 				if len(name) == 0 {
 					name = field.Name
@@ -189,7 +201,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 				required := -1
 				requiredMaximum := -1
 
-				sreq := m.Get("required")
+				sreq := m.Get(c.flagTags.Required)
 
 				if sreq != "" {
 					required = 1
@@ -213,7 +225,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				arg := &Arg{
 					Name:            name,
-					Description:     m.Get("description"),
+					Description:     m.Get(c.flagTags.Description),
 					Required:        required,
 					RequiredMaximum: requiredMaximum,
 
@@ -223,7 +235,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				c.args = append(c.args, arg)
 
-				if len(mtag.Get("required")) != 0 {
+				if len(mtag.Get(c.flagTags.Required)) != 0 {
 					c.ArgsRequired = true
 				}
 			}
@@ -231,7 +243,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, nil
 		}
 
-		subcommand := mtag.Get("command")
+		subcommand := mtag.Get(c.flagTags.Command)
 
 		if len(subcommand) != 0 {
 			var ptrval reflect.Value
@@ -246,11 +258,11 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 				ptrval = realval.Addr()
 			}
 
-			shortDescription := mtag.Get("description")
-			longDescription := mtag.Get("long-description")
-			subcommandsOptional := mtag.Get("subcommands-optional")
-			aliases := mtag.GetMany("alias")
-			passAfterNonOption := mtag.Get("pass-after-non-option")
+			shortDescription := mtag.Get(c.flagTags.Description)
+			longDescription := mtag.Get(c.flagTags.LongDescription)
+			subcommandsOptional := mtag.Get(c.flagTags.SubCommandsOptional)
+			aliases := mtag.GetMany(c.flagTags.Alias)
+			passAfterNonOption := mtag.Get(c.flagTags.PassAfterNonOption)
 
 			subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
 
@@ -258,7 +270,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 				return true, err
 			}
 
-			subc.Hidden = mtag.Get("hidden") != ""
+			subc.Hidden = mtag.Get(c.flagTags.Hidden) != ""
 
 			if len(subcommandsOptional) > 0 {
 				subc.SubcommandsOptional = true

@@ -113,7 +113,7 @@ func TestMarshalError(t *testing.T) {
 	p := NewParser(&opts, Default)
 	o := p.Command.Groups()[0].Options()[0]
 
-	_, err := convertToString(o.value, o.tag)
+	_, err := convertToString(o.value, o.tag, NewFlagTags())
 
 	assertError(t, err, ErrMarshal, "Failed to marshal")
 }

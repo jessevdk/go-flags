@@ -37,8 +37,8 @@ type ValueValidator interface {
 	IsValidValue(value string) error
 }
 
-func getBase(options multiTag, base int) (int, error) {
-	sbase := options.Get("base")
+func getBase(options multiTag, flagTags *FlagTags, base int) (int, error) {
+	sbase := options.Get(flagTags.Base)
 
 	var err error
 	var ivbase int64
@@ -63,7 +63,7 @@ func convertMarshal(val reflect.Value) (bool, string, error) {
 	return false, "", nil
 }
 
-func convertToString(val reflect.Value, options multiTag) (string, error) {
+func convertToString(val reflect.Value, options multiTag, flagTags *FlagTags) (string, error) {
 	if ok, ret, err := convertMarshal(val); ok {
 		return ret, err
 	}
@@ -90,7 +90,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 		return "false", nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(options, 10)
+		base, err := getBase(options, flagTags, 10)
 
 		if err != nil {
 			return "", err
@@ -98,7 +98,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 		return strconv.FormatInt(val.Int(), base), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(options, 10)
+		base, err := getBase(options, flagTags, 10)
 
 		if err != nil {
 			return "", err
@@ -119,7 +119,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				ret += ", "
 			}
 
-			item, err := convertToString(val.Index(i), options)
+			item, err := convertToString(val.Index(i), options, flagTags)
 
 			if err != nil {
 				return "", err
@@ -137,13 +137,13 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				ret += ", "
 			}
 
-			keyitem, err := convertToString(key, options)
+			keyitem, err := convertToString(key, options, flagTags)
 
 			if err != nil {
 				return "", err
 			}
 
-			item, err := convertToString(val.MapIndex(key), options)
+			item, err := convertToString(val.MapIndex(key), options, flagTags)
 
 			if err != nil {
 				return "", err
@@ -154,10 +154,10 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 		return ret + "}", nil
 	case reflect.Ptr:
-		return convertToString(reflect.Indirect(val), options)
+		return convertToString(reflect.Indirect(val), options, flagTags)
 	case reflect.Interface:
 		if !val.IsNil() {
-			return convertToString(val.Elem(), options)
+			return convertToString(val.Elem(), options, flagTags)
 		}
 	}
 
@@ -189,7 +189,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 	return false, nil
 }
 
-func convert(val string, retval reflect.Value, options multiTag) error {
+func convert(val string, retval reflect.Value, options multiTag, flagTags *FlagTags) error {
 	if ok, err := convertUnmarshal(val, retval); ok {
 		return err
 	}
@@ -224,7 +224,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 			retval.SetBool(b)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(options, 0)
+		base, err := getBase(options, flagTags, 0)
 
 		if err != nil {
 			return err
@@ -238,7 +238,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 		retval.SetInt(parsed)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(options, 0)
+		base, err := getBase(options, flagTags, 0)
 
 		if err != nil {
 			return err
@@ -265,13 +265,13 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		elemvalptr := reflect.New(elemtp)
 		elemval := reflect.Indirect(elemvalptr)
 
-		if err := convert(val, elemval, options); err != nil {
+		if err := convert(val, elemval, options, flagTags); err != nil {
 			return err
 		}
 
 		retval.Set(reflect.Append(retval, elemval))
 	case reflect.Map:
-		keyValueDelimiter := options.Get("key-value-delimiter")
+		keyValueDelimiter := options.Get(flagTags.KeyValueDelimiter)
 		if keyValueDelimiter == "" {
 			keyValueDelimiter = ":"
 		}
@@ -288,14 +288,14 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		keytp := tp.Key()
 		keyval := reflect.New(keytp)
 
-		if err := convert(key, keyval, options); err != nil {
+		if err := convert(key, keyval, options, flagTags); err != nil {
 			return err
 		}
 
 		valuetp := tp.Elem()
 		valueval := reflect.New(valuetp)
 
-		if err := convert(value, valueval, options); err != nil {
+		if err := convert(value, valueval, options, flagTags); err != nil {
 			return err
 		}
 
@@ -309,10 +309,10 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 			retval.Set(reflect.New(retval.Type().Elem()))
 		}
 
-		return convert(val, reflect.Indirect(retval), options)
+		return convert(val, reflect.Indirect(retval), options, flagTags)
 	case reflect.Interface:
 		if !retval.IsNil() {
-			return convert(val, retval.Elem(), options)
+			return convert(val, retval.Elem(), options, flagTags)
 		}
 	}
 

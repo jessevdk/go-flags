@@ -255,3 +255,108 @@ allowing simple filename completion. A slice or array argument value
 whose element type implements flags.Completer will also be completed.
 */
 package flags
+
+const (
+	FlagTagShort               = "short"
+	FlagTagLong                = "long"
+	FlagTagRequired            = "required"
+	FlagTagDescription         = "description"
+	FlagTagLongDescription     = "long-description"
+	FlagTagNoFlag              = "no-flag"
+	FlagTagOptional            = "optional"
+	FlagTagOptionalValue       = "optional-value"
+	FlagTagDefault             = "default"
+	FlagTagDefaultMask         = "default-mask"
+	FlagTagEnv                 = "env"
+	FlagTagEnvDelim            = "env-delim"
+	FlagTagValueName           = "value-name"
+	FlagTagChoice              = "choice"
+	FlagTagHidden              = "hidden"
+	FlagTagBase                = "base"
+	FlagTagIniName             = "ini-name"
+	FlagTagNoIni               = "no-ini"
+	FlagTagGroup               = "group"
+	FlagTagNamespace           = "namespace"
+	FlagTagEnvNamespace        = "env-namespace"
+	FlagTagCommand             = "command"
+	FlagTagSubCommandsOptional = "subcommands-optional"
+	FlagTagAlias               = "alias"
+	FlagTagPositionalArgs      = "positional-args"
+	FlagTagPositionalArgName   = "positional-arg-name"
+	FlagTagKeyValueDelimiter   = "key-value-delimiter"
+	FlagTagPassAfterNonOption  = "pass-after-non-option"
+	FlagTagUnquote             = "unquote"
+	FlagTagReadIniName         = "_read-ini-name"
+)
+
+type FlagTags struct {
+	Short               string
+	Long                string
+	Required            string
+	Description         string
+	LongDescription     string
+	NoFlag              string
+	Optional            string
+	OptionalValue       string
+	Default             string
+	DefaultMask         string
+	Env                 string
+	EnvDelim            string
+	ValueName           string
+	Choice              string
+	Hidden              string
+	Base                string
+	IniName             string
+	NoIni               string
+	Group               string
+	Namespace           string
+	EnvNamespace        string
+	Command             string
+	SubCommandsOptional string
+	Alias               string
+	PositionalArgs      string
+	PositionalArgName   string
+	KeyValueDelimiter   string
+	PassAfterNonOption  string
+	Unquote             string
+	ReadIniName         string
+}
+
+func NewFlagTags() *FlagTags {
+	return NewFlagTagsWithPrefix("")
+}
+
+func NewFlagTagsWithPrefix(prefix string) *FlagTags {
+	return &FlagTags{
+		Short:               prefix + FlagTagShort,
+		Long:                prefix + FlagTagLong,
+		Required:            prefix + FlagTagRequired,
+		Description:         prefix + FlagTagDescription,
+		LongDescription:     prefix + FlagTagLongDescription,
+		NoFlag:              prefix + FlagTagNoFlag,
+		Optional:            prefix + FlagTagOptional,
+		OptionalValue:       prefix + FlagTagOptionalValue,
+		Default:             prefix + FlagTagDefault,
+		DefaultMask:         prefix + FlagTagDefaultMask,
+		Env:                 prefix + FlagTagEnv,
+		EnvDelim:            prefix + FlagTagEnvDelim,
+		ValueName:           prefix + FlagTagValueName,
+		Choice:              prefix + FlagTagChoice,
+		Hidden:              prefix + FlagTagHidden,
+		Base:                prefix + FlagTagBase,
+		IniName:             prefix + FlagTagIniName,
+		NoIni:               prefix + FlagTagNoIni,
+		Group:               prefix + FlagTagGroup,
+		Namespace:           prefix + FlagTagNamespace,
+		EnvNamespace:        prefix + FlagTagEnvNamespace,
+		Command:             prefix + FlagTagCommand,
+		SubCommandsOptional: prefix + FlagTagSubCommandsOptional,
+		Alias:               prefix + FlagTagAlias,
+		PositionalArgs:      prefix + FlagTagPositionalArgs,
+		PositionalArgName:   prefix + FlagTagPositionalArgName,
+		KeyValueDelimiter:   prefix + FlagTagKeyValueDelimiter,
+		PassAfterNonOption:  prefix + FlagTagPassAfterNonOption,
+		Unquote:             prefix + FlagTagUnquote,
+		ReadIniName:         prefix + FlagTagReadIniName,
+	}
+}

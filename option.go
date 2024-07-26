@@ -276,10 +276,10 @@ func (option *Option) Set(value *string) error {
 	if option.isFunc() {
 		return option.call(value)
 	} else if value != nil {
-		return convert(*value, option.value, option.tag)
+		return convert(*value, option.value, option.tag, option.group.flagTags)
 	}
 
-	return convert("", option.value, option.tag)
+	return convert("", option.value, option.tag, option.group.flagTags)
 }
 
 func (option *Option) setDefault(value *string) error {
@@ -384,7 +384,7 @@ func (option *Option) valueIsDefault() bool {
 
 	if len(option.Default) != 0 {
 		for _, v := range option.Default {
-			convert(v, checkval, option.tag)
+			convert(v, checkval, option.tag, option.group.flagTags)
 		}
 	}
 
@@ -486,7 +486,7 @@ func (option *Option) call(value *string) error {
 		val := reflect.New(tp)
 		val = reflect.Indirect(val)
 
-		if err := convert(*value, val, option.tag); err != nil {
+		if err := convert(*value, val, option.tag, option.group.flagTags); err != nil {
 			return err
 		}
 
@@ -524,7 +524,7 @@ func (option *Option) updateDefaultLiteral() {
 		}
 
 		if showdef {
-			def, _ = convertToString(option.value, option.tag)
+			def, _ = convertToString(option.value, option.tag, option.group.flagTags)
 		}
 	} else if len(defs) != 0 {
 		l := len(defs) - 1

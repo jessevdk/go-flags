@@ -145,7 +145,7 @@ func (i *IniParser) Parse(reader io.Reader) error {
 // for more information. The returned error occurs when the specified file
 // could not be opened for writing.
 func (i *IniParser) WriteFile(filename string, options IniOptions) error {
-	return writeIniToFile(i, filename, options)
+	return writeIniToFile(i, filename, options, i.parser.flagTags)
 }
 
 // Write writes the current values of all the flags to an ini format.
@@ -154,7 +154,7 @@ func (i *IniParser) WriteFile(filename string, options IniOptions) error {
 // option are stored just before parsing the flags (this is only relevant when
 // IniIncludeDefaults is _not_ set in options).
 func (i *IniParser) Write(writer io.Writer, options IniOptions) {
-	writeIni(i, writer, options)
+	writeIni(i, writer, options, i.parser.flagTags)
 }
 
 func readFullLine(reader *bufio.Reader) (string, error) {
@@ -181,14 +181,14 @@ func readFullLine(reader *bufio.Reader) (string, error) {
 	return string(line), nil
 }
 
-func optionIniName(option *Option) string {
-	name := option.tag.Get("_read-ini-name")
+func optionIniName(option *Option, flagTags *FlagTags) string {
+	name := option.tag.Get(flagTags.ReadIniName)
 
 	if len(name) != 0 {
 		return name
 	}
 
-	name = option.tag.Get("ini-name")
+	name = option.tag.Get(flagTags.IniName)
 
 	if len(name) != 0 {
 		return name
@@ -197,7 +197,7 @@ func optionIniName(option *Option) string {
 	return option.field.Name
 }
 
-func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Writer, options IniOptions) {
+func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Writer, options IniOptions, flagTags *FlagTags) {
 	var sname string
 
 	if len(namespace) != 0 {
@@ -220,7 +220,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 			continue
 		}
 
-		if len(option.tag.Get("no-ini")) != 0 {
+		if len(option.tag.Get(flagTags.NoIni)) != 0 {
 			continue
 		}
 
@@ -239,7 +239,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 			fmt.Fprintf(writer, "; %s\n", option.Description)
 		}
 
-		oname := optionIniName(option)
+		oname := optionIniName(option, flagTags)
 
 		commentOption := (options&(IniIncludeDefaults|IniCommentDefaults)) == IniIncludeDefaults|IniCommentDefaults && option.valueIsDefault()
 
@@ -252,7 +252,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 				writeOption(writer, oname, kind, "", "", true, option.iniQuote)
 			} else {
 				for idx := 0; idx < val.Len(); idx++ {
-					v, _ := convertToString(val.Index(idx), option.tag)
+					v, _ := convertToString(val.Index(idx), option.tag, flagTags)
 
 					writeOption(writer, oname, kind, "", v, commentOption, option.iniQuote)
 				}
@@ -268,20 +268,20 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 				kkmap := make(map[string]reflect.Value)
 
 				for i, k := range mkeys {
-					keys[i], _ = convertToString(k, option.tag)
+					keys[i], _ = convertToString(k, option.tag, flagTags)
 					kkmap[keys[i]] = k
 				}
 
 				sort.Strings(keys)
 
 				for _, k := range keys {
-					v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
+					v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag, flagTags)
 
 					writeOption(writer, oname, kind, k, v, commentOption, option.iniQuote)
 				}
 			}
 		default:
-			v, _ := convertToString(val, option.tag)
+			v, _ := convertToString(val, option.tag, flagTags)
 
 			writeOption(writer, oname, kind, "", v, commentOption, option.iniQuote)
 		}
@@ -317,10 +317,10 @@ func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, o
 	fmt.Fprintln(writer)
 }
 
-func writeCommandIni(command *Command, namespace string, writer io.Writer, options IniOptions) {
+func writeCommandIni(command *Command, namespace string, writer io.Writer, options IniOptions, flagTags *FlagTags) {
 	command.eachGroup(func(group *Group) {
 		if !group.Hidden {
-			writeGroupIni(command, group, namespace, writer, options)
+			writeGroupIni(command, group, namespace, writer, options, flagTags)
 		}
 	})
 
@@ -337,15 +337,15 @@ func writeCommandIni(command *Command, namespace string, writer io.Writer, optio
 			fqn = c.Name
 		}
 
-		writeCommandIni(c, fqn, writer, options)
+		writeCommandIni(c, fqn, writer, options, flagTags)
 	}
 }
 
-func writeIni(parser *IniParser, writer io.Writer, options IniOptions) {
-	writeCommandIni(parser.parser.Command, "", writer, options)
+func writeIni(parser *IniParser, writer io.Writer, options IniOptions, flagTags *FlagTags) {
+	writeCommandIni(parser.parser.Command, "", writer, options, flagTags)
 }
 
-func writeIniToFile(parser *IniParser, filename string, options IniOptions) error {
+func writeIniToFile(parser *IniParser, filename string, options IniOptions, flagTags *FlagTags) error {
 	file, err := os.Create(filename)
 
 	if err != nil {
@@ -354,7 +354,7 @@ func writeIniToFile(parser *IniParser, filename string, options IniOptions) erro
 
 	defer file.Close()
 
-	writeIni(parser, file, options)
+	writeIni(parser, file, options, flagTags)
 
 	return nil
 }
@@ -521,10 +521,10 @@ func (i *IniParser) parse(ini *ini) error {
 
 			for _, group := range groups {
 				opt = group.optionByName(inival.Name, func(o *Option, n string) bool {
-					return strings.ToLower(o.tag.Get("ini-name")) == strings.ToLower(n)
+					return strings.ToLower(o.tag.Get(i.parser.flagTags.IniName)) == strings.ToLower(n)
 				})
 
-				if opt != nil && len(opt.tag.Get("no-ini")) != 0 {
+				if opt != nil && len(opt.tag.Get(i.parser.flagTags.NoIni)) != 0 {
 					opt = nil
 				}
 

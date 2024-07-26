@@ -56,6 +56,12 @@ type Parser struct {
 	// command to be executed when parsing has finished.
 	CommandHandler func(command Commander, args []string) error
 
+	// flagTagPrefix add prefix to tag name, for example, defined tag `short` with Parser.flagTagPrefix="flag-", Parser will lookup "flag-short" field tag.
+	flagTagPrefix string
+
+	// flagTags set flag tag name used by this package
+	flagTags *FlagTags
+
 	internalError error
 }
 
@@ -133,6 +139,28 @@ type parseState struct {
 	lookup  lookup
 }
 
+type CustomOption interface {
+	apply(*Parser)
+}
+
+type optionFunc func(*Parser)
+
+func (f optionFunc) apply(p *Parser) {
+	f(p)
+}
+
+func FlagTagPrefix(prefix string) CustomOption {
+	return optionFunc(func(p *Parser) {
+		p.flagTagPrefix = prefix
+	})
+}
+
+func CustomFlagTags(flagTags *FlagTags) CustomOption {
+	return optionFunc(func(p *Parser) {
+		p.flagTags = flagTags
+	})
+}
+
 // Parse is a convenience function to parse command line options with default
 // settings. The provided data is a pointer to a struct representing the
 // default option group (named "Application Options"). For more control, use
@@ -157,8 +185,8 @@ func ParseArgs(data interface{}, args []string) ([]string, error) {
 // default option group (named "Application Options"), or nil if the default
 // group should not be added. The options parameter specifies a set of options
 // for the parser.
-func NewParser(data interface{}, options Options) *Parser {
-	p := NewNamedParser(path.Base(os.Args[0]), options)
+func NewParser(data interface{}, options Options, customOptions ...CustomOption) *Parser {
+	p := NewNamedParser(path.Base(os.Args[0]), options, customOptions...)
 
 	if data != nil {
 		g, err := p.AddGroup("Application Options", "", data)
@@ -176,7 +204,7 @@ func NewParser(data interface{}, options Options) *Parser {
 // NewNamedParser creates a new parser. The appname is used to display the
 // executable name in the built-in help message. Option groups and commands can
 // be added to this parser by using AddGroup and AddCommand.
-func NewNamedParser(appname string, options Options) *Parser {
+func NewNamedParser(appname string, options Options, customOptions ...CustomOption) *Parser {
 	p := &Parser{
 		Command:               newCommand(appname, "", "", nil),
 		Options:               options,
@@ -185,6 +213,16 @@ func NewNamedParser(appname string, options Options) *Parser {
 	}
 
 	p.Command.parent = p
+
+	for _, opt := range customOptions {
+		opt.apply(p)
+	}
+
+	if p.flagTags == nil {
+		p.flagTags = NewFlagTagsWithPrefix(p.flagTagPrefix)
+		p.Command.flagTags = p.flagTags
+		p.Command.Group.flagTags = p.flagTags
+	}
 
 	return p
 }
@@ -544,7 +582,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 			}
 		}
 
-		if option.tag.Get("unquote") != "false" {
+		if option.tag.Get(p.flagTags.Unquote) != "false" {
 			arg, err = unquoteIfPossible(arg)
 		}
 
@@ -659,7 +697,7 @@ func (p *parseState) addArgs(args ...string) error {
 	for len(p.positional) > 0 && len(args) > 0 {
 		arg := p.positional[0]
 
-		if err := convert(args[0], arg.value, arg.tag); err != nil {
+		if err := convert(args[0], arg.value, arg.tag, p.command.flagTags); err != nil {
 			p.err = err
 			return err
 		}

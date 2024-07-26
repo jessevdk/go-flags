@@ -61,7 +61,7 @@ func (c *Command) addHelpGroup(showHelp func() error) *Group {
 	}
 
 	help.ShowHelp = showHelp
-	ret, _ := c.AddGroup("Help Options", "", &help)
+	ret, _ := c.AddGroupWithCustomFlagTags("Help Options", "", &help, NewFlagTags())
 	ret.isBuiltinHelp = true
 
 	return ret

@@ -6,7 +6,7 @@ import (
 )
 
 func expectConvert(t *testing.T, o *Option, expected string) {
-	s, err := convertToString(o.value, o.tag)
+	s, err := convertToString(o.value, o.tag, NewFlagTags())
 
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -129,7 +129,7 @@ func TestConvertToStringInvalidIntBase(t *testing.T) {
 	grp, _ := p.AddGroup("test group", "", &opts)
 	o := grp.Options()[0]
 
-	_, err := convertToString(o.value, o.tag)
+	_, err := convertToString(o.value, o.tag, NewFlagTags())
 
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
@@ -149,7 +149,7 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 	grp, _ := p.AddGroup("test group", "", &opts)
 	o := grp.Options()[0]
 
-	_, err := convertToString(o.value, o.tag)
+	_, err := convertToString(o.value, o.tag, NewFlagTags())
 
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
@@ -167,7 +167,7 @@ func TestConvertToMapWithDelimiter(t *testing.T) {
 	grp, _ := p.AddGroup("test group", "", &opts)
 	o := grp.Options()[0]
 
-	err := convert("key=value", o.value, o.tag)
+	err := convert("key=value", o.value, o.tag, NewFlagTags())
 
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
