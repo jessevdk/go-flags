@@ -101,6 +101,7 @@ func init() {
 		filepath.Join(completionTestSourcedir, "examples/bash-completion"),
 		filepath.Join(completionTestSourcedir, "examples/main.go"),
 		filepath.Join(completionTestSourcedir, "examples/rm.go"),
+		filepath.Join(completionTestSourcedir, "examples/zsh-completion"),
 	}
 
 	completionTests = []completionTest{
