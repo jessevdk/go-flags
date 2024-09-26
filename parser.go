@@ -117,6 +117,9 @@ const (
 	// rather than raising an error stating it cannot have an argument.
 	AllowBoolValues
 
+	// SetDefaultIfEmpty sets default value if value is zero
+	SetDefaultIfEmpty
+
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
 	Default = HelpFlag | PrintErrors | PassDoubleDash
@@ -314,6 +317,10 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 
 	if s.err == nil {
 		p.eachOption(func(c *Command, g *Group, option *Option) {
+			if p.Options&SetDefaultIfEmpty != 0 && !option.isEmpty() {
+				return
+			}
+
 			err := option.clearDefault()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {

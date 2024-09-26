@@ -325,6 +325,10 @@ func (option *Option) empty() {
 	}
 }
 
+func (option *Option) isEmpty() bool {
+	return option.value.IsZero()
+}
+
 func (option *Option) clearDefault() error {
 	if option.preventDefault {
 		return nil
