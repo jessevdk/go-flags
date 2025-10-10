@@ -63,6 +63,9 @@ func TestGroupAdd(t *testing.T) {
 	if !grp.G {
 		t.Errorf("Expected Group.G to be true")
 	}
+	if g.Data() != &grp {
+		t.Errorf("Expected Data() to be &grp value")
+	}
 
 	if p.Command.Group.Find("Grouped Options") != g {
 		t.Errorf("Expected to find group `Grouped Options'")
