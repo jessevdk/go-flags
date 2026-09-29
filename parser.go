@@ -632,6 +632,8 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 		optname, argument = p.splitShortConcatArg(s, optname)
 	}
 
+	var unknownErr error
+
 	for i, c := range optname {
 		shortname := string(c)
 
@@ -644,7 +646,13 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 				return err
 			}
 		} else {
-			return newErrorf(ErrUnknownFlag, "unknown flag `%s'", shortname)
+			if unknownErr == nil {
+				unknownErr = newErrorf(ErrUnknownFlag, "unknown flag `%s'", shortname)
+			}
+
+			if (p.Options & IgnoreUnknown) == None {
+				return unknownErr
+			}
 		}
 
 		// Only the first option can have a concatted argument, so just
@@ -652,7 +660,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 		argument = nil
 	}
 
-	return nil
+	return unknownErr
 }
 
 func (p *parseState) addArgs(args ...string) error {
