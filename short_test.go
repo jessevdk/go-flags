@@ -32,7 +32,7 @@ func TestShortRequired(t *testing.T) {
 		Value bool `short:"v" required:"true"`
 	}{}
 
-	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts)
+	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv` was not specified", defaultShortOptDelimiter), &opts)
 }
 
 func TestShortRequiredFalsy1(t *testing.T) {

@@ -462,7 +462,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 	names := make([]string, 0, len(required))
 
 	for _, k := range required {
-		names = append(names, "`"+k.String()+"'")
+		names = append(names, "`"+k.String()+"`")
 	}
 
 	sort.Strings(names)
