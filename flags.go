@@ -68,7 +68,8 @@ Then, the AuthorInfo map can be filled with something like
 
 Finally, for full control over the conversion between command line argument
 values and options, user defined types can choose to implement the Marshaler
-and Unmarshaler interfaces.
+and Unmarshaler interfaces (or standard library encoding.TextMarshaler and
+encoding.TextUnmarshaler).
 
 # Available field tags
 
