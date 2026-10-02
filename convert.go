@@ -60,6 +60,17 @@ func convertMarshal(val reflect.Value) (bool, string, error) {
 		}
 	}
 
+	if val.IsValid() && val.Type() == reflect.TypeOf((*time.Duration)(nil)).Elem() && val.CanInterface() {
+		return true, val.Interface().(time.Duration).String(), nil
+	}
+
+	if val.IsValid() && val.Type() == reflect.TypeOf((*time.Duration)(nil)) && val.CanInterface() {
+		if val.IsNil() {
+			return true, "", nil
+		}
+		return true, val.Interface().(*time.Duration).String(), nil
+	}
+
 	return false, "", nil
 }
 
@@ -176,6 +187,35 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 
 			return true, unmarshaler.UnmarshalFlag(val)
 		}
+	}
+
+	if retval.Type() == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+		parsed, err := time.ParseDuration(val)
+
+		if err != nil {
+			return true, err
+		}
+
+		if retval.CanSet() {
+			retval.SetInt(int64(parsed))
+		}
+
+		return true, nil
+	}
+
+	if retval.Type() == reflect.TypeOf((*time.Duration)(nil)) {
+		if retval.IsNil() {
+			retval.Set(reflect.New(retval.Type().Elem()))
+		}
+
+		parsed, err := time.ParseDuration(val)
+
+		if err != nil {
+			return true, err
+		}
+
+		retval.Elem().SetInt(int64(parsed))
+		return true, nil
 	}
 
 	if retval.Type().Kind() != reflect.Ptr && retval.CanAddr() {
