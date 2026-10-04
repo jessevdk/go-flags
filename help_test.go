@@ -759,3 +759,65 @@ Help Options:
 
 	assertDiff(t, e.Message, expected, "help message")
 }
+
+type helpWrappingOptions struct {
+	Long string `long:"long" description:"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"`
+}
+
+func helpWrappingMessage(t *testing.T, columns int) string {
+	t.Helper()
+
+	var opts helpWrappingOptions
+
+	p := NewNamedParser("TestHelpWrapping", 0)
+	p.AddGroup("Application Options", "The application options", &opts)
+	p.TerminalColumns = columns
+
+	var buf bytes.Buffer
+	p.WriteHelp(&buf)
+
+	return buf.String()
+}
+
+// helpWrappingOption is how the option of helpWrappingOptions is rendered,
+// padded so that the description starts at the same column on all platforms.
+func helpWrappingOption() string {
+	if runtime.GOOS == "windows" {
+		return "  /long: "
+	}
+
+	return "  --long="
+}
+
+func TestHelpWrappingTerminalColumns(t *testing.T) {
+	expected := `Usage:
+  TestHelpWrapping
+
+Application Options:
+` + helpWrappingOption() + `   Lorem ipsum dolor sit amet, consectetur
+            adipisicing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua
+`
+
+	assertDiff(t, helpWrappingMessage(t, 60), expected, "help message")
+}
+
+func TestHelpWrappingDisabled(t *testing.T) {
+	expected := `Usage:
+  TestHelpWrapping
+
+Application Options:
+` + helpWrappingOption() + `   Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+`
+
+	// A negative width disables wrapping explicitly.
+	assertDiff(t, helpWrappingMessage(t, -1), expected, "help message")
+
+	// So does the absence of a terminal to wrap for.
+	saved := terminalColumnsOverride
+	defer func() { terminalColumnsOverride = saved }()
+
+	terminalColumnsOverride = 0
+
+	assertDiff(t, helpWrappingMessage(t, 0), expected, "help message")
+}

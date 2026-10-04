@@ -67,12 +67,16 @@ func GetConsoleScreenBufferInfo(handle uintptr) (*CONSOLE_SCREEN_BUFFER_INFO, er
 func terminalColumns() int {
 	stdoutHandle, err := getStdHandle(syscall.STD_OUTPUT_HANDLE)
 	if err != nil {
-		return defaultTermSize
+		return 0
 	}
 
 	info, err := GetConsoleScreenBufferInfo(stdoutHandle)
+
+	// The call fails when stdout is not a console (e.g. when the output is
+	// redirected to a file or piped into another program), in which case we
+	// report an unknown width so that the help message is not wrapped.
 	if err != nil {
-		return defaultTermSize
+		return 0
 	}
 
 	if info.MaximumWindowSize.X > 0 {

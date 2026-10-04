@@ -7,7 +7,7 @@ import (
 func init() {
 	// Keep the generated help output independent of the terminal the tests
 	// happen to run in.
-	terminalColumnsOverride = defaultTermSize
+	terminalColumnsOverride = 80
 }
 
 func TestTerminalColumnsOverride(t *testing.T) {
@@ -21,7 +21,7 @@ func TestTerminalColumnsOverride(t *testing.T) {
 	}
 
 	// A non-positive override falls through to querying the terminal, which
-	// reports the default when there is none.
+	// reports 0 when there is none.
 	terminalColumnsOverride = 0
 
 	if cols := getTerminalColumns(); cols != terminalColumns() {
