@@ -1,5 +1,4 @@
 //go:build !forceposix
-// +build !forceposix
 
 package flags
 

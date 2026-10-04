@@ -33,17 +33,7 @@ func levenshtein(s string, t string) int {
 			}
 
 			// Substitution, insertion or deletion, whichever is cheapest.
-			d := prev[j-1]
-
-			if cur[j-1] < d {
-				d = cur[j-1]
-			}
-
-			if prev[j] < d {
-				d = prev[j]
-			}
-
-			cur[j] = d + 1
+			cur[j] = min(prev[j-1], cur[j-1], prev[j]) + 1
 		}
 
 		prev, cur = cur, prev

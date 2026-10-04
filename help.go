@@ -206,7 +206,9 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		}
 
 		if len(option.Choices) > 0 {
-			line.WriteString("[" + strings.Join(option.Choices, "|") + "]")
+			line.WriteString("[")
+			line.WriteString(strings.Join(option.Choices, "|"))
+			line.WriteString("]")
 		}
 	}
 

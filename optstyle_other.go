@@ -1,5 +1,4 @@
 //go:build !windows || forceposix
-// +build !windows forceposix
 
 package flags
 
