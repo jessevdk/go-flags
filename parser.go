@@ -115,6 +115,7 @@ const (
 
 	// AllowBoolValues allows a user to assign true/false to a boolean value
 	// rather than raising an error stating it cannot have an argument.
+	// Deprecated: Set "disable-type" on specific option.
 	AllowBoolValues
 
 	// Default is a convenient default set of options which should cover
@@ -523,10 +524,13 @@ func (p *parseState) estimateCommand() error {
 	return newError(errtype, msg)
 }
 
-func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
+func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string, forcedArgument bool) (err error) {
 	if !option.canArgument() {
-		if argument != nil && (p.Options&AllowBoolValues) == None {
-			return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)
+		if argument != nil {
+			accepted := forcedArgument || ((p.Options & AllowBoolValues) != None) || option.DisableBool == DisableBoolValue
+			if !accepted {
+				return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)
+			}
 		}
 		err = option.Set(argument)
 	} else if argument != nil || (canarg && !s.eof()) {
@@ -599,12 +603,63 @@ func (p *Parser) expectedType(option *Option) string {
 }
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
-	if option := s.lookup.longNames[name]; option != nil {
+	var option *Option
+	var forcedArgument bool
+	truth := "true"
+	lie := "false"
+
+	if opt, ok := s.lookup.longNames[name]; ok {
+		option = opt
+		if opt.DisableBool == DisableBoolEnabledDisabled {
+			option = nil
+		}
+	} else if strings.HasPrefix(name, "no-") {
+		n := name[3:]
+		if opt, ok := s.lookup.longNames[n]; ok {
+			if opt.DisableBool == DisableBoolNo {
+				option = opt
+			}
+		}
+		if argument != nil {
+			return newErrorf(ErrNoArgumentForBool, "bool flag `--%s' cannot have an argument", name)
+		} else {
+			argument = &lie
+			forcedArgument = true
+		}
+	} else if strings.HasPrefix(name, "enable-") {
+		n := name[7:]
+		if opt, ok := s.lookup.longNames[n]; ok {
+			if opt.DisableBool == DisableBoolEnabledDisabled {
+				option = opt
+			}
+		}
+		if argument != nil {
+			return newErrorf(ErrNoArgumentForBool, "bool flag `--%s' cannot have an argument", name)
+		} else {
+			argument = &truth
+			forcedArgument = true
+		}
+	} else if strings.HasPrefix(name, "disable-") {
+		n := name[8:]
+		if opt, ok := s.lookup.longNames[n]; ok {
+			if opt.DisableBool == DisableBoolEnabledDisabled {
+				option = opt
+			}
+		}
+		if argument != nil {
+			return newErrorf(ErrNoArgumentForBool, "bool flag `--%s' cannot have an argument", name)
+		} else {
+			argument = &lie
+			forcedArgument = true
+		}
+	}
+
+	if option != nil {
 		// Only long options that are required can consume an argument
 		// from the argument list
 		canarg := !option.OptionalArgument
 
-		return p.parseOption(s, name, option, canarg, argument)
+		return p.parseOption(s, name, option, canarg, argument, forcedArgument)
 	}
 
 	return newErrorf(ErrUnknownFlag, "unknown flag `%s'", name)
@@ -637,17 +692,17 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 
 		if option := s.lookup.shortNames[shortname]; option != nil {
 			// Only the last short argument can consume an argument from
-			// the arguments list, and only if it's non optional
+			// the arguments list, and only if it's non-optional
 			canarg := (i+utf8.RuneLen(c) == len(optname)) && !option.OptionalArgument
 
-			if err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
+			if err := p.parseOption(s, shortname, option, canarg, argument, false); err != nil {
 				return err
 			}
 		} else {
 			return newErrorf(ErrUnknownFlag, "unknown flag `%s'", shortname)
 		}
 
-		// Only the first option can have a concatted argument, so just
+		// Only the first option can have a concat-ed argument, so just
 		// clear argument here
 		argument = nil
 	}

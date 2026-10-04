@@ -27,6 +27,12 @@ const (
 	distanceBetweenOptionAndDescription = 2
 )
 
+var testGOOS = ""
+
+func isWindows() bool {
+	return runtime.GOOS == "windows" || testGOOS == "windows"
+}
+
 func (a *alignmentInfo) descriptionStart() int {
 	ret := a.maxLongLen + distanceBetweenOptionAndDescription
 
@@ -94,10 +100,26 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.hasValueName = true
 			}
 
-			l := info.LongNameWithNamespace() + info.ValueName
+			var l string
+			if info.isBool() {
+				switch info.DisableBool {
+				case DisableBoolValue:
+					l = info.LongNameWithNamespace() + info.ValueName
+					l += "[" + strings.Join([]string{"true", "false"}, "|") + "]"
+				case DisableBoolNo:
+					l = "[no-]" + info.LongNameWithNamespace() + info.ValueName
+				case DisableBoolEnabledDisabled:
+					l = "enable-" + info.LongNameWithNamespace() + info.ValueName
+					l += defaultLongOptDelimiter + "disable-" + info.LongNameWithNamespace() + info.ValueName
+				default:
+					l = info.LongNameWithNamespace() + info.ValueName
+				}
+			} else {
+				l = info.LongNameWithNamespace() + info.ValueName
 
-			if len(info.Choices) != 0 {
-				l += "[" + strings.Join(info.Choices, "|") + "]"
+				if len(info.Choices) != 0 {
+					l += "[" + strings.Join(info.Choices, "|") + "]"
+				}
 			}
 
 			ret.updateLen(l, c != p.Command)
@@ -194,18 +216,36 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			line.WriteString("  ")
 		}
 
-		line.WriteString(defaultLongOptDelimiter)
-		line.WriteString(option.LongNameWithNamespace())
+		if option.isBool() {
+			if option.DisableBool == DisableBoolNo {
+				line.WriteString(defaultLongOptDelimiter)
+				line.WriteString(fmt.Sprintf("[no-]%s", option.LongNameWithNamespace()))
+			} else if option.DisableBool == DisableBoolEnabledDisabled {
+				line.WriteString(defaultLongOptDelimiter)
+				line.WriteString(fmt.Sprintf("enable-%s", option.LongNameWithNamespace()))
+				line.WriteString(", ")
+				line.WriteString(defaultLongOptDelimiter)
+				line.WriteString(fmt.Sprintf("disable-%s", option.LongNameWithNamespace()))
+			} else {
+				line.WriteString(defaultLongOptDelimiter)
+				line.WriteString(option.LongNameWithNamespace())
+			}
+		} else {
+			line.WriteString(defaultLongOptDelimiter)
+			line.WriteString(option.LongNameWithNamespace())
+		}
 	}
 
-	if option.canArgument() {
+	if option.canArgument() || (option.isBool() && option.DisableBool == DisableBoolValue) {
 		line.WriteRune(defaultNameArgDelimiter)
 
 		if len(option.ValueName) > 0 {
 			line.WriteString(option.ValueName)
 		}
 
-		if len(option.Choices) > 0 {
+		if option.isBool() && option.DisableBool == DisableBoolValue {
+			line.WriteString("[" + strings.Join([]string{"true", "false"}, "|") + "]")
+		} else if len(option.Choices) > 0 {
 			line.WriteString("[" + strings.Join(option.Choices, "|") + "]")
 		}
 	}
@@ -215,7 +255,11 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 	if option.Description != "" {
 		dw := descstart - written
-		writer.WriteString(strings.Repeat(" ", dw))
+		if dw > 0 {
+			writer.WriteString(strings.Repeat(" ", dw))
+		} else {
+			writer.WriteString(" ")
+		}
 
 		var def string
 
@@ -230,7 +274,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		var envDef string
 		if option.EnvKeyWithNamespace() != "" {
 			var envPrintable string
-			if runtime.GOOS == "windows" {
+			if isWindows() {
 				envPrintable = "%" + option.EnvKeyWithNamespace() + "%"
 			} else {
 				envPrintable = "$" + option.EnvKeyWithNamespace()

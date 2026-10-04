@@ -9,6 +9,13 @@ import (
 	"unicode/utf8"
 )
 
+type DisableBoolFlag string
+
+const DisableTypeNone DisableBoolFlag = ""
+const DisableBoolNo DisableBoolFlag = "no"
+const DisableBoolEnabledDisabled DisableBoolFlag = "enable-disable"
+const DisableBoolValue DisableBoolFlag = "value"
+
 // Option flag information. Contains a description of the option, short and
 // long name as well as a default value and whether an argument for this
 // flag is optional.
@@ -35,6 +42,20 @@ type Option struct {
 
 	// The optional delimiter string for EnvDefaultKey values.
 	EnvDefaultDelim string
+
+	// Available for boolean values only and for long versions only. It specifies
+	// how boolean flag can be disabled. Two common approaches exist and this option
+	// supports both:
+	// - with a "--no-" prefix. E.g. to disable `--debug`, use `--no-debug`
+	// - with either "enable" or "disable", mimicking how a lot of Unix tools work.
+	//   E.g. to enable "foo", long option would be `--enable-foo` and to disable it,
+	//  "--disable-foo".
+	//
+	// To turn on the first option, specify "no".
+	// To turn on the second, specify "enable-disable".
+	//
+	// Empty value assumes no option is specified and this feature is disabled.
+	DisableBool DisableBoolFlag
 
 	// If true, specifies that the argument to an option flag is optional.
 	// When no argument to the flag is specified on the command line, the

@@ -56,6 +56,14 @@ type helpOptions struct {
 		} `group:"Subsubgroup" namespace:"sap"`
 	} `group:"Subgroup" namespace:"sip"`
 
+	GroupBool struct {
+		SimpleBool bool `short:"b" description:"Bool which supports setting to true only"`
+		LongBool   bool `long:"bool" description:"Bool which supports setting to true only"`
+		ValueBool  bool `short:"V" long:"value" description:"Bool which supports setting value via optional argument" disable-type:"value"`
+		NoBool     bool `short:"n" long:"no" description:"Bool which supports setting value via 'no-' prefix" disable-type:"no"`
+		EnDisBool  bool `short:"e" long:"endis" description:"Bool which supports setting value via 'enable-' and 'disable-' prefix" disable-type:"enable-disable"`
+	} `group:"SimpleBool" namespace:"bool"`
+
 	Bommand struct {
 		Hidden bool `long:"hidden" description:"A hidden option" hidden:"yes"`
 	} `command:"bommand" description:"A command with only hidden options"`
@@ -111,44 +119,61 @@ func TestHelp(t *testing.T) {
   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
-  /v, /verbose                              Show verbose debug information
-  /c:                                       Call phone number
-      /ptrslice:                            A slice of pointers to string
+  /v, /verbose                                    Show verbose debug information
+  /c:                                             Call phone number
+      /ptrslice:                                  A slice of pointers to string
       /empty-description
-      /default:                             Test default value (default:
-                                            "Some\nvalue")
-      /default-array:                       Test default array value (default:
-                                            Some value, "Other\tvalue")
-      /default-map:                         Testdefault map value (default:
-                                            some:value, another:value)
-      /env-default1:                        Test env-default1 value (default:
-                                            Some value) [%ENV_DEFAULT%]
-      /env-default2:                        Test env-default2 value
-                                            [%ENV_DEFAULT%]
-      /opt-with-arg-name:something          Option with named argument
-      /opt-with-choices:choice[dog|cat]     Option with choices
+      /default:                                   Test default value (default:
+                                                  "Some\nvalue")
+      /default-array:                             Test default array value
+                                                  (default: Some value,
+                                                  "Other\tvalue")
+      /default-map:                               Testdefault map value
+                                                  (default: some:value,
+                                                  another:value)
+      /env-default1:                              Test env-default1 value 
+                                                  (default: Some value)
+                                                  [%ENV_DEFAULT%]
+      /env-default2:                              Test env-default2 value
+                                                  [%ENV_DEFAULT%]
+      /opt-with-arg-name:something                Option with named argument
+      /opt-with-choices:choice[dog|cat]           Option with choices
 
 Other Options:
-  /s:                                       A slice of strings (default: some,
-                                            value)
-      /intmap:                              A map from string to int (default:
-                                            a:1)
+  /s:                                             A slice of strings (default: some,
+                                                  value)
+      /intmap:                                    A map from string to int (default:
+                                                  a:1)
 
 Subgroup:
-      /sip.opt:                             This is a subgroup option
-      /sip.not-hidden-inside-group:         Not hidden inside group
+      /sip.opt:                                   This is a subgroup option
+      /sip.not-hidden-inside-group:               Not hidden inside group
 
 Subsubgroup:
-      /sip.sap.opt:                         This is a subsubgroup option
+      /sip.sap.opt:                               This is a subsubgroup option
+
+SimpleBool:
+  /b                                              Bool which supports setting
+                                                  to true only
+      /bool.bool                                  Bool which supports setting
+                                                  to true only
+  /V, /bool.value:[true|false]                    Bool which supports setting
+                                                  value via optional argument
+  /n, /[no-]bool.no                               Bool which supports setting
+                                                  value via 'no-' prefix
+  /e, /enable-bool.endis, /disable-bool.endis     Bool which supports setting
+                                                  value via 'enable-' and
+                                                  'disable-' prefix
 
 Help Options:
-  /?                                        Show this help message
-  /h, /help                                 Show this help message
+  /?                                              Show this help message
+  /h, /help                                       Show this help message
 
 Arguments:
-  filename:                                 A filename with a long description
-                                            to trigger line wrapping
-  num:                                      A number
+  filename:                                       A filename with a long
+                                                  description to trigger line
+                                                  wrapping
+  num:                                            A number
 
 Available commands:
   bommand  A command with only hidden options
@@ -160,43 +185,60 @@ Available commands:
   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
-  -v, --verbose                             Show verbose debug information
-  -c=                                       Call phone number
-      --ptrslice=                           A slice of pointers to string
+  -v, --verbose                                   Show verbose debug information
+  -c=                                             Call phone number
+      --ptrslice=                                 A slice of pointers to string
       --empty-description
-      --default=                            Test default value (default:
-                                            "Some\nvalue")
-      --default-array=                      Test default array value (default:
-                                            Some value, "Other\tvalue")
-      --default-map=                        Testdefault map value (default:
-                                            some:value, another:value)
-      --env-default1=                       Test env-default1 value (default:
-                                            Some value) [$ENV_DEFAULT]
-      --env-default2=                       Test env-default2 value
-                                            [$ENV_DEFAULT]
-      --opt-with-arg-name=something         Option with named argument
-      --opt-with-choices=choice[dog|cat]    Option with choices
+      --default=                                  Test default value (default:
+                                                  "Some\nvalue")
+      --default-array=                            Test default array value
+                                                  (default: Some value,
+                                                  "Other\tvalue")
+      --default-map=                              Testdefault map value
+                                                  (default: some:value,
+                                                  another:value)
+      --env-default1=                             Test env-default1 value
+                                                  (default: Some value)
+                                                  [$ENV_DEFAULT]
+      --env-default2=                             Test env-default2 value
+                                                  [$ENV_DEFAULT]
+      --opt-with-arg-name=something               Option with named argument
+      --opt-with-choices=choice[dog|cat]          Option with choices
 
 Other Options:
-  -s=                                       A slice of strings (default: some,
-                                            value)
-      --intmap=                             A map from string to int (default:
-                                            a:1)
+  -s=                                             A slice of strings (default:
+                                                  some, value)
+      --intmap=                                   A map from string to int
+                                                  (default: a:1)
 
 Subgroup:
-      --sip.opt=                            This is a subgroup option
-      --sip.not-hidden-inside-group=        Not hidden inside group
+      --sip.opt=                                  This is a subgroup option
+      --sip.not-hidden-inside-group=              Not hidden inside group
 
 Subsubgroup:
-      --sip.sap.opt=                        This is a subsubgroup option
+      --sip.sap.opt=                              This is a subsubgroup option
+
+SimpleBool:
+  -b                                              Bool which supports setting
+                                                  to true only
+      --bool.bool                                 Bool which supports setting
+                                                  to true only
+  -V, --bool.value=[true|false]                   Bool which supports setting
+                                                  value via optional argument
+  -n, --[no-]bool.no                              Bool which supports setting
+                                                  value via 'no-' prefix
+  -e, --enable-bool.endis, --disable-bool.endis   Bool which supports setting
+                                                  value via 'enable-' and
+                                                  'disable-' prefix
 
 Help Options:
-  -h, --help                                Show this help message
+  -h, --help                                      Show this help message
 
 Arguments:
-  filename:                                 A filename with a long description
-                                            to trigger line wrapping
-  num:                                      A number
+  filename:                                       A filename with a long
+                                                  description to trigger line
+                                                  wrapping
+  num:                                            A number
 
 Available commands:
   bommand  A command with only hidden options

@@ -195,6 +195,26 @@ func (g *Group) eachGroup(f func(*Group)) {
 	}
 }
 
+func getDisableType(s string) (DisableBoolFlag, error) {
+	disableType := strings.ToLower(s)
+	switch disableType {
+	case string(DisableTypeNone):
+		return DisableTypeNone, nil
+	case string(DisableBoolNo):
+		return DisableBoolNo, nil
+	case string(DisableBoolEnabledDisabled):
+		return DisableBoolEnabledDisabled, nil
+	case string(DisableBoolValue):
+		return DisableBoolValue, nil
+	default:
+		return DisableTypeNone, newErrorf(ErrInvalidChoice,
+			"'disable-type' can only be '%v', '%v' or '%v', but got `%s'",
+			DisableBoolNo, DisableBoolEnabledDisabled, DisableBoolValue,
+			s)
+	}
+
+}
+
 func isStringFalsy(s string) bool {
 	return s == "" || s == "false" || s == "no" || s == "0"
 }
@@ -280,6 +300,11 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		valueName := mtag.Get("value-name")
 		defaultMask := mtag.Get("default-mask")
 
+		disableBool, err := getDisableType(mtag.Get("disable-type"))
+		if err != nil {
+			return err
+		}
+
 		optional := !isStringFalsy(mtag.Get("optional"))
 		required := !isStringFalsy(mtag.Get("required"))
 		choices := mtag.GetMany("choice")
@@ -292,6 +317,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			Default:          def,
 			EnvDefaultKey:    mtag.Get("env"),
 			EnvDefaultDelim:  mtag.Get("env-delim"),
+			DisableBool:      disableBool,
 			OptionalArgument: optional,
 			OptionalValue:    optionalValue,
 			Required:         required,
@@ -307,7 +333,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			tag:   mtag,
 		}
 
-		if option.isBool() && option.Default != nil {
+		if disableBool == DisableTypeNone && option.isBool() && option.Default != nil {
 			return newErrorf(ErrInvalidTag,
 				"boolean flag `%s' may not have default values, they always default to `false' and can only be turned on",
 				option.shortAndLongName())

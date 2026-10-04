@@ -28,7 +28,7 @@ const (
 	ErrHelp
 
 	// ErrNoArgumentForBool indicates that an argument was given for a
-	// boolean flag (which don't not take any arguments).
+	// boolean flag (which do not take any arguments).
 	ErrNoArgumentForBool
 
 	// ErrRequired indicates that a required flag was not provided.

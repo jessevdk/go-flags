@@ -100,6 +100,22 @@ NotHiddenInsideGroup =
 ; This is a subsubgroup option
 Opt =
 
+[SimpleBool]
+; Bool which supports setting to true only
+; SimpleBool = false
+
+; Bool which supports setting to true only
+; LongBool = false
+
+; Bool which supports setting value via optional argument
+; ValueBool = false
+
+; Bool which supports setting value via 'no-' prefix
+; NoBool = false
+
+; Bool which supports setting value via 'enable-' and 'disable-' prefix
+; EnDisBool = false
+
 [command]
 ; Use for extra verbosity
 ; ExtraVerbose =
@@ -171,6 +187,22 @@ EnvDefault2 = env-def
 ; This is a subsubgroup option
 ; Opt =
 
+[SimpleBool]
+; Bool which supports setting to true only
+; SimpleBool = false
+
+; Bool which supports setting to true only
+; LongBool = false
+
+; Bool which supports setting value via optional argument
+; ValueBool = false
+
+; Bool which supports setting value via 'no-' prefix
+; NoBool = false
+
+; Bool which supports setting value via 'enable-' and 'disable-' prefix
+; EnDisBool = false
+
 [command]
 ; Use for extra verbosity
 ; ExtraVerbose =
@@ -239,6 +271,22 @@ EnvDefault2 = env-def
 [Subsubgroup]
 ; This is a subsubgroup option
 ; Opt =
+
+[SimpleBool]
+; Bool which supports setting to true only
+; SimpleBool = false
+
+; Bool which supports setting to true only
+; LongBool = false
+
+; Bool which supports setting value via optional argument
+; ValueBool = false
+
+; Bool which supports setting value via 'no-' prefix
+; NoBool = false
+
+; Bool which supports setting value via 'enable-' and 'disable-' prefix
+; EnDisBool = false
 
 [command]
 ; Use for extra verbosity

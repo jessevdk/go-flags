@@ -61,7 +61,10 @@ func (c *Command) addHelpGroup(showHelp func() error) *Group {
 	}
 
 	help.ShowHelp = showHelp
-	ret, _ := c.AddGroup("Help Options", "", &help)
+	ret, err := c.AddGroup("Help Options", "", &help)
+	if err != nil {
+		panic(err)
+	}
 	ret.isBuiltinHelp = true
 
 	return ret

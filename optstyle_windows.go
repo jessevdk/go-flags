@@ -8,7 +8,7 @@ import (
 )
 
 // Windows uses a front slash for both short and long options.  Also it uses
-// a colon for name/argument delimter.
+// a colon for name/argument delimiter.
 const (
 	defaultShortOptDelimiter = '/'
 	defaultLongOptDelimiter  = "/"

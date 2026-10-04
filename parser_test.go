@@ -168,6 +168,89 @@ func TestNoDefaultsForBools(t *testing.T) {
 	}
 }
 
+func TestBoolNoArguments(t *testing.T) {
+	var opts struct {
+		Bool bool `long:"bool"`
+	}
+	_, err := ParseArgs(&opts, []string{"--bool=true"})
+	assertError(t, err, ErrNoArgumentForBool, "bool flag `--bool' cannot have an argument")
+}
+
+func TestBoolArguments1(t *testing.T) {
+	var opts struct {
+		Bool bool `long:"bool" disable-type:"value"`
+	}
+
+	_, err := ParseArgs(&opts, []string{"--bool=true", "--bool=false"})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if opts.Bool {
+		t.Fatalf("Bool flag should have not been set")
+	}
+
+	// Reset
+	opts.Bool = true
+
+	_, err = ParseArgs(&opts, []string{"--bool=false", "--bool=true"})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if !opts.Bool {
+		t.Fatalf("Bool flag should have been set")
+	}
+}
+
+func TestBoolLongNoPrefix(t *testing.T) {
+	var opts struct {
+		Bool bool `short:"b" long:"bool" default:"true" disable-type:"no"`
+	}
+
+	_, err := ParseArgs(&opts, []string{"--bool", "--no-bool"})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if opts.Bool {
+		t.Fatalf("Bool flag should have not been set")
+	}
+
+	// Reset
+	opts.Bool = true
+
+	_, err = ParseArgs(&opts, []string{"--no-bool", "--bool"})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if !opts.Bool {
+		t.Fatalf("Bool flag should have been set")
+	}
+}
+
+func TestBoolEnableDisablePrefix(t *testing.T) {
+	var opts struct {
+		Bool bool `long:"bool" disable-type:"enable-disable"`
+	}
+
+	_, err := ParseArgs(&opts, []string{"--enable-bool", "--disable-bool"})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if opts.Bool {
+		t.Fatalf("Bool flag should have not been set")
+	}
+
+	// Reset
+	opts.Bool = true
+
+	_, err = ParseArgs(&opts, []string{"--disable-bool", "--disable-bool", "--enable-bool"})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if !opts.Bool {
+		t.Fatalf("Bool flag should have been set")
+	}
+}
+
 func TestUnquoting(t *testing.T) {
 	var tests = []struct {
 		arg   string
@@ -712,6 +795,11 @@ func TestAllowBoolValues(t *testing.T) {
 		expectedNonOptArgs []string
 	}{
 		{
+			msg:         "bad value",
+			args:        []string{"-v=badvalue"},
+			expectedErr: `parsing "badvalue": invalid syntax`,
+		},
+		{
 			msg:      "no value",
 			args:     []string{"-v"},
 			expected: true,
@@ -727,11 +815,6 @@ func TestAllowBoolValues(t *testing.T) {
 			expected: false,
 		},
 		{
-			msg:         "bad value",
-			args:        []string{"-v=badvalue"},
-			expectedErr: `parsing "badvalue": invalid syntax`,
-		},
-		{
 			// this test is to ensure flag values can only be specified as --flag=value and not "--flag value".
 			// if "--flag value" was supported it's not clear if value should be a non-optional argument
 			// or the value for the flag.
@@ -740,6 +823,32 @@ func TestAllowBoolValues(t *testing.T) {
 			expected:           true,
 			expectedNonOptArgs: []string{"false"},
 		},
+	}
+
+	for _, test := range tests {
+		var opts = struct {
+			Value bool `short:"v" disable-type:"value"`
+		}{}
+		parser := NewParser(&opts, Default)
+		nonOptArgs, err := parser.ParseArgs(test.args)
+
+		if test.expectedErr == "" {
+			if err != nil {
+				t.Fatalf("%s:\nUnexpected parse error: %s", test.msg, err)
+			}
+			if opts.Value != test.expected {
+				t.Errorf("%s:\nExpected %v; got %v", test.msg, test.expected, opts.Value)
+			}
+			if len(test.expectedNonOptArgs) != len(nonOptArgs) && !reflect.DeepEqual(test.expectedNonOptArgs, nonOptArgs) {
+				t.Errorf("%s:\nUnexpected non-argument options\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.expectedNonOptArgs, nonOptArgs)
+			}
+		} else {
+			if err == nil {
+				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)
+			} else if !strings.Contains(err.Error(), test.expectedErr) {
+				t.Errorf("%s:\nExpected error %q to contain substring %q", test.msg, err, test.expectedErr)
+			}
+		}
 	}
 
 	for _, test := range tests {
@@ -767,4 +876,5 @@ func TestAllowBoolValues(t *testing.T) {
 			}
 		}
 	}
+
 }

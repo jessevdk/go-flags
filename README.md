@@ -16,6 +16,8 @@ Supported features:
 * Options with short names (-v)
 * Options with long names (--verbose)
 * Options with and without arguments (bool v.s. other type)
+* Long boolean options with --enable-* and --disable-* syntax
+* Long boolean options with --no-* syntax
 * Options with optional arguments and default values
 * Multiple option groups each containing a set of options
 * Generate and print well-formatted help message
@@ -57,6 +59,16 @@ var opts struct {
 
 	// Example of a callback, called each time the option is found.
 	Call func(string) `short:"c" description:"Call phone number"`
+
+	// Example of a boolean flag which can be disabled by using "--no-debug"
+	Debug bool `long:"debug" default:"true" disable-type:"no"`
+
+	// Example of a boolean flag which can be disabled by using "--d=false"
+	Color bool `short:"c" disable-type:"value"`
+
+	// Example of a boolean flag which can be enabled  by using "--enable-fast-dns"
+	FastDns bool `long:"fast-dns" disable-type:"value"`
+
 
 	// Example of a required flag
 	Name string `short:"n" long:"name" description:"A name" required:"true"`
