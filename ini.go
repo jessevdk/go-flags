@@ -282,7 +282,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 				writeOption(writer, oname, kind, "", "", "", true, option.iniQuote)
 			} else {
 				mkeys := val.MapKeys()
-				keys := make([]string, len(val.MapKeys()))
+				keys := make([]string, len(mkeys))
 				kkmap := make(map[string]reflect.Value)
 
 				for i, k := range mkeys {
@@ -423,7 +423,7 @@ func readIni(contents io.Reader, filename string) (*ini, error) {
 		}
 
 		if line[0] == '[' {
-			if line[0] != '[' || line[len(line)-1] != ']' {
+			if line[len(line)-1] != ']' {
 				return nil, &IniError{
 					Message:    "malformed section header",
 					File:       filename,
@@ -535,7 +535,7 @@ func (i *IniParser) parse(ini *ini) error {
 
 			for _, group := range groups {
 				opt = group.optionByName(inival.Name, func(o *Option, n string) bool {
-					return strings.ToLower(o.tag.Get("ini-name")) == strings.ToLower(n)
+					return strings.EqualFold(o.tag.Get("ini-name"), n)
 				})
 
 				if opt != nil && len(opt.tag.Get("no-ini")) != 0 {

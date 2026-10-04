@@ -99,12 +99,10 @@ func (g *Group) Data() interface{} {
 // If no such group can be found Find will return nil. Note that the description
 // is matched case insensitively.
 func (g *Group) Find(shortDescription string) *Group {
-	lshortDescription := strings.ToLower(shortDescription)
-
 	var ret *Group
 
 	g.eachGroup(func(gg *Group) {
-		if gg != g && strings.ToLower(gg.ShortDescription) == lshortDescription {
+		if gg != g && strings.EqualFold(gg.ShortDescription, shortDescription) {
 			ret = gg
 		}
 	})
@@ -370,7 +368,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 			ptrval = realval
 
 			if ptrval.IsNil() {
-				ptrval.Set(reflect.New(ptrval.Type()))
+				ptrval.Set(reflect.New(ptrval.Type().Elem()))
 			}
 		} else {
 			ptrval = realval.Addr()
@@ -386,7 +384,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 
 		group.Namespace = mtag.Get("namespace")
 		group.EnvNamespace = mtag.Get("env-namespace")
-		group.Hidden = mtag.Get("hidden") != ""
+		group.Hidden = !isStringFalsy(mtag.Get("hidden"))
 
 		return true, nil
 	}

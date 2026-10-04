@@ -19,20 +19,6 @@ type Completion struct {
 	Description string
 }
 
-type completions []Completion
-
-func (c completions) Len() int {
-	return len(c)
-}
-
-func (c completions) Less(i, j int) bool {
-	return c[i].Item < c[j].Item
-}
-
-func (c completions) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
-}
-
 // Completer is an interface which can be implemented by types
 // to provide custom command line argument completion.
 type Completer interface {
@@ -141,7 +127,7 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 	n := make([]Completion, 0, len(s.command.commands))
 
 	for _, cmd := range s.command.commands {
-		if cmd.data != c && !cmd.Hidden && strings.HasPrefix(cmd.Name, match) {
+		if !cmd.Hidden && strings.HasPrefix(cmd.Name, match) {
 			n = append(n, Completion{
 				Item:        cmd.Name,
 				Description: cmd.ShortDescription,
@@ -295,7 +281,10 @@ func (c *completion) complete(args []string) []Completion {
 		ret = c.completeCommands(s, lastarg)
 	}
 
-	sort.Sort(completions(ret))
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].Item < ret[j].Item
+	})
+
 	return ret
 }
 

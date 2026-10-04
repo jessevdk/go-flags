@@ -133,11 +133,13 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 			return "", nil
 		}
 
-		ret := "["
+		var ret strings.Builder
+
+		ret.WriteString("[")
 
 		for i := 0; i < val.Len(); i++ {
 			if i != 0 {
-				ret += ", "
+				ret.WriteString(", ")
 			}
 
 			item, err := convertToString(val.Index(i), options)
@@ -146,10 +148,12 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				return "", err
 			}
 
-			ret += item
+			ret.WriteString(item)
 		}
 
-		return ret + "]", nil
+		ret.WriteString("]")
+
+		return ret.String(), nil
 	case reflect.Map:
 		delim := keyValueDelimiter(options)
 
