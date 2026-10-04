@@ -1,0 +1,17 @@
+#compdef examples
+compdef _examples examples
+
+_examples() {
+  local IFS=$'\n'
+  local -a completions
+  completions=($(GO_FLAGS_COMPLETION=1 "${words[@]}"))
+  if [[ -n "$completions" ]]; then
+    _describe 'command' completions
+  fi
+	return 1
+}
+
+# don't run the completion function when being source-ed or eval-ed
+if [ "$funcstack[1]" = "_examples" ]; then
+    _examples "$@"
+fi
