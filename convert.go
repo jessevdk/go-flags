@@ -38,6 +38,12 @@ type ValueValidator interface {
 	IsValidValue(value string) error
 }
 
+// Defaulter is the interface implemented by types that can provide dynamic
+// default values at runtime.
+type Defaulter interface {
+	Default() ([]string, error)
+}
+
 func getBase(options multiTag, base int) (int, error) {
 	sbase := options.Get("base")
 

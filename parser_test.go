@@ -168,6 +168,45 @@ func TestNoDefaultsForBools(t *testing.T) {
 	}
 }
 
+func TestDynamicDefaults(t *testing.T) {
+	var opts struct {
+		DD DynamicDefault `short:"d"`
+	}
+	_, err := ParseArgs(&opts, []string{"test"})
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if opts.DD != 42 {
+		t.Errorf("Dynamic default value not provided; expected 42 but was %d", opts.DD)
+	}
+}
+
+func TestDynamicDefaultError(t *testing.T) {
+	var opts struct {
+		DD DynamicDefaultError `short:"d"`
+	}
+	_, err := ParseArgs(&opts, []string{"test"})
+	if err == nil {
+		t.Fatalf("Expected error, was none")
+	}
+	const expected = "couldn't provide default"
+	if !strings.Contains(err.Error(), expected) {
+		t.Errorf("Expected error %q to contain substring %q", err, expected)
+	}
+}
+
+type DynamicDefault int
+
+func (dd DynamicDefault) Default() ([]string, error) {
+	return []string{"42"}, nil
+}
+
+type DynamicDefaultError int
+
+func (dd DynamicDefaultError) Default() ([]string, error) {
+	return nil, errors.New("couldn't provide default")
+}
+
 func TestUnquoting(t *testing.T) {
 	var tests = []struct {
 		arg   string

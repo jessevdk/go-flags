@@ -318,6 +318,14 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				option.shortAndLongName())
 		}
 
+		if defaulter, ok := option.value.Interface().(Defaulter); ok {
+			def, err := defaulter.Default()
+			if err != nil {
+				return err
+			}
+			option.Default = def
+		}
+
 		g.options = append(g.options, option)
 	}
 
