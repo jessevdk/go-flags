@@ -119,7 +119,11 @@ The following is a list of tags for struct fields supported by go-flags:
 	choice:         limits the values for an option to a set of values.
 	                Repeat this tag once for each allowable value.
 	                e.g. `long:"animal" choice:"cat" choice:"dog"`
-	hidden:         if non-empty, the option is not visible in the help or man page.
+	hidden:         if set to anything other than a falsy value ("", "false",
+	                "no" or "0"), the option is not visible in the help or man
+	                page. The same tag can be used on a group or command
+	                struct field to hide the whole group or command
+	                (optional)
 
 	key-value-delimiter:  when specified on a map field, the key and the value are
 	                      separated with the given delimiter string,

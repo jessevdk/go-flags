@@ -8,6 +8,7 @@ import (
 	"encoding"
 	"fmt"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -50,6 +51,16 @@ func getBase(options multiTag, base int) (int, error) {
 	}
 
 	return base, err
+}
+
+// keyValueDelimiter returns the delimiter separating the key from the value
+// for map typed options, as configured by the key-value-delimiter tag.
+func keyValueDelimiter(options multiTag) string {
+	if delim := options.Get("key-value-delimiter"); delim != "" {
+		return delim
+	}
+
+	return ":"
 }
 
 func convertMarshal(val reflect.Value) (bool, string, error) {
@@ -122,11 +133,13 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 			return "", nil
 		}
 
-		ret := "["
+		var ret strings.Builder
+
+		ret.WriteString("[")
 
 		for i := 0; i < val.Len(); i++ {
 			if i != 0 {
-				ret += ", "
+				ret.WriteString(", ")
 			}
 
 			item, err := convertToString(val.Index(i), options)
@@ -135,18 +148,25 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				return "", err
 			}
 
-			ret += item
+			ret.WriteString(item)
 		}
 
-		return ret + "]", nil
+		ret.WriteString("]")
+
+		return ret.String(), nil
 	case reflect.Map:
-		ret := "{"
+		delim := keyValueDelimiter(options)
 
-		for i, key := range val.MapKeys() {
-			if i != 0 {
-				ret += ", "
-			}
+		// Map iteration order is not stable, so the entries are sorted by
+		// their stringified key to keep the result reproducible.
+		type entry struct {
+			key string
+			str string
+		}
 
+		entries := make([]entry, 0, val.Len())
+
+		for _, key := range val.MapKeys() {
 			keyitem, err := convertToString(key, options)
 
 			if err != nil {
@@ -159,10 +179,20 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				return "", err
 			}
 
-			ret += keyitem + ":" + item
+			entries = append(entries, entry{key: keyitem, str: keyitem + delim + item})
 		}
 
-		return ret + "}", nil
+		sort.Slice(entries, func(i, j int) bool {
+			return entries[i].key < entries[j].key
+		})
+
+		strs := make([]string, len(entries))
+
+		for i, e := range entries {
+			strs[i] = e.str
+		}
+
+		return "{" + strings.Join(strs, ", ") + "}", nil
 	case reflect.Ptr:
 		return convertToString(reflect.Indirect(val), options)
 	case reflect.Interface:
@@ -292,12 +322,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 		retval.Set(reflect.Append(retval, elemval))
 	case reflect.Map:
-		keyValueDelimiter := options.Get("key-value-delimiter")
-		if keyValueDelimiter == "" {
-			keyValueDelimiter = ":"
-		}
-
-		parts := strings.SplitN(val, keyValueDelimiter, 2)
+		parts := strings.SplitN(val, keyValueDelimiter(options), 2)
 
 		key := parts[0]
 		var value string

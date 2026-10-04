@@ -4,16 +4,10 @@
 package flags
 
 import (
-	"flag"
-
 	"golang.org/x/sys/unix"
 )
 
-func getTerminalColumns() int {
-	if flag.Lookup("test.v") != nil {
-		return defaultTermSize
-	}
-
+func terminalColumns() int {
 	ws, err := unix.IoctlGetWinsize(0, unix.TIOCGWINSZ)
 	if err != nil {
 		return defaultTermSize

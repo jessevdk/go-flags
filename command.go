@@ -222,10 +222,10 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 				}
 
 				c.args = append(c.args, arg)
+			}
 
-				if len(mtag.Get("required")) != 0 {
-					c.ArgsRequired = true
-				}
+			if len(mtag.Get("required")) != 0 {
+				c.ArgsRequired = true
 			}
 
 			return true, nil
@@ -258,7 +258,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 				return true, err
 			}
 
-			subc.Hidden = mtag.Get("hidden") != ""
+			subc.Hidden = !isStringFalsy(mtag.Get("hidden"))
 
 			if len(subcommandsOptional) > 0 {
 				subc.SubcommandsOptional = true
@@ -402,25 +402,14 @@ func (c *Command) groupByName(name string) *Group {
 	return nil
 }
 
-type commandList []*Command
-
-func (c commandList) Less(i, j int) bool {
-	return c[i].Name < c[j].Name
-}
-
-func (c commandList) Len() int {
-	return len(c)
-}
-
-func (c commandList) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
-}
-
 func (c *Command) sortedVisibleCommands() []*Command {
-	ret := commandList(c.visibleCommands())
-	sort.Sort(ret)
+	ret := c.visibleCommands()
 
-	return []*Command(ret)
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].Name < ret[j].Name
+	})
+
+	return ret
 }
 
 func (c *Command) visibleCommands() []*Command {

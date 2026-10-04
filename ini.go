@@ -75,6 +75,24 @@ type iniSection []iniValue
 type ini struct {
 	File     string
 	Sections map[string]iniSection
+
+	// sectionNames records the order in which the sections were first
+	// encountered, so that parsing is not subject to map iteration order.
+	sectionNames []string
+}
+
+// addSection returns the section with the given name, creating and recording
+// it when it does not exist yet.
+func (i *ini) addSection(name string) iniSection {
+	section, ok := i.Sections[name]
+
+	if !ok {
+		section = make(iniSection, 0, 10)
+		i.Sections[name] = section
+		i.sectionNames = append(i.sectionNames, name)
+	}
+
+	return section
 }
 
 // NewIniParser creates a new ini parser for a given Parser.
@@ -249,22 +267,22 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 			kind = val.Type().Elem().Kind()
 
 			if val.Len() == 0 {
-				writeOption(writer, oname, kind, "", "", true, option.iniQuote)
+				writeOption(writer, oname, kind, "", "", "", true, option.iniQuote)
 			} else {
 				for idx := 0; idx < val.Len(); idx++ {
 					v, _ := convertToString(val.Index(idx), option.tag)
 
-					writeOption(writer, oname, kind, "", v, commentOption, option.iniQuote)
+					writeOption(writer, oname, kind, "", "", v, commentOption, option.iniQuote)
 				}
 			}
 		case reflect.Map:
 			kind = val.Type().Elem().Kind()
 
 			if val.Len() == 0 {
-				writeOption(writer, oname, kind, "", "", true, option.iniQuote)
+				writeOption(writer, oname, kind, "", "", "", true, option.iniQuote)
 			} else {
 				mkeys := val.MapKeys()
-				keys := make([]string, len(val.MapKeys()))
+				keys := make([]string, len(mkeys))
 				kkmap := make(map[string]reflect.Value)
 
 				for i, k := range mkeys {
@@ -274,16 +292,18 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 
 				sort.Strings(keys)
 
+				delim := keyValueDelimiter(option.tag)
+
 				for _, k := range keys {
 					v, _ := convertToString(val.MapIndex(kkmap[k]), option.tag)
 
-					writeOption(writer, oname, kind, k, v, commentOption, option.iniQuote)
+					writeOption(writer, oname, kind, k, delim, v, commentOption, option.iniQuote)
 				}
 			}
 		default:
 			v, _ := convertToString(val, option.tag)
 
-			writeOption(writer, oname, kind, "", v, commentOption, option.iniQuote)
+			writeOption(writer, oname, kind, "", "", v, commentOption, option.iniQuote)
 		}
 
 		if comments {
@@ -296,7 +316,7 @@ func writeGroupIni(cmd *Command, group *Group, namespace string, writer io.Write
 	}
 }
 
-func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, optionKey string, optionValue string, commentOption bool, forceQuote bool) {
+func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, optionKey string, keyValueDelim string, optionValue string, commentOption bool, forceQuote bool) {
 	if forceQuote || (optionType == reflect.String && !isPrint(optionValue)) {
 		optionValue = strconv.Quote(optionValue)
 	}
@@ -309,7 +329,7 @@ func writeOption(writer io.Writer, optionName string, optionType reflect.Kind, o
 	fmt.Fprintf(writer, "%s%s =", comment, optionName)
 
 	if optionKey != "" {
-		fmt.Fprintf(writer, " %s:%s", optionKey, optionValue)
+		fmt.Fprintf(writer, " %s%s%s", optionKey, keyValueDelim, optionValue)
 	} else if optionValue != "" {
 		fmt.Fprintf(writer, " %s", optionValue)
 	}
@@ -380,10 +400,8 @@ func readIni(contents io.Reader, filename string) (*ini, error) {
 	reader := bufio.NewReader(contents)
 
 	// Empty global section
-	section := make(iniSection, 0, 10)
 	sectionname := ""
-
-	ret.Sections[sectionname] = section
+	section := ret.addSection(sectionname)
 
 	var lineno uint
 
@@ -405,7 +423,7 @@ func readIni(contents io.Reader, filename string) (*ini, error) {
 		}
 
 		if line[0] == '[' {
-			if line[0] != '[' || line[len(line)-1] != ']' {
+			if line[len(line)-1] != ']' {
 				return nil, &IniError{
 					Message:    "malformed section header",
 					File:       filename,
@@ -424,12 +442,7 @@ func readIni(contents io.Reader, filename string) (*ini, error) {
 			}
 
 			sectionname = name
-			section = ret.Sections[name]
-
-			if section == nil {
-				section = make(iniSection, 0, 10)
-				ret.Sections[name] = section
-			}
+			section = ret.addSection(name)
 
 			continue
 		}
@@ -505,7 +518,8 @@ func (i *IniParser) parse(ini *ini) error {
 
 	var quotesLookup = make(map[*Option]bool)
 
-	for name, section := range ini.Sections {
+	for _, name := range ini.sectionNames {
+		section := ini.Sections[name]
 		groups := i.matchingGroups(name)
 
 		if len(groups) == 0 {
@@ -521,7 +535,7 @@ func (i *IniParser) parse(ini *ini) error {
 
 			for _, group := range groups {
 				opt = group.optionByName(inival.Name, func(o *Option, n string) bool {
-					return strings.ToLower(o.tag.Get("ini-name")) == strings.ToLower(n)
+					return strings.EqualFold(o.tag.Get("ini-name"), n)
 				})
 
 				if opt != nil && len(opt.tag.Get("no-ini")) != 0 {
@@ -556,10 +570,11 @@ func (i *IniParser) parse(ini *ini) error {
 				pval = nil
 			} else {
 				if opt.value.Type().Kind() == reflect.Map {
-					parts := strings.SplitN(inival.Value, ":", 2)
+					delim := keyValueDelimiter(opt.tag)
+					parts := strings.SplitN(inival.Value, delim, 2)
 
 					// only handle unquoting
-					if len(parts) == 2 && parts[1][0] == '"' {
+					if len(parts) == 2 && len(parts[1]) != 0 && parts[1][0] == '"' {
 						if v, err := strconv.Unquote(parts[1]); err == nil {
 							parts[1] = v
 
@@ -572,7 +587,7 @@ func (i *IniParser) parse(ini *ini) error {
 							}
 						}
 
-						s := parts[0] + ":" + parts[1]
+						s := parts[0] + delim + parts[1]
 
 						pval = &s
 					}

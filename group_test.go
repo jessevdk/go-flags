@@ -272,3 +272,49 @@ func TestAddOptionNonOptional(t *testing.T) {
 		t.Errorf("option not set")
 	}
 }
+
+// The hidden tag is interpreted the same way for options, groups and
+// commands: only a non-falsy value hides them.
+func TestHiddenTagFalsy(t *testing.T) {
+	var opts struct {
+		Group struct {
+			GroupOption string `long:"group-option" description:"group option"`
+		} `group:"Visible Group" hidden:"false"`
+
+		Option string `long:"option" hidden:"false" description:"an option"`
+
+		Command struct {
+			Thing string `long:"thing"`
+		} `command:"visible-command" description:"a command" hidden:"false"`
+	}
+
+	p := NewNamedParser("test", None)
+
+	grp, err := p.AddGroup("Application Options", "", &opts)
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	sub := grp.Find("Visible Group")
+
+	if sub == nil {
+		t.Fatalf("Expected to find the subgroup")
+	}
+
+	if sub.Hidden {
+		t.Errorf("Expected `hidden:\"false\"' to leave the group visible")
+	}
+
+	if opt := grp.FindOptionByLongName("option"); opt == nil {
+		t.Errorf("Expected to find the option")
+	} else if opt.Hidden {
+		t.Errorf("Expected `hidden:\"false\"' to leave the option visible")
+	}
+
+	if cmd := p.Find("visible-command"); cmd == nil {
+		t.Errorf("Expected to find the command")
+	} else if cmd.Hidden {
+		t.Errorf("Expected `hidden:\"false\"' to leave the command visible")
+	}
+}

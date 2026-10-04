@@ -176,3 +176,47 @@ func TestConvertToMapWithDelimiter(t *testing.T) {
 
 	assertString(t, opts.StringStringMap["key"], "value")
 }
+
+func TestConvertToStringMapIsSorted(t *testing.T) {
+	var opts = struct {
+		M map[string]int `long:"m"`
+	}{
+		M: map[string]int{"d": 4, "b": 2, "a": 1, "c": 3},
+	}
+
+	p := NewNamedParser("test", Default)
+	grp, _ := p.AddGroup("test group", "", &opts)
+	o := grp.Options()[0]
+
+	// Map iteration order is randomized, so repeat often enough to catch a
+	// non-deterministic result.
+	for i := 0; i < 100; i++ {
+		s, err := convertToString(o.value, o.tag)
+
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		assertString(t, s, "{a:1, b:2, c:3, d:4}")
+	}
+}
+
+func TestConvertToStringMapWithDelimiter(t *testing.T) {
+	var opts = struct {
+		M map[string]string `long:"m" key-value-delimiter:"="`
+	}{
+		M: map[string]string{"key": "value"},
+	}
+
+	p := NewNamedParser("test", Default)
+	grp, _ := p.AddGroup("test group", "", &opts)
+	o := grp.Options()[0]
+
+	s, err := convertToString(o.value, o.tag)
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	assertString(t, s, "{key=value}")
+}

@@ -3,6 +3,6 @@
 
 package flags
 
-func getTerminalColumns() int {
+func terminalColumns() int {
 	return defaultTermSize
 }
