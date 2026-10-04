@@ -437,8 +437,10 @@ func (option *Option) isTextUnmarshaler() encoding.TextUnmarshaler {
 }
 
 func (option *Option) isValueValidator() ValueValidator {
-	v := option.value
+	return valueValidator(option.value)
+}
 
+func valueValidator(v reflect.Value) ValueValidator {
 	for {
 		if !v.CanInterface() {
 			break
