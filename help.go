@@ -45,9 +45,7 @@ func (a *alignmentInfo) descriptionStart() int {
 	return ret
 }
 
-func (a *alignmentInfo) updateLen(name string, indent bool) {
-	l := utf8.RuneCountInString(name)
-
+func (a *alignmentInfo) updateLen(l int, indent bool) {
 	if indent {
 		l = l + 4
 	}
@@ -70,11 +68,12 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	}
 
 	var prevcmd *Command
+	var minChoicesLen, fullChoicesLen int
 
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		if c != prevcmd {
 			for _, arg := range c.args {
-				ret.updateLen(arg.Name, c != p.Command)
+				ret.updateLen(utf8.RuneCountInString(arg.Name), c != p.Command)
 			}
 			prevcmd = c
 		}
@@ -94,15 +93,46 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.hasValueName = true
 			}
 
-			l := info.LongNameWithNamespace() + info.ValueName
+			l := utf8.RuneCountInString(info.LongNameWithNamespace() + info.ValueName)
 
-			if len(info.Choices) != 0 {
-				l += "[" + strings.Join(info.Choices, "|") + "]"
+			if len(info.Choices) == 0 {
+				ret.updateLen(l, c != p.Command)
+				continue
 			}
 
-			ret.updateLen(l, c != p.Command)
+			// The full list of choices does not need to fit on a single
+			// line since it is wrapped (see wrapChoices), but the column
+			// must still fit the longest single choice including its
+			// surrounding [ and | or ].
+			longest := 0
+
+			for _, choice := range info.Choices {
+				longest = max(longest, utf8.RuneCountInString(choice))
+			}
+
+			full := l + utf8.RuneCountInString("["+strings.Join(info.Choices, "|")+"]")
+
+			if c != p.Command {
+				l += 4
+				full += 4
+			}
+
+			minChoicesLen = max(minChoicesLen, l+longest+2)
+			fullChoicesLen = max(fullChoicesLen, full)
 		}
 	})
+
+	// Keep choices on a single line as long as descriptions still start
+	// within the first two thirds of the terminal. Otherwise, wrap them so
+	// that descriptions start at the middle of the terminal.
+	overhead := ret.descriptionStart() - ret.maxLongLen + paddingBeforeOption
+	choicesLen := fullChoicesLen
+
+	if overhead+choicesLen > ret.terminalColumns*2/3 {
+		choicesLen = ret.terminalColumns/2 - overhead
+	}
+
+	ret.maxLongLen = max(ret.maxLongLen, minChoicesLen, choicesLen)
 
 	return ret
 }
@@ -163,6 +193,40 @@ func wrapText(s string, l int, prefix string) string {
 	return ret
 }
 
+// wrapChoices appends the choices to head as [a|b|c], wrapping them over
+// multiple lines so that no line exceeds width (unless a single choice does).
+// Continuation lines are indented to align with the first choice.
+func wrapChoices(head string, choices []string, width int) []string {
+	single := head + "[" + strings.Join(choices, "|") + "]"
+
+	// Allow a single line to use the full gap before the description
+	if utf8.RuneCountInString(single) < width+distanceBetweenOptionAndDescription {
+		return []string{single}
+	}
+
+	var lines []string
+
+	indent := strings.Repeat(" ", utf8.RuneCountInString(head)+1)
+	cur := head + "["
+
+	for i, choice := range choices {
+		if i == len(choices)-1 {
+			choice += "]"
+		} else {
+			choice += "|"
+		}
+
+		if i > 0 && utf8.RuneCountInString(cur)+utf8.RuneCountInString(choice) > width {
+			lines = append(lines, cur)
+			cur = indent
+		}
+
+		cur += choice
+	}
+
+	return append(lines, cur)
+}
+
 func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alignmentInfo) {
 	line := &bytes.Buffer{}
 
@@ -204,21 +268,17 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		if len(option.ValueName) > 0 {
 			line.WriteString(option.ValueName)
 		}
-
-		if len(option.Choices) > 0 {
-			line.WriteString("[")
-			line.WriteString(strings.Join(option.Choices, "|"))
-			line.WriteString("]")
-		}
 	}
 
-	written := line.Len()
-	line.WriteTo(writer)
+	optLines := []string{line.String()}
+
+	if option.canArgument() && len(option.Choices) > 0 {
+		optLines = wrapChoices(optLines[0], option.Choices, descstart-distanceBetweenOptionAndDescription)
+	}
+
+	var descLines []string
 
 	if option.Description != "" {
-		dw := descstart - written
-		writer.WriteString(strings.Repeat(" ", dw))
-
 		var def string
 
 		if len(option.DefaultMask) != 0 {
@@ -248,12 +308,25 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			desc = option.Description + envDef
 		}
 
-		writer.WriteString(wrapText(desc,
-			info.terminalColumns-descstart,
-			strings.Repeat(" ", descstart)))
+		descLines = strings.Split(wrapText(desc, info.terminalColumns-descstart, ""), "\n")
 	}
 
-	writer.WriteString("\n")
+	for i := range max(len(optLines), len(descLines)) {
+		var opt string
+
+		if i < len(optLines) {
+			opt = optLines[i]
+		}
+
+		writer.WriteString(opt)
+
+		if i < len(descLines) && descLines[i] != "" {
+			writer.WriteString(strings.Repeat(" ", max(descstart-utf8.RuneCountInString(opt), 1)))
+			writer.WriteString(descLines[i])
+		}
+
+		writer.WriteString("\n")
+	}
 }
 
 func maxCommandLength(s []*Command) int {

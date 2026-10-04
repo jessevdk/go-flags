@@ -700,3 +700,62 @@ func TestWroteHelp(t *testing.T) {
 		})
 	}
 }
+
+func TestHelpWrapChoices(t *testing.T) {
+	var opts struct {
+		Verbose bool   `short:"v" long:"verbose" description:"Show verbose debug information"`
+		Level   string `short:"l" long:"level" choice:"trace" choice:"debug" choice:"info" choice:"notice" choice:"warning" choice:"error" choice:"critical" choice:"alert" choice:"emergency" description:"The log level used to filter which messages are written to the output, defaults to info"`
+		Format  string `long:"format" value-name:"FMT" choice:"text" choice:"json" description:"Output format"`
+	}
+
+	p := NewNamedParser("TestHelpWrapChoices", HelpFlag)
+	p.AddGroup("Application Options", "The application options", &opts)
+
+	_, err := p.ParseArgs([]string{"--help"})
+
+	if err == nil {
+		t.Fatalf("Expected help error")
+	}
+
+	e, ok := err.(*Error)
+
+	if !ok || e.Type != ErrHelp {
+		t.Fatalf("Expected ErrHelp, got %v", err)
+	}
+
+	var expected string
+
+	if runtime.GOOS == "windows" {
+		expected = `Usage:
+  TestHelpWrapChoices [OPTIONS]
+
+Application Options:
+  /v, /verbose                          Show verbose debug information
+  /l, /level:[trace|debug|info|notice|  The log level used to filter which
+              warning|error|critical|   messages are written to the output,
+              alert|emergency]          defaults to info
+      /format:FMT[text|json]            Output format
+
+Help Options:
+  /?                                    Show this help message
+  /h, /help                             Show this help message
+`
+	} else {
+		expected = `Usage:
+  TestHelpWrapChoices [OPTIONS]
+
+Application Options:
+  -v, --verbose                         Show verbose debug information
+  -l, --level=[trace|debug|info|        The log level used to filter which
+               notice|warning|error|    messages are written to the output,
+               critical|alert|          defaults to info
+               emergency]
+      --format=FMT[text|json]           Output format
+
+Help Options:
+  -h, --help                            Show this help message
+`
+	}
+
+	assertDiff(t, e.Message, expected, "help message")
+}
