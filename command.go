@@ -69,7 +69,7 @@ type lookup struct {
 
 // AddCommand adds a new command to the parser with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
-// options are in the command. The provided data can implement the Command and
+// options are in the command. The provided data can implement the Commander and
 // Usage interfaces.
 func (c *Command) AddCommand(command string, shortDescription string, longDescription string, data interface{}) (*Command, error) {
 	cmd := newCommand(command, shortDescription, longDescription, data)
