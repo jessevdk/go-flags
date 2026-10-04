@@ -10,11 +10,12 @@ import (
 type marshalled string
 
 func (m *marshalled) UnmarshalFlag(value string) error {
-	if value == "yes" {
+	switch value {
+	case "yes":
 		*m = "true"
-	} else if value == "no" {
+	case "no":
 		*m = "false"
-	} else {
+	default:
 		return fmt.Errorf("`%s' is not a valid value, please specify `yes' or `no'", value)
 	}
 
@@ -124,11 +125,12 @@ type textMarshalled string
 
 func (m *textMarshalled) UnmarshalText(text []byte) error {
 	value := string(text)
-	if value == "yes" {
+	switch value {
+	case "yes":
 		*m = "true"
-	} else if value == "no" {
+	case "no":
 		*m = "false"
-	} else {
+	default:
 		return fmt.Errorf("`%s' is not a valid value, please specify `yes' or `no'", value)
 	}
 

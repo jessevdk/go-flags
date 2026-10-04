@@ -190,7 +190,7 @@ func TestConvertToStringMapIsSorted(t *testing.T) {
 
 	// Map iteration order is randomized, so repeat often enough to catch a
 	// non-deterministic result.
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		s, err := convertToString(o.value, o.tag)
 
 		if err != nil {

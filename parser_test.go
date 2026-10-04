@@ -168,6 +168,49 @@ func TestNoDefaultsForBools(t *testing.T) {
 	}
 }
 
+// A boolean flag takes no argument, so there is no value to match against a
+// choice list. Before this was rejected at scan time, specifying one made
+// Option.Set dereference a nil value and panic.
+func TestChoiceBool(t *testing.T) {
+	var opts struct {
+		ChoiceBool bool `short:"d" choice:"false" choice:"true"`
+	}
+
+	if runtime.GOOS == "windows" {
+		assertParseFail(t, ErrInvalidTag, "boolean flag `/d' may not have choices, they are restricted to `false' and `true'", &opts)
+	} else {
+		assertParseFail(t, ErrInvalidTag, "boolean flag `-d' may not have choices, they are restricted to `false' and `true'", &opts)
+	}
+}
+
+// Options built by hand do not go through the struct scan, so Set has to cope
+// with a nil value even when choices are configured.
+func TestChoiceSetNilValue(t *testing.T) {
+	var target bool
+
+	option := &Option{
+		LongName: "bool",
+		Choices:  []string{"false", "true"},
+	}
+
+	p := NewNamedParser("test", None)
+	g, err := p.AddGroup("Application Options", "", &struct{}{})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	g.AddOption(option, &target)
+
+	if err := option.Set(nil); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	if !target {
+		t.Errorf("Expected the flag to be set")
+	}
+}
+
 func TestUnquoting(t *testing.T) {
 	var tests = []struct {
 		arg   string
@@ -543,7 +586,8 @@ func TestUnknownFlagHandler(t *testing.T) {
 
 	// Set up a callback to intercept unknown options during parsing
 	p.UnknownOptionHandler = func(option string, arg SplitArgument, args []string) ([]string, error) {
-		if option == "unknownFlag1" {
+		switch option {
+		case "unknownFlag1":
 			if argValue, ok := arg.Value(); ok {
 				unknownFlag1 = argValue
 				return args, nil
@@ -551,11 +595,11 @@ func TestUnknownFlagHandler(t *testing.T) {
 			// consume a value from remaining args list
 			unknownFlag1 = args[0]
 			return args[1:], nil
-		} else if option == "unknownFlag2" {
+		case "unknownFlag2":
 			// treat this one as a bool switch, don't consume any args
 			unknownFlag2 = true
 			return args, nil
-		} else if option == "unknownFlag3" {
+		case "unknownFlag3":
 			if argValue, ok := arg.Value(); ok {
 				unknownFlag3 = argValue
 				return args, nil

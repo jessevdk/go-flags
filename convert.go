@@ -77,7 +77,7 @@ func convertMarshal(val reflect.Value) (bool, string, error) {
 		}
 	}
 
-	if val.IsValid() && val.Type().Kind() != reflect.Ptr && val.CanAddr() {
+	if val.IsValid() && val.Type().Kind() != reflect.Pointer && val.CanAddr() {
 		return convertMarshal(val.Addr())
 	}
 
@@ -96,7 +96,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	tp := val.Type()
 
 	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+	if tp == reflect.TypeFor[time.Duration]() {
 		stringer := val.Interface().(fmt.Stringer)
 		return stringer.String(), nil
 	}
@@ -193,7 +193,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 		}
 
 		return "{" + strings.Join(strs, ", ") + "}", nil
-	case reflect.Ptr:
+	case reflect.Pointer:
 		return convertToString(reflect.Indirect(val), options)
 	case reflect.Interface:
 		if !val.IsNil() {
@@ -207,7 +207,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 	if retval.Type().NumMethod() > 0 && retval.CanInterface() {
 		if unmarshaler, ok := retval.Interface().(Unmarshaler); ok {
-			if retval.Kind() == reflect.Ptr && retval.IsNil() {
+			if retval.Kind() == reflect.Pointer && retval.IsNil() {
 				retval.Set(reflect.New(retval.Type().Elem()))
 
 				// Re-assign from the new value
@@ -218,7 +218,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 		}
 
 		if unmarshaler, ok := retval.Interface().(encoding.TextUnmarshaler); ok {
-			if retval.Kind() == reflect.Ptr && retval.IsNil() {
+			if retval.Kind() == reflect.Pointer && retval.IsNil() {
 				retval.Set(reflect.New(retval.Type().Elem()))
 
 				// Re-assign from the new value
@@ -229,7 +229,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 		}
 	}
 
-	if retval.Type().Kind() != reflect.Ptr && retval.CanAddr() {
+	if retval.Type().Kind() != reflect.Pointer && retval.CanAddr() {
 		return convertUnmarshal(val, retval.Addr())
 	}
 
@@ -248,7 +248,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	tp := retval.Type()
 
 	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+	if tp == reflect.TypeFor[time.Duration]() {
 		parsed, err := time.ParseDuration(val)
 
 		if err != nil {
@@ -350,7 +350,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		}
 
 		retval.SetMapIndex(reflect.Indirect(keyval), reflect.Indirect(valueval))
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if retval.IsNil() {
 			retval.Set(reflect.New(retval.Type().Elem()))
 		}
