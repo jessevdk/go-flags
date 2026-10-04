@@ -543,7 +543,8 @@ func TestUnknownFlagHandler(t *testing.T) {
 
 	// Set up a callback to intercept unknown options during parsing
 	p.UnknownOptionHandler = func(option string, arg SplitArgument, args []string) ([]string, error) {
-		if option == "unknownFlag1" {
+		switch option {
+		case "unknownFlag1":
 			if argValue, ok := arg.Value(); ok {
 				unknownFlag1 = argValue
 				return args, nil
@@ -551,11 +552,11 @@ func TestUnknownFlagHandler(t *testing.T) {
 			// consume a value from remaining args list
 			unknownFlag1 = args[0]
 			return args[1:], nil
-		} else if option == "unknownFlag2" {
+		case "unknownFlag2":
 			// treat this one as a bool switch, don't consume any args
 			unknownFlag2 = true
 			return args, nil
-		} else if option == "unknownFlag3" {
+		case "unknownFlag3":
 			if argValue, ok := arg.Value(); ok {
 				unknownFlag3 = argValue
 				return args, nil

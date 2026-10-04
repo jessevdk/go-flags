@@ -2,6 +2,7 @@ package flags
 
 import (
 	"reflect"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -236,7 +237,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 		if len(subcommand) != 0 {
 			var ptrval reflect.Value
 
-			if realval.Kind() == reflect.Ptr {
+			if realval.Kind() == reflect.Pointer {
 				ptrval = realval
 
 				if ptrval.IsNil() {
@@ -348,8 +349,8 @@ func (c *Command) makeLookup() lookup {
 		}
 	}
 
-	for i := len(parents) - 1; i >= 0; i-- {
-		parents[i].fillLookup(&ret, true)
+	for _, cmd := range slices.Backward(parents) {
+		cmd.fillLookup(&ret, true)
 	}
 
 	c.fillLookup(&ret, false)
@@ -425,17 +426,7 @@ func (c *Command) visibleCommands() []*Command {
 }
 
 func (c *Command) match(name string) bool {
-	if c.Name == name {
-		return true
-	}
-
-	for _, v := range c.Aliases {
-		if v == name {
-			return true
-		}
-	}
-
-	return false
+	return c.Name == name || slices.Contains(c.Aliases, name)
 }
 
 func (c *Command) hasHelpOptions() bool {

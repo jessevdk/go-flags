@@ -52,7 +52,7 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 	issame := (len(args) == len(exargs))
 
 	if issame {
-		for i := 0; i < len(args); i++ {
+		for i := range args {
 			if args[i] != exargs[i] {
 				issame = false
 				break

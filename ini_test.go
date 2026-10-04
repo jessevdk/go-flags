@@ -1232,7 +1232,7 @@ func TestIniParseSectionOrderIsStable(t *testing.T) {
 	// last section in the file has to win, consistently.
 	const contents = "value = global\n[Application Options]\nvalue = named\n"
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		var opts options
 
 		p := NewNamedParser("test", None)

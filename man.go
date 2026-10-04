@@ -22,7 +22,7 @@ func manQuoteLines(s string) string {
 }
 
 func manQuote(s string) string {
-	return strings.Replace(s, "\\", "\\\\", -1)
+	return strings.ReplaceAll(s, "\\", "\\\\")
 }
 
 func formatForMan(wr io.Writer, s string, quoter func(s string) string) {
