@@ -673,7 +673,7 @@ func TestHelpDefaultMask(t *testing.T) {
 		w := bufio.NewWriter(h)
 		p.writeHelpOption(w, p.FindOptionByShortName('v'), p.getAlignmentInfo())
 		w.Flush()
-		if strings.Index(h.String(), test.present) < 0 {
+		if !strings.Contains(h.String(), test.present) {
 			t.Errorf("Not present %q\n%s", test.present, h.String())
 		}
 	}
