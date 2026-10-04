@@ -2,6 +2,7 @@ package flags
 
 import (
 	"bytes"
+	"encoding"
 	"fmt"
 	"os"
 	"reflect"
@@ -306,6 +307,10 @@ func (option *Option) canArgument() bool {
 		return true
 	}
 
+	if u := option.isTextUnmarshaler(); u != nil {
+		return true
+	}
+
 	return !option.isBool()
 }
 
@@ -402,6 +407,30 @@ func (option *Option) isUnmarshaler() Unmarshaler {
 		i := v.Interface()
 
 		if u, ok := i.(Unmarshaler); ok {
+			return u
+		}
+
+		if !v.CanAddr() {
+			break
+		}
+
+		v = v.Addr()
+	}
+
+	return nil
+}
+
+func (option *Option) isTextUnmarshaler() encoding.TextUnmarshaler {
+	v := option.value
+
+	for {
+		if !v.CanInterface() {
+			break
+		}
+
+		i := v.Interface()
+
+		if u, ok := i.(encoding.TextUnmarshaler); ok {
 			return u
 		}
 
