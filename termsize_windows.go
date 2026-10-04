@@ -4,7 +4,6 @@
 package flags
 
 import (
-	"flag"
 	"syscall"
 	"unsafe"
 )
@@ -66,11 +65,7 @@ func GetConsoleScreenBufferInfo(handle uintptr) (*CONSOLE_SCREEN_BUFFER_INFO, er
 	return &info, nil
 }
 
-func getTerminalColumns() int {
-	if flag.Lookup("test.v") != nil {
-		return defaultTermSize
-	}
-
+func terminalColumns() int {
 	stdoutHandle, err := getStdHandle(syscall.STD_OUTPUT_HANDLE)
 	if err != nil {
 		return defaultTermSize
