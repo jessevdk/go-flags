@@ -496,7 +496,10 @@ func (p *parseState) estimateCommand() error {
 		msg = fmt.Sprintf("Unknown command `%s'", p.retargs[0])
 		errtype = ErrUnknownCommand
 
-		if float32(l)/float32(len(c)) < 0.5 {
+		// l is a distance in runes, so it has to be weighed against the
+		// length of the candidate in runes as well. There is no candidate at
+		// all when every command is hidden.
+		if c != "" && float32(l)/float32(utf8.RuneCountInString(c)) < 0.5 {
 			msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
 		} else if len(cmdnames) == 1 {
 			msg = fmt.Sprintf("%s. You should use the %s command",
@@ -538,7 +541,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 			arg = s.pop()
 
 			if validationErr := option.isValidValue(arg); validationErr != nil {
-				return newErrorf(ErrExpectedArgument, validationErr.Error())
+				return newErrorf(ErrExpectedArgument, "%s", validationErr.Error())
 			} else if p.Options&PassDoubleDash != 0 && arg == "--" {
 				return newErrorf(ErrExpectedArgument, "expected argument for flag `%s', but got double dash `--'", option)
 			}

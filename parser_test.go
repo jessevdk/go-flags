@@ -768,3 +768,24 @@ func TestAllowBoolValues(t *testing.T) {
 		}
 	}
 }
+
+type validatorWithPercent string
+
+func (v *validatorWithPercent) UnmarshalFlag(value string) error {
+	*v = validatorWithPercent(value)
+	return nil
+}
+
+func (v validatorWithPercent) IsValidValue(value string) error {
+	return fmt.Errorf("%s is 100%% wrong", value)
+}
+
+// The error returned by a ValueValidator must not be treated as a format
+// string.
+func TestValidatorErrorIsNotAFormatString(t *testing.T) {
+	var opts struct {
+		Value validatorWithPercent `long:"value"`
+	}
+
+	assertParseFail(t, ErrExpectedArgument, "nope is 100% wrong", &opts, "--value", "nope")
+}

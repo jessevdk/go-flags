@@ -1,41 +1,55 @@
 package flags
 
 func levenshtein(s string, t string) int {
-	if len(s) == 0 {
-		return len(t)
+	// Work on runes rather than bytes, otherwise multi-byte characters are
+	// each counted as several independent edits.
+	sr := []rune(s)
+	tr := []rune(t)
+
+	if len(sr) == 0 {
+		return len(tr)
 	}
 
-	if len(t) == 0 {
-		return len(s)
+	if len(tr) == 0 {
+		return len(sr)
 	}
 
-	dists := make([][]int, len(s)+1)
-	for i := range dists {
-		dists[i] = make([]int, len(t)+1)
-		dists[i][0] = i
+	// Only the previous and the current row of the distance matrix are ever
+	// needed at the same time.
+	prev := make([]int, len(tr)+1)
+	cur := make([]int, len(tr)+1)
+
+	for j := range prev {
+		prev[j] = j
 	}
 
-	for j := range t {
-		dists[0][j] = j
-	}
+	for i := 1; i <= len(sr); i++ {
+		cur[0] = i
 
-	for i, sc := range s {
-		for j, tc := range t {
-			if sc == tc {
-				dists[i+1][j+1] = dists[i][j]
-			} else {
-				dists[i+1][j+1] = dists[i][j] + 1
-				if dists[i+1][j] < dists[i+1][j+1] {
-					dists[i+1][j+1] = dists[i+1][j] + 1
-				}
-				if dists[i][j+1] < dists[i+1][j+1] {
-					dists[i+1][j+1] = dists[i][j+1] + 1
-				}
+		for j := 1; j <= len(tr); j++ {
+			if sr[i-1] == tr[j-1] {
+				cur[j] = prev[j-1]
+				continue
 			}
+
+			// Substitution, insertion or deletion, whichever is cheapest.
+			d := prev[j-1]
+
+			if cur[j-1] < d {
+				d = cur[j-1]
+			}
+
+			if prev[j] < d {
+				d = prev[j]
+			}
+
+			cur[j] = d + 1
 		}
+
+		prev, cur = cur, prev
 	}
 
-	return dists[len(s)][len(t)]
+	return prev[len(tr)]
 }
 
 func closestChoice(cmd string, choices []string) (string, int) {
