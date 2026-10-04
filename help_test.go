@@ -723,7 +723,25 @@ func TestHelpWrapChoices(t *testing.T) {
 		t.Fatalf("Expected ErrHelp, got %v", err)
 	}
 
-	expected := `Usage:
+	var expected string
+
+	if runtime.GOOS == "windows" {
+		expected = `Usage:
+  TestHelpWrapChoices [OPTIONS]
+
+Application Options:
+  /v, /verbose                          Show verbose debug information
+  /l, /level:[trace|debug|info|notice|  The log level used to filter which
+              warning|error|critical|   messages are written to the output,
+              alert|emergency]          defaults to info
+      /format:FMT[text|json]            Output format
+
+Help Options:
+  /?                                    Show this help message
+  /h, /help                             Show this help message
+`
+	} else {
+		expected = `Usage:
   TestHelpWrapChoices [OPTIONS]
 
 Application Options:
@@ -737,6 +755,7 @@ Application Options:
 Help Options:
   -h, --help                            Show this help message
 `
+	}
 
 	assertDiff(t, e.Message, expected, "help message")
 }
