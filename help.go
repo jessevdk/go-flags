@@ -122,21 +122,17 @@ func wrapText(s string, l int, prefix string) string {
 
 		line = strings.TrimSpace(line)
 
-		for utf8.RuneCountInString(line) > l {
+		for len(line) > l {
 			// Try to split on space
 			suffix := ""
 
-			// Convert the rune width to a byte boundary before slicing UTF-8.
-			limit := 0
-			for i := 0; i < l; i++ {
-				_, size := utf8.DecodeRuneInString(line[limit:])
-				limit += size
-			}
-			pos := strings.LastIndex(line[:limit], " ")
+			pos := strings.LastIndex(line[:l], " ")
 
 			if pos < 0 {
-				_, size := utf8.DecodeLastRuneInString(line[:limit])
-				pos = limit - size
+				pos = l - 1
+				for pos > 0 && !utf8.RuneStart(line[pos]) {
+					pos--
+				}
 				suffix = "-"
 			}
 
