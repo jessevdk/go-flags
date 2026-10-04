@@ -15,17 +15,35 @@ import (
 )
 
 type alignmentInfo struct {
-	maxLongLen      int
-	hasShort        bool
-	hasValueName    bool
+	maxLongLen   int
+	hasShort     bool
+	hasValueName bool
+
+	// terminalColumns is the width the help message is wrapped at, or 0 when
+	// it should not be wrapped at all.
 	terminalColumns int
-	indent          bool
+
+	indent bool
 }
 
 const (
 	paddingBeforeOption                 = 2
 	distanceBetweenOptionAndDescription = 2
+
+	// minWrapWidth is the narrowest width text is wrapped at, however narrow
+	// the terminal is.
+	minWrapWidth = 10
 )
+
+// wrapWidth returns the width available for text starting at the given column,
+// or 0 when the text should not be wrapped.
+func (a *alignmentInfo) wrapWidth(start int) int {
+	if a.terminalColumns <= 0 {
+		return 0
+	}
+
+	return max(a.terminalColumns-start, minWrapWidth)
+}
 
 func (a *alignmentInfo) descriptionStart() int {
 	ret := a.maxLongLen + distanceBetweenOptionAndDescription
@@ -57,15 +75,20 @@ func (a *alignmentInfo) updateLen(l int, indent bool) {
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
 	ret := alignmentInfo{
-		maxLongLen:      0,
-		hasShort:        false,
-		hasValueName:    false,
-		terminalColumns: getTerminalColumns(),
+		maxLongLen:   0,
+		hasShort:     false,
+		hasValueName: false,
 	}
 
-	if ret.terminalColumns <= 0 {
-		ret.terminalColumns = 80
+	if p.TerminalColumns != 0 {
+		ret.terminalColumns = p.TerminalColumns
+	} else {
+		ret.terminalColumns = getTerminalColumns()
 	}
+
+	// A negative width disables wrapping explicitly, as does the zero width
+	// reported when there is no terminal to wrap the help message for.
+	ret.terminalColumns = max(ret.terminalColumns, 0)
 
 	var prevcmd *Command
 	var minChoicesLen, fullChoicesLen int
@@ -128,7 +151,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	overhead := ret.descriptionStart() - ret.maxLongLen + paddingBeforeOption
 	choicesLen := fullChoicesLen
 
-	if overhead+choicesLen > ret.terminalColumns*2/3 {
+	if ret.terminalColumns > 0 && overhead+choicesLen > ret.terminalColumns*2/3 {
 		choicesLen = ret.terminalColumns/2 - overhead
 	}
 
@@ -137,11 +160,16 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	return ret
 }
 
+// wrapText wraps s at spaces so that no line exceeds l, indenting every line
+// but the first with prefix. A non-positive l disables wrapping, in which case
+// only the indenting of any lines already in s is applied.
 func wrapText(s string, l int, prefix string) string {
 	var ret string
 
-	if l < 10 {
-		l = 10
+	wrap := l > 0
+
+	if l < minWrapWidth {
+		l = minWrapWidth
 	}
 
 	// Basic text wrapping of s at spaces to fit in l
@@ -152,7 +180,7 @@ func wrapText(s string, l int, prefix string) string {
 
 		line = strings.TrimSpace(line)
 
-		for len(line) > l {
+		for wrap && len(line) > l {
 			// Try to split on space
 			suffix := ""
 
@@ -308,7 +336,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			desc = option.Description + envDef
 		}
 
-		descLines = strings.Split(wrapText(desc, info.terminalColumns-descstart, ""), "\n")
+		descLines = strings.Split(wrapText(desc, info.wrapWidth(descstart), ""), "\n")
 	}
 
 	for i := range max(len(optLines), len(descLines)) {
@@ -527,7 +555,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 					// Space between "arg:" and the description start
 					descPadding := strings.Repeat(" ", descStart-len(argPrefix))
 					// How much space the description gets before wrapping
-					descWidth := aligninfo.terminalColumns - 1 - descStart
+					descWidth := aligninfo.wrapWidth(descStart + 1)
 					// Whitespace to which we can indent new description lines
 					descPrefix := strings.Repeat(" ", descStart)
 

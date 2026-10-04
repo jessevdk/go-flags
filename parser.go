@@ -27,6 +27,12 @@ type Parser struct {
 	// Option flags changing the behavior of the parser.
 	Options Options
 
+	// TerminalColumns is the width at which the help message is wrapped. When
+	// zero, the width of the terminal attached to stdout is used, and wrapping
+	// is disabled when there is no terminal attached. A negative value
+	// disables wrapping unconditionally.
+	TerminalColumns int
+
 	// NamespaceDelimiter separates group namespaces and option long names
 	NamespaceDelimiter string
 
