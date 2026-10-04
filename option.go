@@ -252,7 +252,7 @@ func (option *Option) Set(value *string) error {
 	option.preventDefault = true
 	option.clearReferenceBeforeSet = false
 
-	if len(option.Choices) != 0 {
+	if len(option.Choices) != 0 && value != nil {
 		if !slices.Contains(option.Choices, *value) {
 			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
 

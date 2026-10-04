@@ -168,6 +168,49 @@ func TestNoDefaultsForBools(t *testing.T) {
 	}
 }
 
+// A boolean flag takes no argument, so there is no value to match against a
+// choice list. Before this was rejected at scan time, specifying one made
+// Option.Set dereference a nil value and panic.
+func TestChoiceBool(t *testing.T) {
+	var opts struct {
+		ChoiceBool bool `short:"d" choice:"false" choice:"true"`
+	}
+
+	if runtime.GOOS == "windows" {
+		assertParseFail(t, ErrInvalidTag, "boolean flag `/d' may not have choices, they are restricted to `false' and `true'", &opts)
+	} else {
+		assertParseFail(t, ErrInvalidTag, "boolean flag `-d' may not have choices, they are restricted to `false' and `true'", &opts)
+	}
+}
+
+// Options built by hand do not go through the struct scan, so Set has to cope
+// with a nil value even when choices are configured.
+func TestChoiceSetNilValue(t *testing.T) {
+	var target bool
+
+	option := &Option{
+		LongName: "bool",
+		Choices:  []string{"false", "true"},
+	}
+
+	p := NewNamedParser("test", None)
+	g, err := p.AddGroup("Application Options", "", &struct{}{})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	g.AddOption(option, &target)
+
+	if err := option.Set(nil); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	if !target {
+		t.Errorf("Expected the flag to be set")
+	}
+}
+
 func TestUnquoting(t *testing.T) {
 	var tests = []struct {
 		arg   string

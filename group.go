@@ -316,6 +316,12 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				option.shortAndLongName())
 		}
 
+		if option.isBool() && len(option.Choices) != 0 {
+			return newErrorf(ErrInvalidTag,
+				"boolean flag `%s' may not have choices, they are restricted to `false' and `true'",
+				option.shortAndLongName())
+		}
+
 		g.options = append(g.options, option)
 	}
 
