@@ -372,14 +372,6 @@ func (p *parseState) pop() string {
 	return p.arg
 }
 
-func (p *parseState) peek() string {
-	if p.eof() {
-		return ""
-	}
-
-	return p.args[0]
-}
-
 func (p *parseState) checkRequired(parser *Parser) error {
 	c := parser.Command
 

@@ -3,7 +3,6 @@ package flags
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"strings"
@@ -766,7 +765,7 @@ value = some other value
 	opts.NoValue = "some value"
 	opts.Value = "some other value"
 
-	file, err := ioutil.TempFile("", "")
+	file, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)
 	}
@@ -777,7 +776,7 @@ value = some other value
 		t.Fatalf("Could not write ini file: %s", err)
 	}
 
-	found, err := ioutil.ReadFile(file.Name())
+	found, err := os.ReadFile(file.Name())
 	if err != nil {
 		t.Fatalf("Could not read written ini file: %s", err)
 	}
@@ -788,7 +787,7 @@ value = some other value
 }
 
 func TestIniParse(t *testing.T) {
-	file, err := ioutil.TempFile("", "")
+	file, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)
 	}
@@ -816,7 +815,7 @@ func TestIniParse(t *testing.T) {
 }
 
 func TestIniCliOverrides(t *testing.T) {
-	file, err := ioutil.TempFile("", "")
+	file, err := os.CreateTemp("", "")
 
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)
@@ -864,7 +863,7 @@ func TestIniCliOverrides(t *testing.T) {
 }
 
 func TestIniOverrides(t *testing.T) {
-	file, err := ioutil.TempFile("", "")
+	file, err := os.CreateTemp("", "")
 
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)
@@ -904,7 +903,7 @@ func TestIniOverrides(t *testing.T) {
 }
 
 func TestIniOverridesFromConfigFlag(t *testing.T) {
-	file, err := ioutil.TempFile("", "")
+	file, err := os.CreateTemp("", "")
 
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)
@@ -996,7 +995,7 @@ item=abc`
 }
 
 func TestWriteFile(t *testing.T) {
-	file, err := ioutil.TempFile("", "")
+	file, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Cannot create temporary file: %s", err)
 	}
@@ -1016,7 +1015,7 @@ func TestWriteFile(t *testing.T) {
 		t.Fatalf("Could not write ini file: %s", err)
 	}
 
-	found, err := ioutil.ReadFile(file.Name())
+	found, err := os.ReadFile(file.Name())
 	if err != nil {
 		t.Fatalf("Could not read written ini file: %s", err)
 	}

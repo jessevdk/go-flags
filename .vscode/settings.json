@@ -1,0 +1,12 @@
+{
+  // go-flags parses struct tags itself (see multiTag), and repeating a key is
+  // a documented feature: `default`, `choice` and `alias` may each appear
+  // more than once on a field. staticcheck's SA5008 reports those as
+  // duplicate tags, because the convention it checks against is
+  // reflect.StructTag.Get, which only ever returns one match.
+  "gopls": {
+    "ui.diagnostic.analyses": {
+      "SA5008": false
+    }
+  }
+}
