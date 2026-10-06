@@ -399,6 +399,55 @@ Help Options:
 	}
 }
 
+func TestHiddenCommandHelp(t *testing.T) {
+	for _, args := range [][]string{
+		{"secretcmd", "--help"},
+		{"secretcmd", "child", "--help"},
+	} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var expected string
+			for _, hidden := range []bool{false, true} {
+				var opts struct {
+					Output      string `short:"o" long:"long-output-filename" value-name:"FILE" description:"Output file"`
+					Secret      bool   `long:"secret-option" hidden:"yes"`
+					HiddenGroup struct {
+						Value bool `long:"hidden-group-option"`
+					} `group:"Hidden options" hidden:"yes"`
+					Child struct {
+						Verbose bool `long:"verbose" description:"Verbose output"`
+					} `command:"child" description:"Child command"`
+				}
+				p := NewNamedParser("app", HelpFlag)
+				cmd, err := p.AddCommand("secretcmd", "Secret command", "", &opts)
+				if err != nil {
+					t.Fatal(err)
+				}
+				cmd.Hidden = hidden
+				if hidden {
+					var top bytes.Buffer
+					p.WriteHelp(&top)
+					if strings.Contains(top.String(), "secretcmd") {
+						t.Fatalf("hidden command appears in top-level help: %s", top.String())
+					}
+				}
+				_, err = p.ParseArgs(args)
+				if !WroteHelp(err) {
+					t.Fatalf("expected help, got %v", err)
+				}
+				got := err.(*Error).Message
+				if strings.Contains(got, "secret-option") || strings.Contains(got, "hidden-group-option") {
+					t.Fatalf("hidden options appear in help: %s", got)
+				}
+				if !hidden {
+					expected = got
+				} else {
+					assertDiff(t, got, expected, "explicit hidden command help")
+				}
+			}
+		})
+	}
+}
+
 func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	oldEnv := EnvSnapshot()
 	defer oldEnv.Restore()
@@ -464,8 +513,12 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 
 Long hidden command description
 
+[hidden command options]
+      /f, /very-long-foo-option   Very long foo description
+      /b                          Option bar
+
 [hidden command arguments]
-  <positional-foo>:         positional foo
+  <positional-foo>:               positional foo
 `
 		} else {
 			expected = `Usage:
@@ -473,8 +526,12 @@ Long hidden command description
 
 Long hidden command description
 
+[hidden command options]
+      -f, --very-long-foo-option  Very long foo description
+      -b                          Option bar
+
 [hidden command arguments]
-  <positional-foo>:         positional foo
+  <positional-foo>:               positional foo
 `
 		}
 		h := &bytes.Buffer{}
