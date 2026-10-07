@@ -101,6 +101,7 @@ const (
 
 	// IgnoreUnknown ignores any unknown options and passes them as
 	// remaining command line arguments instead of generating an error.
+	// Unknown options in a group of short options are discarded instead.
 	IgnoreUnknown
 
 	// PrintErrors prints any errors which occurred during parsing to
@@ -632,7 +633,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 		optname, argument = p.splitShortConcatArg(s, optname)
 	}
 
-	var unknownErr error
+	isGroup := utf8.RuneCountInString(optname) > 1
 
 	for i, c := range optname {
 		shortname := string(c)
@@ -645,14 +646,8 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 			if err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
 				return err
 			}
-		} else {
-			if unknownErr == nil {
-				unknownErr = newErrorf(ErrUnknownFlag, "unknown flag `%s'", shortname)
-			}
-
-			if (p.Options & IgnoreUnknown) == None {
-				return unknownErr
-			}
+		} else if !isGroup || (p.Options&IgnoreUnknown) == None {
+			return newErrorf(ErrUnknownFlag, "unknown flag `%s'", shortname)
 		}
 
 		// Only the first option can have a concatted argument, so just
@@ -660,7 +655,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 		argument = nil
 	}
 
-	return unknownErr
+	return nil
 }
 
 func (p *parseState) addArgs(args ...string) error {
