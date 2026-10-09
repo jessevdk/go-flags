@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 type helpOptions struct {
@@ -820,4 +821,186 @@ Application Options:
 	terminalColumnsOverride = 0
 
 	assertDiff(t, helpWrappingMessage(t, 0), expected, "help message")
+}
+
+func TestWrapTextUnicode(t *testing.T) {
+	t.Run("Issue401ReproductionWidth63", func(t *testing.T) {
+		s := "01234567891123456789212345678931234567894123456789512345678961\u27643456789"
+		got := wrapText(s, 63, "      ")
+
+		if !utf8.ValidString(got) {
+			t.Fatalf("wrapText returned invalid UTF-8 string: %q", got)
+		}
+		if strings.ContainsRune(got, utf8.RuneError) {
+			t.Fatalf("wrapText produced replacement character in output: %q", got)
+		}
+		expected := "01234567891123456789212345678931234567894123456789512345678961-\n\n      \u27643456789"
+		assertDiff(t, got, expected, "issue 401 wrapText width 63")
+	})
+
+	t.Run("Issue401ReproductionWidth64", func(t *testing.T) {
+		s := "01234567891123456789212345678931234567894123456789512345678961\u27643456789"
+		got := wrapText(s, 64, "      ")
+
+		if !utf8.ValidString(got) {
+			t.Fatalf("wrapText returned invalid UTF-8 string: %q", got)
+		}
+		if strings.ContainsRune(got, utf8.RuneError) {
+			t.Fatalf("wrapText produced replacement character in output: %q", got)
+		}
+		expected := "01234567891123456789212345678931234567894123456789512345678961\u2764-\n\n      3456789"
+		assertDiff(t, got, expected, "issue 401 wrapText width 64")
+	})
+
+	t.Run("MultiByteRunesWithSpaces", func(t *testing.T) {
+		s := "Это первая строка описания параметров программы для проверки переноса текста по пробелам"
+		got := wrapText(s, 30, "  ")
+
+		if !utf8.ValidString(got) {
+			t.Fatalf("wrapText returned invalid UTF-8 string: %q", got)
+		}
+		if strings.ContainsRune(got, utf8.RuneError) {
+			t.Fatalf("wrapText produced replacement character in output: %q", got)
+		}
+
+		lines := strings.Split(got, "\n")
+		for _, line := range lines {
+			trimmed := strings.TrimPrefix(line, "  ")
+			if utf8.RuneCountInString(trimmed) > 30 {
+				t.Errorf("line exceeds maximum length 30: %q (rune count: %d)", line, utf8.RuneCountInString(trimmed))
+			}
+		}
+	})
+
+	t.Run("CJKWithoutSpaces", func(t *testing.T) {
+		s := "一二三四五六七八九十一二三四五六七八九十"
+		got := wrapText(s, 10, "  ")
+
+		if !utf8.ValidString(got) {
+			t.Fatalf("wrapText returned invalid UTF-8 string: %q", got)
+		}
+		if strings.ContainsRune(got, utf8.RuneError) {
+			t.Fatalf("wrapText produced replacement character in output: %q", got)
+		}
+		expected := "一二三四五六七八九-\n\n  十一二三四五六七八-\n\n  九十"
+		assertDiff(t, got, expected, "CJK wrap without spaces")
+	})
+
+	t.Run("FourByteRunesAtBoundary", func(t *testing.T) {
+		s := "012345678\U0001D4009"
+		got := wrapText(s, 10, "  ")
+
+		if !utf8.ValidString(got) {
+			t.Fatalf("wrapText returned invalid UTF-8 string: %q", got)
+		}
+		if strings.ContainsRune(got, utf8.RuneError) {
+			t.Fatalf("wrapText produced replacement character in output: %q", got)
+		}
+		expected := "012345678-\n\n  \U0001D4009"
+		assertDiff(t, got, expected, "4-byte rune at wrap boundary")
+	})
+}
+
+func TestWriteHelpUnicode(t *testing.T) {
+	t.Run("Issue401Description", func(t *testing.T) {
+		var opts struct {
+			WorkerId uint64 `short:"w" long:"worker" description:"01234567891123456789212345678931234567894123456789512345678961\u27643456789"`
+		}
+
+		p := NewParser(&opts, HelpFlag)
+		var buf bytes.Buffer
+		p.WriteHelp(&buf)
+
+		out := buf.String()
+		if !utf8.ValidString(out) {
+			t.Fatalf("WriteHelp produced invalid UTF-8: %q", out)
+		}
+		if strings.ContainsRune(out, utf8.RuneError) {
+			t.Fatalf("WriteHelp produced replacement character: %q", out)
+		}
+		if !strings.Contains(out, "\u2764") {
+			t.Fatalf("WriteHelp output missing expected unicode rune: %q", out)
+		}
+	})
+
+	t.Run("UnicodeOptionNamesAndAlignment", func(t *testing.T) {
+		var opts struct {
+			Alpha string `short:"α" long:"alpha" description:"Greek alpha short option"`
+			Beta  string `short:"b" long:"тест-опция" description:"Cyrillic long option description"`
+			Gamma string `short:"g" long:"gamma" description:"Short description"`
+		}
+
+		p := NewParser(&opts, HelpFlag)
+		var buf bytes.Buffer
+		p.WriteHelp(&buf)
+
+		out := buf.String()
+		if !utf8.ValidString(out) {
+			t.Fatalf("WriteHelp produced invalid UTF-8: %q", out)
+		}
+		if strings.ContainsRune(out, utf8.RuneError) {
+			t.Fatalf("WriteHelp produced replacement character: %q", out)
+		}
+
+		align := p.getAlignmentInfo()
+		descStart := align.descriptionStart() + paddingBeforeOption
+
+		lines := strings.Split(out, "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "--alpha") || strings.Contains(line, "--тест-опция") || strings.Contains(line, "--gamma") {
+				runes := []rune(line)
+				if len(runes) > descStart {
+					charBeforeDesc := runes[descStart-1]
+					charAtDesc := runes[descStart]
+					if charBeforeDesc != ' ' || charAtDesc == ' ' {
+						t.Errorf("Option description not aligned at column %d in line: %q", descStart, line)
+					}
+				}
+			}
+		}
+	})
+
+	t.Run("UnicodePositionalArguments", func(t *testing.T) {
+		var opts struct {
+			Args struct {
+				Filename string `positional-arg-name:"файл" description:"Путь к файлу для обработки в системе"`
+			} `positional-args:"yes"`
+		}
+
+		p := NewParser(&opts, HelpFlag)
+		var buf bytes.Buffer
+		p.WriteHelp(&buf)
+
+		out := buf.String()
+		if !utf8.ValidString(out) {
+			t.Fatalf("WriteHelp produced invalid UTF-8: %q", out)
+		}
+		if strings.ContainsRune(out, utf8.RuneError) {
+			t.Fatalf("WriteHelp produced replacement character: %q", out)
+		}
+		if !strings.Contains(out, "файл:") {
+			t.Errorf("WriteHelp output missing positional argument name: %q", out)
+		}
+	})
+
+	t.Run("UnicodeCommands", func(t *testing.T) {
+		var opts struct {
+			Cmd struct{} `command:"команда" description:"Описание команды"`
+		}
+
+		p := NewParser(&opts, HelpFlag)
+		var buf bytes.Buffer
+		p.WriteHelp(&buf)
+
+		out := buf.String()
+		if !utf8.ValidString(out) {
+			t.Fatalf("WriteHelp produced invalid UTF-8: %q", out)
+		}
+		if strings.ContainsRune(out, utf8.RuneError) {
+			t.Fatalf("WriteHelp produced replacement character: %q", out)
+		}
+		if !strings.Contains(out, "команда") {
+			t.Errorf("WriteHelp output missing command name: %q", out)
+		}
+	})
 }

@@ -179,12 +179,19 @@ func wrapText(s string, l int, prefix string) string {
 		var retline string
 
 		line = strings.TrimSpace(line)
+		runes := []rune(line)
 
-		for wrap && len(line) > l {
+		for wrap && len(runes) > l {
 			// Try to split on space
 			suffix := ""
+			pos := -1
 
-			pos := strings.LastIndex(line[:l], " ")
+			for i := l - 1; i >= 0; i-- {
+				if runes[i] == ' ' {
+					pos = i
+					break
+				}
+			}
 
 			if pos < 0 {
 				pos = l - 1
@@ -195,8 +202,9 @@ func wrapText(s string, l int, prefix string) string {
 				retline += "\n" + prefix
 			}
 
-			retline += strings.TrimSpace(line[:pos]) + suffix
-			line = strings.TrimSpace(line[pos:])
+			retline += strings.TrimSpace(string(runes[:pos])) + suffix
+			line = strings.TrimSpace(string(runes[pos:]))
+			runes = []rune(line)
 		}
 
 		if len(line) > 0 {
@@ -362,10 +370,10 @@ func maxCommandLength(s []*Command) int {
 		return 0
 	}
 
-	ret := len(s[0].Name)
+	ret := utf8.RuneCountInString(s[0].Name)
 
 	for _, v := range s[1:] {
-		l := len(v.Name)
+		l := utf8.RuneCountInString(v.Name)
 
 		if l > ret {
 			ret = l
@@ -553,7 +561,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 					wr.WriteString(argPrefix)
 
 					// Space between "arg:" and the description start
-					descPadding := strings.Repeat(" ", descStart-len(argPrefix))
+					prefixLen := utf8.RuneCountInString(argPrefix)
+					descPadding := ""
+					if descStart > prefixLen {
+						descPadding = strings.Repeat(" ", descStart-prefixLen)
+					}
 					// How much space the description gets before wrapping
 					descWidth := aligninfo.wrapWidth(descStart + 1)
 					// Whitespace to which we can indent new description lines
@@ -584,7 +596,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			fmt.Fprintf(wr, "  %s", c.Name)
 
 			if len(c.ShortDescription) > 0 {
-				pad := strings.Repeat(" ", maxnamelen-len(c.Name))
+				nameLen := utf8.RuneCountInString(c.Name)
+				pad := ""
+				if maxnamelen > nameLen {
+					pad = strings.Repeat(" ", maxnamelen-nameLen)
+				}
 				fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
 
 				if len(c.Aliases) > 0 {
