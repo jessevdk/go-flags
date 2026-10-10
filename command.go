@@ -212,6 +212,18 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					}
 				}
 
+				if len(m.Get("env")) == 0 && stype.NumField() == 1 {
+					m.Set("env", mtag.Get("env"))
+				}
+
+				if len(m.Get("env-delim")) == 0 && stype.NumField() == 1 {
+					m.Set("env-delim", mtag.Get("env-delim"))
+				}
+
+				if ns := mtag.Get("env-namespace"); len(ns) != 0 && len(m.Get("env")) != 0 {
+					m.Set("env", ns+"_"+m.Get("env"))
+				}
+
 				arg := &Arg{
 					Name:            name,
 					Description:     m.Get("description"),
