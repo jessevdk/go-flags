@@ -100,7 +100,8 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 			}
 			prevcmd = c
 		}
-		if !grp.showInHelp() {
+		// A hidden command's own options are visible when it is selected.
+		if !grp.showInHelp() && (c == p.Command || grp != c.Group) {
 			return
 		}
 		for _, info := range grp.options {
@@ -498,7 +499,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 			// Skip built-in help group for all commands except the top-level
 			// parser
-			if grp.Hidden || (grp.isBuiltinHelp && c != p.Command) {
+			if (grp.Hidden && (c == p.Command || grp != c.Group)) || (grp.isBuiltinHelp && c != p.Command) {
 				return
 			}
 
