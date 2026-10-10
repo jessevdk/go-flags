@@ -323,6 +323,12 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			}
 		})
 
+		if s.err == nil {
+			if err := s.readPositionalEnv(); err != nil {
+				s.err = err
+			}
+		}
+
 		s.checkRequired(p)
 	}
 
@@ -672,6 +678,50 @@ func (p *parseState) addArgs(args ...string) error {
 	}
 
 	p.retargs = append(p.retargs, args...)
+	return nil
+}
+
+func (p *parseState) readPositionalEnv() error {
+	var remaining []*Arg
+
+	for _, arg := range p.positional {
+		envKey := arg.tag.Get("env")
+		if envKey == "" {
+			remaining = append(remaining, arg)
+			continue
+		}
+
+		value, ok := os.LookupEnv(envKey)
+		if !ok {
+			remaining = append(remaining, arg)
+			continue
+		}
+
+		if arg.isRemaining() {
+			if arg.value.Len() == 0 {
+				var values []string
+				if delim := arg.tag.Get("env-delim"); delim != "" {
+					values = strings.Split(value, delim)
+				} else {
+					values = []string{value}
+				}
+
+				for _, v := range values {
+					if err := convert(v, arg.value, arg.tag); err != nil {
+						return err
+					}
+				}
+			}
+
+			remaining = append(remaining, arg)
+		} else {
+			if err := convert(value, arg.value, arg.tag); err != nil {
+				return err
+			}
+		}
+	}
+
+	p.positional = remaining
 	return nil
 }
 
