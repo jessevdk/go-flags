@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -160,4 +161,53 @@ func TestPositionalRequiredRestRangeEmptyFail(t *testing.T) {
 	_, err := p.ParseArgs([]string{"some", "thing"})
 
 	assertError(t, err, ErrRequired, "the required argument `Rest (zero arguments)` was not provided")
+}
+
+type positionalValidated string
+
+func (p *positionalValidated) UnmarshalFlag(value string) error {
+	*p = positionalValidated(value)
+	return nil
+}
+
+func (p positionalValidated) IsValidValue(value string) error {
+	if value == "bad" {
+		return fmt.Errorf("%s is not allowed", value)
+	}
+
+	return nil
+}
+
+func TestPositionalValueValidator(t *testing.T) {
+	var opts struct {
+		Args struct {
+			Name positionalValidated `positional-arg-name:"name"`
+		} `positional-args:"yes"`
+	}
+
+	assertParseFail(t, ErrExpectedArgument, "bad is not allowed", &opts, "bad")
+
+	ret := assertParseSuccess(t, &opts, "good")
+	assertStringArray(t, ret, []string{})
+	assertString(t, string(opts.Args.Name), "good")
+}
+
+func TestPositionalValueValidatorRemaining(t *testing.T) {
+	var opts struct {
+		Args struct {
+			Names []positionalValidated `positional-arg-name:"name"`
+		} `positional-args:"yes"`
+	}
+
+	assertParseFail(t, ErrExpectedArgument, "bad is not allowed", &opts, "good", "bad")
+}
+
+func TestPositionalValueValidatorPointer(t *testing.T) {
+	var opts struct {
+		Args struct {
+			Name *positionalValidated `positional-arg-name:"name"`
+		} `positional-args:"yes"`
+	}
+
+	assertParseFail(t, ErrExpectedArgument, "bad is not allowed", &opts, "bad")
 }
