@@ -161,3 +161,27 @@ func TestPositionalRequiredRestRangeEmptyFail(t *testing.T) {
 
 	assertError(t, err, ErrRequired, "the required argument `Rest (zero arguments)` was not provided")
 }
+
+func TestPositionalWithSubcommand(t *testing.T) {
+	var opts = struct {
+		Command struct {
+			Positional struct {
+				Rest []string
+			} `positional-args:"yes"`
+			Subcommand struct {
+				Positional struct {
+					Rest []string
+				} `positional-args:"yes"`
+			} `command:"subcmd"`
+		} `command:"cmd" subcommands-optional:"true"`
+	}{}
+
+	p := NewParser(&opts, None)
+	_, err := p.ParseArgs([]string{"cmd", "subcmd", "thing"})
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	assertStringArray(t, opts.Command.Subcommand.Positional.Rest, []string{"thing"})
+	assertStringArray(t, opts.Command.Positional.Rest, []string{})
+}
