@@ -156,6 +156,120 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
+func TestDefaultsWithParseOpts(t *testing.T) {
+	var tests = []struct {
+		parseOpts   Options
+		msg         string
+		args        []string
+		opts        defaultOptions
+		expected    defaultOptions
+		expectedErr string
+	}{
+		{
+			parseOpts: Default | SetDefaultIfEmpty,
+			msg:       "parseOpts=SetDefaultIfEmpty, no arguments, expecting default values",
+			args:      []string{},
+			expected: defaultOptions{
+				Int:           0,
+				IntDefault:    1,
+				IntUnderscore: 10,
+
+				Float64:           0.0,
+				Float64Default:    -3.14,
+				Float64Underscore: -33.14,
+
+				NumericFlag: false,
+
+				String:        "",
+				StringDefault: "abc",
+
+				Time:        0,
+				TimeDefault: time.Minute,
+
+				Map:        map[string]int{},
+				MapDefault: map[string]int{"a": 1},
+
+				Slice:        []int{},
+				SliceDefault: []int{1, 2},
+			},
+		},
+		{
+			parseOpts: Default | SetDefaultIfEmpty,
+			msg:       "parseOpts=SetDefaultOfEmpty, set opts values, expecting no default values of non zero value and default on zero",
+			args:      []string{},
+			opts: defaultOptions{
+				Int:           0,
+				IntDefault:    2,
+				IntUnderscore: 11,
+
+				Float64:           0.0,
+				Float64Default:    -3.15,
+				Float64Underscore: -33.15,
+
+				NumericFlag: false,
+
+				String:        "",
+				StringDefault: "abcd",
+
+				Time:        0,
+				TimeDefault: time.Hour,
+
+				Map:        map[string]int{},
+				MapDefault: map[string]int{"a": 1, "b": 2},
+
+				Slice:        []int{},
+				SliceDefault: []int{1, 2, 3},
+			},
+			expected: defaultOptions{
+				Int:           0,
+				IntDefault:    2,
+				IntUnderscore: 11,
+
+				Float64:           0.0,
+				Float64Default:    -3.15,
+				Float64Underscore: -33.15,
+
+				NumericFlag: false,
+
+				String:        "",
+				StringDefault: "abcd",
+
+				Time:        0,
+				TimeDefault: time.Hour,
+
+				Map:        map[string]int{},
+				MapDefault: map[string]int{"a": 1, "b": 2},
+
+				Slice:        []int{},
+				SliceDefault: []int{1, 2, 3},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		_, err := NewParser(&test.opts, test.parseOpts).ParseArgs(test.args)
+		if test.expectedErr != "" {
+			if err == nil {
+				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)
+			} else if !strings.Contains(err.Error(), test.expectedErr) {
+				t.Errorf("%s:\nExpected error %q to contain substring %q", test.msg, err, test.expectedErr)
+			}
+		} else {
+			if err != nil {
+				t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
+			}
+
+			if test.opts.Slice == nil {
+				test.opts.Slice = []int{}
+			}
+
+			if !reflect.DeepEqual(test.opts, test.expected) {
+				t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, test.opts)
+			}
+		}
+	}
+}
+
 func TestNoDefaultsForBools(t *testing.T) {
 	var opts struct {
 		DefaultBool bool `short:"d" default:"true"`
