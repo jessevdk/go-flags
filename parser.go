@@ -319,13 +319,15 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	}
 
 	if s.err == nil {
-		p.eachOption(func(c *Command, g *Group, option *Option) {
-			err := option.clearDefault()
-			if err != nil {
-				if _, ok := err.(*Error); !ok {
-					err = p.marshalError(option, err)
+		p.eachActiveGroup(func(_ *Command, g *Group) {
+			for _, option := range g.options {
+				err := option.clearDefault()
+				if err != nil {
+					if _, ok := err.(*Error); !ok {
+						err = p.marshalError(option, err)
+					}
+					s.err = err
 				}
-				s.err = err
 			}
 		})
 
